@@ -29,11 +29,56 @@ function init() {
 
 function setupEventListeners() {
     themeToggle.addEventListener('click', toggleTheme);
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && state.currentModule === 'active') {
+            togglePause();
+        } else if (e.key === 'Escape' && state.currentModule === 'paused') {
+            togglePause();
+        }
+    });
 }
 
 function toggleTheme() {
     state.theme = state.theme === 'dark' ? 'light' : 'dark';
     document.body.setAttribute('data-theme', state.theme);
+}
+
+/**
+ * Global State Controls
+ */
+function togglePause() {
+    const overlay = document.getElementById('pause-overlay');
+    if (!overlay) {
+        createPauseOverlay();
+        return togglePause();
+    }
+
+    if (state.currentModule === 'active') {
+        state.currentModule = 'paused';
+        overlay.classList.remove('hidden');
+    } else if (state.currentModule === 'paused') {
+        state.currentModule = 'active';
+        overlay.classList.add('hidden');
+    }
+}
+
+function createPauseOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'pause-overlay';
+    overlay.className = 'hidden';
+    overlay.innerHTML = `
+        <div class="pause-title">Sesión en Pausa</div>
+        <p class="pause-hint">La herramienta ha sido pausada momentáneamente.</p>
+        <button class="btn-primary" id="btn-resume">Reanudar</button>
+        <button class="btn-ghost" id="btn-exit-global">Salir del Módulo</button>
+    `;
+    document.body.appendChild(overlay);
+
+    document.getElementById('btn-resume').addEventListener('click', togglePause);
+    document.getElementById('btn-exit-global').addEventListener('click', () => {
+        togglePause();
+        renderHome();
+    });
 }
 
 /**
@@ -109,7 +154,10 @@ function renderAnalisisModule(module) {
                         <span style="font-size: 1.25rem;">${module.icon}</span>
                         <h2 style="font-size: 1.1rem; font-weight: 600;">${module.title}</h2>
                     </div>
-                    <button class="btn-ghost" id="btn-back">Finalizar</button>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;">⏸</button>
+                        <button class="btn-ghost" id="btn-back">Finalizar</button>
+                    </div>
                 </header>
 
                 <div class="tool-selector glass" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
@@ -125,6 +173,7 @@ function renderAnalisisModule(module) {
         `;
 
         document.getElementById('btn-back').addEventListener('click', renderHome);
+        document.getElementById('btn-pause').addEventListener('click', togglePause);
         document.querySelectorAll('.btn-tool').forEach(btn => {
             btn.addEventListener('click', () => {
                 activeToolId = btn.getAttribute('data-id');
@@ -162,7 +211,10 @@ function renderHacerLoQueImportaModule(module) {
                         <span style="font-size: 1.25rem;">${module.icon}</span>
                         <h2 style="font-size: 1.1rem; font-weight: 600;">${module.title}</h2>
                     </div>
-                    <button class="btn-ghost" id="btn-back">Finalizar</button>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;">⏸</button>
+                        <button class="btn-ghost" id="btn-back">Finalizar</button>
+                    </div>
                 </header>
 
                 <div class="tool-selector glass" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
@@ -178,6 +230,7 @@ function renderHacerLoQueImportaModule(module) {
         `;
 
         document.getElementById('btn-back').addEventListener('click', renderHome);
+        document.getElementById('btn-pause').addEventListener('click', togglePause);
         document.querySelectorAll('.btn-tool').forEach(btn => {
             btn.addEventListener('click', () => {
                 activeToolId = btn.getAttribute('data-id');
@@ -217,7 +270,10 @@ function renderEstarPresenteModule(module) {
                         <span style="font-size: 1.25rem;">${module.icon}</span>
                         <h2 style="font-size: 1.1rem; font-weight: 600;">${module.title}</h2>
                     </div>
-                    <button class="btn-ghost" id="btn-back">Finalizar</button>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;">⏸</button>
+                        <button class="btn-ghost" id="btn-back">Finalizar</button>
+                    </div>
                 </header>
 
                 <div class="tool-selector glass" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
@@ -233,6 +289,7 @@ function renderEstarPresenteModule(module) {
         `;
 
         document.getElementById('btn-back').addEventListener('click', renderHome);
+        document.getElementById('btn-pause').addEventListener('click', togglePause);
         document.querySelectorAll('.btn-tool').forEach(btn => {
             btn.addEventListener('click', () => {
                 activeToolId = btn.getAttribute('data-id');
@@ -272,7 +329,10 @@ function renderAbrirseModule(module) {
                         <span style="font-size: 1.25rem;">${module.icon}</span>
                         <h2 style="font-size: 1.1rem; font-weight: 600;">${module.title}</h2>
                     </div>
-                    <button class="btn-ghost" id="btn-back">Finalizar</button>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;">⏸</button>
+                        <button class="btn-ghost" id="btn-back">Finalizar</button>
+                    </div>
                 </header>
 
                 <div class="tool-selector glass" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
@@ -288,6 +348,7 @@ function renderAbrirseModule(module) {
         `;
 
         document.getElementById('btn-back').addEventListener('click', renderHome);
+        document.getElementById('btn-pause').addEventListener('click', togglePause);
         document.querySelectorAll('.btn-tool').forEach(btn => {
             btn.addEventListener('click', () => {
                 activeToolId = btn.getAttribute('data-id');
@@ -439,18 +500,18 @@ function renderInterruptorLuchaTool(container) {
 
                     <div class="status-labels" style="display: flex; flex-direction: column; gap: 0.5rem;">
                         <h4 style="font-size: 1.25rem; color: ${isStruggling ? 'var(--color-danger)' : 'var(--color-primary)'};">
-                            ${isStruggling ? 'LUCHANDO' : 'ABIERTO / DISPUESTO'}
+                            ${isStruggling ? 'Estado: Lucha' : 'Estado: Disposición'}
                         </h4>
-                        <p style="font-size: 0.8rem; color: var(--color-text-secondary); max-width: 250px;">
+                        <p style="font-size: 0.85rem; color: var(--color-text-secondary); max-width: 250px;">
                             ${isStruggling
-                ? 'Gastando energía para que la emoción desaparezca o cambie.'
-                : 'Permitiendo que la emoción esté ahí, sin dedicar energía a combatirla.'}
+                ? 'Se observa esfuerzo por controlar o minimizar la experiencia interna.'
+                : 'Se observa apertura y permiso hacia la experiencia presente.'}
                         </p>
                     </div>
                 </div>
 
                 <div class="clinical-outcomes" style="margin-top: 2rem; padding: 1.5rem; border-radius: var(--radius-md); background: var(--glass-bg); font-size: 0.85rem; text-align: center;">
-                    <p><strong>Efecto observado:</strong> ${isStruggling ? 'Tensión alta, fatiga, aumento de la importancia del síntoma.' : 'La emoción sigue ahí, pero hay espacio para elegir qué hacer.'}</p>
+                    <p><strong>Observación:</strong> Nota la relación del consultante con su experiencia en este momento.</p>
                 </div>
             </div>
         `;
@@ -654,7 +715,7 @@ function renderDianaTool(container) {
             <div class="tool-content">
                 <div class="intro" style="margin-bottom: 1.5rem; text-align: center;">
                     <h3 style="font-size: 1rem; color: var(--color-primary); margin-bottom: 0.5rem;">La Diana de Valores</h3>
-                    <p style="font-size: 0.85rem; color: var(--color-text-secondary);">Marca qué tan cerca estás de actuar según tus valores en cada área.</p>
+                    <p style="font-size: 0.85rem; color: var(--color-text-secondary);">Ubica cada área de vida en la diana según tu perspectiva actual.</p>
                 </div>
 
                 <div class="diana-target glass" style="width: 300px; height: 300px; margin: 0 auto; border-radius: 50%; position: relative; border: 1px solid var(--glass-border); background: radial-gradient(circle, transparent 30%, rgba(255,255,255,0.05) 30.1%, rgba(255,255,255,0.05) 60%, transparent 60.1%, transparent 90%, rgba(255,255,255,0.05) 90.1%);">
@@ -681,7 +742,7 @@ function renderDianaTool(container) {
                 </div>
 
                 <div class="clinical-note" style="margin-top: 1rem; font-size: 0.75rem; color: var(--color-text-secondary); text-align: center;">
-                    "Pulsa en la diana para ubicar cada área. El centro es la vida que quieres vivir."
+                    "Pulsa en la diana para ubicar cada área. El centro representa actuar según lo que valoras."
                 </div>
             </div>
         `;
@@ -907,9 +968,9 @@ function renderDOTSTool(container) {
                     `).join('')}
                 </div>
 
-                <div class="clinical-outcomes glass" style="margin-top: 2rem; padding: 1.5rem; border-radius: var(--radius-md); background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1);">
-                    <h5 style="font-size: 0.85rem; color: #ef4444; margin-bottom: 0.5rem; text-align: center;">El coste de la evitación</h5>
-                    <p style="font-size: 0.8rem; color: var(--color-text-secondary); text-align: center;">Estas estrategias funcionan a corto plazo, pero a largo plazo suelen alejarte de lo que importa.</p>
+                <div class="clinical-outcomes glass" style="margin-top: 2rem; padding: 1.5rem; border-radius: var(--radius-md); background: var(--glass-bg); border: 1px solid var(--glass-border);">
+                    <h5 style="font-size: 0.85rem; color: var(--color-primary); margin-bottom: 0.5rem; text-align: center;">Observación de la función</h5>
+                    <p style="font-size: 0.8rem; color: var(--color-text-secondary); text-align: center;">Nota cómo funcionan estas acciones como respuesta al malestar.</p>
                 </div>
             </div>
         `;

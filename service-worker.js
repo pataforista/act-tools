@@ -4,8 +4,7 @@ const ASSETS = [
     './index.html',
     './styles/main.css',
     './app.js',
-    './manifest.json',
-    'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap'
+    './manifest.json'
 ];
 
 self.addEventListener('install', event => {
@@ -16,6 +15,23 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+    const url = new URL(event.request.url);
+
+    // Cache Google Fonts
+    if (url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com') {
+        event.respondWith(
+            caches.open('google-fonts').then(cache => {
+                return cache.match(event.request).then(response => {
+                    return response || fetch(event.request).then(networkResponse => {
+                        cache.put(event.request, networkResponse.clone());
+                        return networkResponse;
+                    });
+                });
+            })
+        );
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request)
             .then(response => response || fetch(event.request))
