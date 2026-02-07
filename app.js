@@ -86,31 +86,7 @@ function createPauseOverlay() {
  * Render Home Screen (Module Selector)
  */
 function renderHome() {
-    state.currentModule = 'idle';
-    state.activeModuleId = null;
-
-    mainContent.innerHTML = `
-        <div class="intro" style="margin-bottom: 2rem;">
-            <h1 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Hola, Clínico</h1>
-            <p style="color: var(--color-text-secondary); font-size: 0.9rem;">Selecciona una puerta de entrada para este momento de la sesión.</p>
-        </div>
-        <div class="module-grid">
-            ${modules.map(module => `
-                <button class="module-card glass" type="button" data-id="${module.id}" aria-label="Abrir módulo ${module.title}">
-                    <div class="icon">${module.icon}</div>
-                    <h3>${module.title}</h3>
-                </button>
-            `).join('')}
-        </div>
-    `;
-
-    // Add click events to cards
-    document.querySelectorAll('.module-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const id = card.getAttribute('data-id');
-            loadModule(id);
-        });
-    });
+    renderHexaflexLanding();
 }
 
 /**
@@ -141,7 +117,8 @@ function loadModule(id) {
 /**
  * MODULE: Hexaflex (Central Navigator)
  */
-function renderHexaflexModule(module) {
+function renderHexaflexModule(module, options = {}) {
+    const { showControls = true, isLanding = false } = options;
     const points = [
         {
             id: 'abrirse',
@@ -200,15 +177,17 @@ function renderHexaflexModule(module) {
                     <span style="font-size: 1.25rem;">${module.icon}</span>
                     <h2 style="font-size: 1.1rem; font-weight: 600;">${module.title}</h2>
                 </div>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;">⏸</button>
-                    <button class="btn-ghost" id="btn-back">Finalizar</button>
-                </div>
+                ${showControls ? `
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;">⏸</button>
+                        <button class="btn-ghost" id="btn-back">Finalizar</button>
+                    </div>
+                ` : ''}
             </header>
 
             <section class="glass hexaflex-intro">
-                <h3>Mapa central de la sesión</h3>
-                <p>Usa el hexaflex para elegir el módulo más útil según el punto de la conversación clínica.</p>
+                <h3>${isLanding ? 'Mapa inicial de la sesión' : 'Mapa central de la sesión'}</h3>
+                <p>${isLanding ? 'Toca el hexaflex para entrar a los módulos disponibles.' : 'Usa el hexaflex para elegir el módulo más útil según el punto de la conversación clínica.'}</p>
             </section>
 
             <section class="hexaflex-grid">
@@ -240,8 +219,14 @@ function renderHexaflexModule(module) {
         </div>
     `;
 
-    document.getElementById('btn-back').addEventListener('click', renderHome);
-    document.getElementById('btn-pause').addEventListener('click', togglePause);
+    const backButton = document.getElementById('btn-back');
+    if (backButton) {
+        backButton.addEventListener('click', renderHome);
+    }
+    const pauseButton = document.getElementById('btn-pause');
+    if (pauseButton) {
+        pauseButton.addEventListener('click', togglePause);
+    }
     document.querySelectorAll('.hexaflex-card__action').forEach(button => {
         button.addEventListener('click', () => {
             const target = button.getAttribute('data-target');
@@ -250,6 +235,14 @@ function renderHexaflexModule(module) {
             }
         });
     });
+}
+
+function renderHexaflexLanding() {
+    state.currentModule = 'idle';
+    state.activeModuleId = null;
+    const module = modules.find(m => m.id === 'hexaflex');
+    if (!module) return;
+    renderHexaflexModule(module, { showControls: false, isLanding: true });
 }
 
 /**
