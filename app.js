@@ -96,10 +96,10 @@ function renderHome() {
         </div>
         <div class="module-grid">
             ${modules.map(module => `
-                <div class="module-card glass" data-id="${module.id}">
+                <button class="module-card glass" type="button" data-id="${module.id}" aria-label="Abrir módulo ${module.title}">
                     <div class="icon">${module.icon}</div>
                     <h3>${module.title}</h3>
-                </div>
+                </button>
             `).join('')}
         </div>
     `;
@@ -272,14 +272,14 @@ function renderAnalisisModule(module) {
                         <h2 style="font-size: 1.1rem; font-weight: 600;">${module.title}</h2>
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;">⏸</button>
+                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;" aria-label="Pausar sesión">⏸ Pausa</button>
                         <button class="btn-ghost" id="btn-back">Finalizar</button>
                     </div>
                 </header>
 
                 <div class="tool-selector glass" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
                     ${tools.map(t => `
-                        <button class="btn-tool ${activeToolId === t.id ? 'active' : ''}" data-id="${t.id}" style="flex: 1; font-size: 0.8rem; padding: 0.5rem 1rem; border-radius: var(--radius-sm);">
+                        <button class="btn-tool ${activeToolId === t.id ? 'active' : ''}" data-id="${t.id}" style="flex: 1; font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: var(--radius-sm);">
                             ${t.icon} ${t.title}
                         </button>
                     `).join('')}
@@ -329,14 +329,14 @@ function renderHacerLoQueImportaModule(module) {
                         <h2 style="font-size: 1.1rem; font-weight: 600;">${module.title}</h2>
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;">⏸</button>
+                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;" aria-label="Pausar sesión">⏸ Pausa</button>
                         <button class="btn-ghost" id="btn-back">Finalizar</button>
                     </div>
                 </header>
 
                 <div class="tool-selector glass" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
                     ${tools.map(t => `
-                        <button class="btn-tool ${activeToolId === t.id ? 'active' : ''}" data-id="${t.id}" style="flex: 0 0 auto; font-size: 0.8rem; padding: 0.5rem 1rem; border-radius: var(--radius-sm); white-space: nowrap;">
+                        <button class="btn-tool ${activeToolId === t.id ? 'active' : ''}" data-id="${t.id}" style="flex: 0 0 auto; font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: var(--radius-sm); white-space: nowrap;">
                             ${t.icon} ${t.title}
                         </button>
                     `).join('')}
@@ -388,14 +388,14 @@ function renderEstarPresenteModule(module) {
                         <h2 style="font-size: 1.1rem; font-weight: 600;">${module.title}</h2>
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;">⏸</button>
+                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;" aria-label="Pausar sesión">⏸ Pausa</button>
                         <button class="btn-ghost" id="btn-back">Finalizar</button>
                     </div>
                 </header>
 
                 <div class="tool-selector glass" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
                     ${tools.map(t => `
-                        <button class="btn-tool ${activeToolId === t.id ? 'active' : ''}" data-id="${t.id}" style="flex: 0 0 auto; font-size: 0.8rem; padding: 0.5rem 1rem; border-radius: var(--radius-sm); white-space: nowrap;">
+                        <button class="btn-tool ${activeToolId === t.id ? 'active' : ''}" data-id="${t.id}" style="flex: 0 0 auto; font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: var(--radius-sm); white-space: nowrap;">
                             ${t.icon} ${t.title}
                         </button>
                     `).join('')}
@@ -447,14 +447,14 @@ function renderAbrirseModule(module) {
                         <h2 style="font-size: 1.1rem; font-weight: 600;">${module.title}</h2>
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;">⏸</button>
+                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;" aria-label="Pausar sesión">⏸ Pausa</button>
                         <button class="btn-ghost" id="btn-back">Finalizar</button>
                     </div>
                 </header>
 
                 <div class="tool-selector glass" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
                     ${tools.map(t => `
-                        <button class="btn-tool ${activeToolId === t.id ? 'active' : ''}" data-id="${t.id}" style="flex: 0 0 auto; font-size: 0.8rem; padding: 0.5rem 1rem; border-radius: var(--radius-sm); white-space: nowrap;">
+                        <button class="btn-tool ${activeToolId === t.id ? 'active' : ''}" data-id="${t.id}" style="flex: 0 0 auto; font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: var(--radius-sm); white-space: nowrap;">
                             ${t.icon} ${t.title.split(' ')[0]}
                         </button>
                     `).join('')}
@@ -500,8 +500,7 @@ function renderVisualizadorPensamientosTool(container) {
                 </div>
 
                 <div id="thought-input-container" style="margin-bottom: 2rem; display: flex; gap: 0.5rem;">
-                    <input type="text" id="thought-input" placeholder="Tengo el pensamiento de que..." 
-                           style="flex: 1; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border); background: var(--glass-bg); color: white;">
+                    <input type="text" id="thought-input" class="input-field" placeholder="Tengo el pensamiento de que..." style="flex: 1;">
                     <button id="btn-add-thought" class="btn-primary">+</button>
                 </div>
 
@@ -566,8 +565,7 @@ function renderRadioDoomGloomTool(container) {
                     </div>
                     
                     <div class="radio-controls" style="display: flex; flex-direction: column; gap: 1rem;">
-                        <input type="text" id="radio-input" placeholder="¿Qué dice la radio ahora?" 
-                               style="padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border); background: var(--glass-bg); color: white; text-align: center;">
+                        <input type="text" id="radio-input" class="input-field center" placeholder="¿Qué dice la radio ahora?">
                         
                         <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.7rem; color: var(--color-text-secondary);">
                             <span>VOLUMEN</span>
@@ -780,8 +778,7 @@ function renderCieloYClimaTool(container) {
                 </div>
 
                 <div id="weather-input-container" style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
-                    <input type="text" id="weather-input" placeholder="¿Qué clima hay hoy? (ej. ansiedad, duda...)" 
-                           style="flex: 1; padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border); background: var(--glass-bg); color: white;">
+                    <input type="text" id="weather-input" class="input-field" placeholder="¿Qué clima hay hoy? (ej. ansiedad, duda...)" style="flex: 1;">
                     <button id="btn-add-weather" class="btn-primary">+</button>
                 </div>
 
@@ -902,23 +899,23 @@ function renderSMARTTool(container) {
                 <div class="smart-form" style="display: flex; flex-direction: column; gap: 1rem;">
                     <div class="glass" style="padding: 1rem; border-radius: var(--radius-md);">
                         <label style="display: block; font-size: 0.7rem; color: var(--color-primary); font-weight: bold; margin-bottom: 0.5rem;">ESPECÍFICA (¿Qué harás exactamente?)</label>
-                        <input type="text" data-key="S" value="${goals.S}" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--glass-border); color: white; outline: none; padding: 0.25rem 0;">
+                        <input type="text" data-key="S" value="${goals.S}" class="input-underline">
                     </div>
                     <div class="glass" style="padding: 1rem; border-radius: var(--radius-md);">
                         <label style="display: block; font-size: 0.7rem; color: var(--color-primary); font-weight: bold; margin-bottom: 0.5rem;">MOTIVADA (¿Por qué valor es importante?)</label>
-                        <input type="text" data-key="M" value="${goals.M}" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--glass-border); color: white; outline: none; padding: 0.25rem 0;">
+                        <input type="text" data-key="M" value="${goals.M}" class="input-underline">
                     </div>
                     <div class="glass" style="padding: 1rem; border-radius: var(--radius-md);">
                         <label style="display: block; font-size: 0.7rem; color: var(--color-primary); font-weight: bold; margin-bottom: 0.5rem;">ACCESIBLE (¿Está bajo tu control?)</label>
-                        <input type="text" data-key="A" value="${goals.A}" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--glass-border); color: white; outline: none; padding: 0.25rem 0;">
+                        <input type="text" data-key="A" value="${goals.A}" class="input-underline">
                     </div>
                     <div class="glass" style="padding: 1rem; border-radius: var(--radius-md);">
                         <label style="display: block; font-size: 0.7rem; color: var(--color-primary); font-weight: bold; margin-bottom: 0.5rem;">RELEVANTE (¿Te acerca a tu dirección?)</label>
-                        <input type="text" data-key="R" value="${goals.R}" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--glass-border); color: white; outline: none; padding: 0.25rem 0;">
+                        <input type="text" data-key="R" value="${goals.R}" class="input-underline">
                     </div>
                     <div class="glass" style="padding: 1rem; border-radius: var(--radius-md);">
                         <label style="display: block; font-size: 0.7rem; color: var(--color-primary); font-weight: bold; margin-bottom: 0.5rem;">TEMPORAL (¿Cuándo lo harás?)</label>
-                        <input type="text" data-key="T" value="${goals.T}" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--glass-border); color: white; outline: none; padding: 0.25rem 0;">
+                        <input type="text" data-key="T" value="${goals.T}" class="input-underline">
                     </div>
                 </div>
             </div>
@@ -963,8 +960,8 @@ function renderDARETool(container) {
                 </div>
 
                 <div class="toggle-container glass" style="display: flex; gap: 0.5rem; padding: 0.25rem; border-radius: 10px; margin-bottom: 1.5rem;">
-                    <button id="view-fear" class="btn-tool ${viewMode === 'fear' ? 'active' : ''}" style="flex: 1; padding: 0.5rem; font-size: 0.8rem; border-radius: 8px;">Las Barreras (FEAR)</button>
-                    <button id="view-dare" class="btn-tool ${viewMode === 'dare' ? 'active' : ''}" style="flex: 1; padding: 0.5rem; font-size: 0.8rem; border-radius: 8px;">La Respuesta (DARE)</button>
+                    <button id="view-fear" class="btn-tool ${viewMode === 'fear' ? 'active' : ''}" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; border-radius: 8px;">Las Barreras (FEAR)</button>
+                    <button id="view-dare" class="btn-tool ${viewMode === 'dare' ? 'active' : ''}" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; border-radius: 8px;">La Respuesta (DARE)</button>
                 </div>
 
                 <div class="fear-dare-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -977,8 +974,7 @@ function renderDARETool(container) {
                                     <p style="font-size: 0.8rem; color: var(--color-text-secondary);">${item.text}</p>
                                 </div>
                             </div>
-                            <input type="text" placeholder="¿Cómo se ve esto hoy?" 
-                                   style="width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--glass-border); color: white; outline: none; margin-top: 0.5rem; font-size: 0.8rem;">
+                            <input type="text" placeholder="¿Cómo se ve esto hoy?" class="input-underline" style="margin-top: 0.5rem;">
                         </div>
                     `).join('')}
                 </div>
@@ -1028,8 +1024,7 @@ function renderMatrixTool(container) {
                 </div>
 
                 <div class="matrix-input-area" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                    <input type="text" id="matrix-item-input" placeholder="Escribe algo..." 
-                           style="padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border); background: var(--glass-bg); color: white;">
+                    <input type="text" id="matrix-item-input" class="input-field" placeholder="Escribe algo...">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
                         <button class="btn-ghost" data-quad="top_left" style="font-size: 0.65rem; border: 1px solid #ef444444;">Mental ↔ Lejos</button>
                         <button class="btn-ghost" data-quad="top_right" style="font-size: 0.65rem; border: 1px solid #10b98144;">Mental ↔ Hacia</button>
@@ -1080,7 +1075,7 @@ function renderDOTSTool(container) {
                         <div class="strategy-item glass" style="padding: 1.25rem; border-radius: var(--radius-md);">
                             <h4 style="font-size: 1rem; color: var(--color-primary); margin-bottom: 0.25rem;">${s.label}</h4>
                             <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">${s.examples}</p>
-                            <input type="text" placeholder="Tus ejemplos..." style="width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--glass-border); color: white; outline: none; font-size: 0.85rem;">
+                            <input type="text" placeholder="Tus ejemplos..." class="input-underline">
                         </div>
                     `).join('')}
                 </div>
