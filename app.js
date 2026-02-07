@@ -10,6 +10,7 @@ const state = {
 };
 
 const modules = [
+    { id: 'hexaflex', title: 'Hexaflex', icon: '🧭', color: '#f97316' },
     { id: 'abrirse', title: 'Abrirse', icon: '🔓', color: '#f59e0b' },
     { id: 'presente', title: 'Estar Presente', icon: '🧘', color: '#10b981' },
     { id: 'importa', title: 'Hacer lo que Importa', icon: '🎯', color: '#3182ce' },
@@ -124,6 +125,8 @@ function loadModule(id) {
 
     if (id === 'abrirse') {
         renderAbrirseModule(module);
+    } else if (id === 'hexaflex') {
+        renderHexaflexModule(module);
     } else if (id === 'presente') {
         renderEstarPresenteModule(module);
     } else if (id === 'importa') {
@@ -133,6 +136,120 @@ function loadModule(id) {
     } else {
         renderPlaceholderModule(module);
     }
+}
+
+/**
+ * MODULE: Hexaflex (Central Navigator)
+ */
+function renderHexaflexModule(module) {
+    const points = [
+        {
+            id: 'abrirse',
+            title: 'Abrirse',
+            subtitle: 'Aceptación y defusión',
+            icon: '🔓',
+            moduleId: 'abrirse',
+            cue: 'Cuando aparece lucha con pensamientos o sensaciones.'
+        },
+        {
+            id: 'presente',
+            title: 'Estar Presente',
+            subtitle: 'Contacto con el ahora',
+            icon: '🧘',
+            moduleId: 'presente',
+            cue: 'Para regular, pausar y volver al momento.'
+        },
+        {
+            id: 'yo',
+            title: 'Yo observador',
+            subtitle: 'Perspectiva flexible',
+            icon: '👁️',
+            moduleId: 'presente',
+            cue: 'Para notar sin fusionarte: usa ejercicios de presencia.'
+        },
+        {
+            id: 'valores',
+            title: 'Valores',
+            subtitle: 'Dirección vital',
+            icon: '🧭',
+            moduleId: 'importa',
+            cue: 'Para clarificar lo que importa en la sesión.'
+        },
+        {
+            id: 'accion',
+            title: 'Acción comprometida',
+            subtitle: 'Pasos pequeños',
+            icon: '✅',
+            moduleId: 'importa',
+            cue: 'Para definir acciones observables y realistas.'
+        },
+        {
+            id: 'analisis',
+            title: 'Análisis funcional',
+            subtitle: 'Contexto y función',
+            icon: '🔍',
+            moduleId: 'analisis',
+            cue: 'Para mapear disparadores, respuesta y consecuencias.'
+        }
+    ];
+
+    mainContent.innerHTML = `
+        <div class="module-view">
+            <header style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.25rem;">${module.icon}</span>
+                    <h2 style="font-size: 1.1rem; font-weight: 600;">${module.title}</h2>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;">⏸</button>
+                    <button class="btn-ghost" id="btn-back">Finalizar</button>
+                </div>
+            </header>
+
+            <section class="glass hexaflex-intro">
+                <h3>Mapa central de la sesión</h3>
+                <p>Usa el hexaflex para elegir el módulo más útil según el punto de la conversación clínica.</p>
+            </section>
+
+            <section class="hexaflex-grid">
+                ${points.map(point => `
+                    <div class="glass hexaflex-card">
+                        <div class="hexaflex-card__header">
+                            <span class="hexaflex-card__icon">${point.icon}</span>
+                            <div>
+                                <h4>${point.title}</h4>
+                                <p>${point.subtitle}</p>
+                            </div>
+                        </div>
+                        <p class="hexaflex-card__cue">${point.cue}</p>
+                        ${point.moduleId ? `<button class="btn-primary hexaflex-card__action" data-target="${point.moduleId}">Abrir módulo</button>` : ''}
+                    </div>
+                `).join('')}
+            </section>
+
+            <section class="glass hexaflex-reminders">
+                <h3>Recordatorios ACT para la sesión</h3>
+                <ul>
+                    <li>Valida la experiencia interna antes de intervenir (empatía + curiosidad).</li>
+                    <li>Haz pequeñas pausas para notar el momento presente.</li>
+                    <li>Invita a diferenciar pensamiento vs. hecho con lenguaje flexible.</li>
+                    <li>Vuelve a valores y compromisos observables (qué harás esta semana).</li>
+                    <li>Detecta patrones de evitación y su función, no solo su contenido.</li>
+                </ul>
+            </section>
+        </div>
+    `;
+
+    document.getElementById('btn-back').addEventListener('click', renderHome);
+    document.getElementById('btn-pause').addEventListener('click', togglePause);
+    document.querySelectorAll('.hexaflex-card__action').forEach(button => {
+        button.addEventListener('click', () => {
+            const target = button.getAttribute('data-target');
+            if (target) {
+                loadModule(target);
+            }
+        });
+    });
 }
 
 /**

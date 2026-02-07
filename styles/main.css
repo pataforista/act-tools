@@ -162,6 +162,87 @@ header {
     margin-bottom: 0.5rem;
 }
 
+/* Hexaflex Module */
+.hexaflex-intro {
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+}
+
+.hexaflex-intro h3 {
+    font-size: 1rem;
+    margin-bottom: 0.35rem;
+}
+
+.hexaflex-intro p {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+}
+
+.hexaflex-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.hexaflex-card {
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.hexaflex-card__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.hexaflex-card__icon {
+    font-size: 1.5rem;
+}
+
+.hexaflex-card h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+}
+
+.hexaflex-card p {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+}
+
+.hexaflex-card__cue {
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+}
+
+.hexaflex-card__action {
+    align-self: flex-start;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+}
+
+.hexaflex-reminders {
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+}
+
+.hexaflex-reminders h3 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.hexaflex-reminders ul {
+    display: grid;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    padding-left: 1rem;
+}
+
 /* Actions */
 button {
     font-family: var(--font-main);
