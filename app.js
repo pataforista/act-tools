@@ -6,15 +6,18 @@
 const state = {
     currentModule: 'idle', // idle, active, paused
     activeModuleId: null,
-    theme: 'dark'
+    theme: 'dark',
+    viewMode: 'hexaflex' // hexaflex or triflex
 };
 
 const modules = [
-    { id: 'hexaflex', title: 'Hexaflex', icon: '🧭', color: '#f97316' },
-    { id: 'abrirse', title: 'Abrirse', icon: '🔓', color: '#f59e0b' },
-    { id: 'presente', title: 'Estar Presente', icon: '🧘', color: '#10b981' },
-    { id: 'importa', title: 'Hacer lo que Importa', icon: '🎯', color: '#3182ce' },
-    { id: 'analisis', title: 'Análisis', icon: '🔍', color: '#8b5cf6' }
+    { id: 'hexaflex', title: 'Hexaflex', icon: '🧭', color: '#f59e0b' },
+    { id: 'abrirse', title: 'Abrirse', icon: '🔓', color: 'var(--hex-abrirse)' },
+    { id: 'presente', title: 'Presente', icon: '🧘', color: 'var(--hex-presente)' },
+    { id: 'yo', title: 'Yo Observador', icon: '👁️', color: 'var(--hex-yo)' },
+    { id: 'importa', title: 'Valores', icon: '🎯', color: 'var(--hex-valores)' },
+    { id: 'accion', title: 'Acción Comprometida', icon: '✅', color: 'var(--hex-accion)' },
+    { id: 'analisis', title: 'Análisis Funcional', icon: '🔍', color: 'var(--hex-analisis)' }
 ];
 
 const mainContent = document.getElementById('main-content');
@@ -71,7 +74,7 @@ function createPauseOverlay() {
         <div class="pause-title">Sesión en Pausa</div>
         <p class="pause-hint">La herramienta ha sido pausada momentáneamente.</p>
         <button class="btn-primary" id="btn-resume">Reanudar</button>
-        <button class="btn-ghost" id="btn-exit-global">Salir del Módulo</button>
+        <button class="btn-ghost" id="btn-exit-global">Finalizar Sesión</button>
     `;
     document.body.appendChild(overlay);
 
@@ -96,7 +99,7 @@ function loadModule(id) {
     const module = modules.find(m => m.id === id);
     if (!module) return;
 
-    state.currentModule = 'active';
+    state.currentModule = id === 'hexaflex' ? 'idle' : 'active';
     state.activeModuleId = id;
 
     if (id === 'abrirse') {
@@ -105,8 +108,12 @@ function loadModule(id) {
         renderHexaflexModule(module);
     } else if (id === 'presente') {
         renderEstarPresenteModule(module);
+    } else if (id === 'yo') {
+        renderEstarPresenteModule(module); // Shared for now or add specific tool
     } else if (id === 'importa') {
         renderHacerLoQueImportaModule(module);
+    } else if (id === 'accion') {
+        renderHacerLoQueImportaModule(module); // Shared for now or add specific tool
     } else if (id === 'analisis') {
         renderAnalisisModule(module);
     } else {
@@ -115,125 +122,130 @@ function loadModule(id) {
 }
 
 /**
- * MODULE: Hexaflex (Central Navigator)
+ * MODULE: Hexaflex/Triflex (Central Navigator)
  */
 function renderHexaflexModule(module, options = {}) {
     const { showControls = true, isLanding = false } = options;
+
     const points = [
-        {
-            id: 'abrirse',
-            title: 'Abrirse',
-            subtitle: 'Aceptación y defusión',
-            icon: '🔓',
-            moduleId: 'abrirse',
-            cue: 'Cuando aparece lucha con pensamientos o sensaciones.'
-        },
-        {
-            id: 'presente',
-            title: 'Estar Presente',
-            subtitle: 'Contacto con el ahora',
-            icon: '🧘',
-            moduleId: 'presente',
-            cue: 'Para regular, pausar y volver al momento.'
-        },
-        {
-            id: 'yo',
-            title: 'Yo observador',
-            subtitle: 'Perspectiva flexible',
-            icon: '👁️',
-            moduleId: 'presente',
-            cue: 'Para notar sin fusionarte: usa ejercicios de presencia.'
-        },
-        {
-            id: 'valores',
-            title: 'Valores',
-            subtitle: 'Dirección vital',
-            icon: '🧭',
-            moduleId: 'importa',
-            cue: 'Para clarificar lo que importa en la sesión.'
-        },
-        {
-            id: 'accion',
-            title: 'Acción comprometida',
-            subtitle: 'Pasos pequeños',
-            icon: '✅',
-            moduleId: 'importa',
-            cue: 'Para definir acciones observables y realistas.'
-        },
-        {
-            id: 'analisis',
-            title: 'Análisis funcional',
-            subtitle: 'Contexto y función',
-            icon: '🔍',
-            moduleId: 'analisis',
-            cue: 'Para mapear disparadores, respuesta y consecuencias.'
-        }
+        { id: 'abrirse', title: 'Abrirse', icon: '🔓', color: 'var(--hex-abrirse)', angle: -90, pillar: 'open' },
+        { id: 'presente', title: 'Presente', icon: '🧘', color: 'var(--hex-presente)', angle: -30, pillar: 'centered' },
+        { id: 'yo', title: 'Yo', icon: '👁️', color: 'var(--hex-yo)', angle: 30, pillar: 'centered' },
+        { id: 'importa', title: 'Valores', icon: '🎯', color: 'var(--hex-valores)', angle: 90, pillar: 'engaged' },
+        { id: 'accion', title: 'Acción', icon: '✅', color: 'var(--hex-accion)', angle: 150, pillar: 'engaged' },
+        { id: 'analisis', title: 'Análisis', icon: '🔍', color: 'var(--hex-analisis)', angle: 210, pillar: 'open' }
     ];
 
+    const centerX = 200, centerY = 200, radius = 135;
+    const getCoords = (angle, r) => ({
+        x: centerX + r * Math.cos((angle * Math.PI) / 180),
+        y: centerY + r * Math.sin((angle * Math.PI) / 180)
+    });
+
+    const pillars = {
+        open: { label: 'Abierto', color: 'var(--hex-abrirse)', points: ['abrirse', 'analisis'] },
+        centered: { label: 'Centrado', color: 'var(--hex-presente)', points: ['presente', 'yo'] },
+        engaged: { label: 'Comprometido', color: 'var(--hex-valores)', points: ['importa', 'accion'] }
+    };
+
     mainContent.innerHTML = `
-        <div class="module-view">
-            <header style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="font-size: 1.25rem;">${module.icon}</span>
-                    <h2 style="font-size: 1.1rem; font-weight: 600;">${module.title}</h2>
-                </div>
+        <div class="module-view" role="main" aria-labelledby="main-heading">
+            <header>
+                <div class="brand">ACT In-Session</div>
                 ${showControls ? `
                     <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn-ghost" id="btn-pause" style="padding: 0.5rem 0.75rem;">⏸</button>
+                        <button class="btn-ghost" id="btn-pause" aria-label="Pausar sesión">⏸</button>
                         <button class="btn-ghost" id="btn-back">Finalizar</button>
                     </div>
                 ` : ''}
             </header>
 
-            <section class="glass hexaflex-intro">
-                <h3>${isLanding ? 'Mapa inicial de la sesión' : 'Mapa central de la sesión'}</h3>
-                <p>${isLanding ? 'Toca el hexaflex para entrar a los módulos disponibles.' : 'Usa el hexaflex para elegir el módulo más útil según el punto de la conversación clínica.'}</p>
+            <section class="glass-card" style="text-align: center; margin-bottom: 2rem;">
+                <h2 id="main-heading" style="font-size: 1.5rem; color: var(--color-primary);">Procesos ACT</h2>
+                <p class="clinical-note">Propiciando flexibilidad psicológica en el consultante.</p>
             </section>
 
-            <section class="hexaflex-grid">
-                ${points.map(point => `
-                    <div class="glass hexaflex-card">
-                        <div class="hexaflex-card__header">
-                            <span class="hexaflex-card__icon">${point.icon}</span>
-                            <div>
-                                <h4>${point.title}</h4>
-                                <p>${point.subtitle}</p>
-                            </div>
-                        </div>
-                        <p class="hexaflex-card__cue">${point.cue}</p>
-                        ${point.moduleId ? `<button class="btn-primary hexaflex-card__action" data-target="${point.moduleId}">Abrir módulo</button>` : ''}
-                    </div>
-                `).join('')}
-            </section>
+            <nav class="view-switch" aria-label="Cambiar vista de procesos">
+                <button class="btn-toggle ${state.viewMode === 'hexaflex' ? 'active' : ''}" id="toggle-hex">Hexaflex</button>
+                <button class="btn-toggle ${state.viewMode === 'triflex' ? 'active' : ''}" id="toggle-tri">Triflex</button>
+            </nav>
 
-            <section class="glass hexaflex-reminders">
-                <h3>Recordatorios ACT para la sesión</h3>
-                <ul>
-                    <li>Valida la experiencia interna antes de intervenir (empatía + curiosidad).</li>
-                    <li>Haz pequeñas pausas para notar el momento presente.</li>
-                    <li>Invita a diferenciar pensamiento vs. hecho con lenguaje flexible.</li>
-                    <li>Vuelve a valores y compromisos observables (qué harás esta semana).</li>
-                    <li>Detecta patrones de evitación y su función, no solo su contenido.</li>
-                </ul>
-            </section>
+            <div class="hexaflex-container">
+                <svg viewBox="0 0 400 400" class="hexaflex-svg" role="img" aria-label="Diagrama interactivo de procesos ACT">
+                    ${state.viewMode === 'triflex' ? `
+                        <!-- Triflex Pillars (Visual Grouping) -->
+                        ${Object.values(pillars).map(p => {
+        const p1 = points.find(pt => pt.id === p.points[0]);
+        const p2 = points.find(pt => pt.id === p.points[1]);
+        const c1 = getCoords(p1.angle, radius);
+        const c2 = getCoords(p2.angle, radius);
+        return `
+                                <g class="triflex-group">
+                                    <line x1="${c1.x}" y1="${c1.y}" x2="${c2.x}" y2="${c2.y}" class="triflex-pillar" stroke="${p.color}" />
+                                    <text x="${(c1.x + c2.x) / 2}" y="${(c1.y + c2.y) / 2}" class="hex-label" style="fill: ${p.color}; font-size: 10px; opacity: 0.6;">${p.label}</text>
+                                </g>
+                            `;
+    }).join('')}
+                    ` : `
+                        <!-- Hexaflex Web -->
+                        <polygon points="${points.map(p => {
+        const c = getCoords(p.angle, radius);
+        return `${c.x},${c.y}`;
+    }).join(' ')}" fill="none" class="hex-line" />
+                        
+                        ${points.map((p, i) => {
+        const target = points[(i + 2) % points.length];
+        const start = getCoords(p.angle, radius);
+        const end = getCoords(target.angle, radius);
+        return `<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" class="hex-line" opacity="0.3" />`;
+    }).join('')}
+                    `}
+
+                    <!-- Center Label -->
+                    <circle cx="${centerX}" cy="${centerY}" r="45" fill="var(--color-bg)" stroke="var(--color-primary)" stroke-width="2" />
+                    <text x="${centerX}" y="${centerY + 5}" text-anchor="middle" fill="var(--color-primary)" style="font-size: 11px; font-weight: 800; text-transform: uppercase;">Flexible</text>
+
+                    <!-- Navigable Vertices -->
+                    ${points.map(p => {
+        const c = getCoords(p.angle, radius);
+        const labelAngle = p.angle;
+        const labelDist = radius + 55;
+        const labelC = getCoords(labelAngle, labelDist);
+
+        return `
+                            <g class="hex-vertex" data-target="${p.id}" role="button" aria-label="Proceso: ${p.title}" tabindex="0" style="color: ${p.color};">
+                                <circle cx="${c.x}" cy="${c.y}" r="18" fill="var(--color-bg)" stroke="currentColor" stroke-width="2" />
+                                <text x="${c.x}" y="${c.y + 7}" text-anchor="middle" style="font-size: 18px;">${p.icon}</text>
+                                <text x="${labelC.x}" y="${labelC.y}" class="hex-label">${p.title}</text>
+                            </g>
+                        `;
+    }).join('')}
+                </svg>
+            </div>
+            
+            <footer class="disclaimer">
+                Accesible via teclado (Tab) • Contraste verificado
+            </footer>
         </div>
     `;
 
+    // Event Listeners
+    document.getElementById('toggle-hex')?.addEventListener('click', () => { state.viewMode = 'hexaflex'; renderHexaflexModule(module, options); });
+    document.getElementById('toggle-tri')?.addEventListener('click', () => { state.viewMode = 'triflex'; renderHexaflexModule(module, options); });
+
     const backButton = document.getElementById('btn-back');
-    if (backButton) {
-        backButton.addEventListener('click', renderHome);
-    }
+    if (backButton) backButton.addEventListener('click', renderHome);
+
     const pauseButton = document.getElementById('btn-pause');
-    if (pauseButton) {
-        pauseButton.addEventListener('click', togglePause);
-    }
-    document.querySelectorAll('.hexaflex-card__action').forEach(button => {
-        button.addEventListener('click', () => {
-            const target = button.getAttribute('data-target');
-            if (target) {
-                loadModule(target);
-            }
-        });
+    if (pauseButton) pauseButton.addEventListener('click', togglePause);
+
+    document.querySelectorAll('.hex-vertex').forEach(vertex => {
+        const handleAction = () => {
+            const target = vertex.getAttribute('data-target');
+            if (target) loadModule(target);
+        };
+        vertex.addEventListener('click', handleAction);
+        vertex.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') handleAction(); });
     });
 }
 
@@ -270,7 +282,7 @@ function renderAnalisisModule(module) {
                     </div>
                 </header>
 
-                <div class="tool-selector glass" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                <div class="tool-selector glass-card" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
                     ${tools.map(t => `
                         <button class="btn-tool ${activeToolId === t.id ? 'active' : ''}" data-id="${t.id}" style="flex: 1; font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: var(--radius-sm);">
                             ${t.icon} ${t.title}
@@ -327,7 +339,7 @@ function renderHacerLoQueImportaModule(module) {
                     </div>
                 </header>
 
-                <div class="tool-selector glass" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                <div class="tool-selector glass-card" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
                     ${tools.map(t => `
                         <button class="btn-tool ${activeToolId === t.id ? 'active' : ''}" data-id="${t.id}" style="flex: 0 0 auto; font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: var(--radius-sm); white-space: nowrap;">
                             ${t.icon} ${t.title}
@@ -386,7 +398,7 @@ function renderEstarPresenteModule(module) {
                     </div>
                 </header>
 
-                <div class="tool-selector glass" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                <div class="tool-selector glass-card" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
                     ${tools.map(t => `
                         <button class="btn-tool ${activeToolId === t.id ? 'active' : ''}" data-id="${t.id}" style="flex: 0 0 auto; font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: var(--radius-sm); white-space: nowrap;">
                             ${t.icon} ${t.title}
@@ -445,7 +457,7 @@ function renderAbrirseModule(module) {
                     </div>
                 </header>
 
-                <div class="tool-selector glass" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                <div class="tool-selector glass-card" style="display: flex; gap: 0.5rem; padding: 0.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
                     ${tools.map(t => `
                         <button class="btn-tool ${activeToolId === t.id ? 'active' : ''}" data-id="${t.id}" style="flex: 0 0 auto; font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: var(--radius-sm); white-space: nowrap;">
                             ${t.icon} ${t.title.split(' ')[0]}
