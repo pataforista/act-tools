@@ -211,26 +211,85 @@ header {
 .hex-vertex {
     cursor: pointer;
     transition: var(--transition-spring);
+    outline: none;
 }
 
 .hex-vertex:hover circle {
-    r: 20;
-    filter: drop-shadow(0 0 12px currentColor);
+    r: 25;
+    stroke-width: 3;
+    filter: drop-shadow(0 0 15px currentColor);
+}
+
+.hex-vertex:hover foreignObject {
+    transform: scale(1.1);
+    transform-origin: center;
 }
 
 .hex-label {
     fill: var(--color-text-primary);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     text-anchor: middle;
     pointer-events: none;
-    fill-opacity: 1;
+    fill-opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .hex-line {
+    fill: none;
     stroke: var(--glass-border);
     stroke-width: 1.5;
-    stroke-dasharray: 6 4;
+    opacity: 0.4;
+    transition: var(--transition-base);
+}
+
+.hex-line-gradient {
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    opacity: 0.6;
+    filter: blur(1px);
+}
+
+/* Animations */
+@keyframes pulse-glow {
+    0% {
+        filter: drop-shadow(0 0 5px var(--color-primary-glow));
+        transform: scale(1);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 20px var(--color-primary));
+        transform: scale(1.02);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 5px var(--color-primary-glow));
+        transform: scale(1);
+    }
+}
+
+.pulse-center {
+    animation: pulse-glow 3s ease-in-out infinite;
+    transform-origin: center;
+}
+
+.hex-vertex-pulse {
+    animation: vertex-pulse 4s ease-in-out infinite;
+}
+
+@keyframes vertex-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+        filter: brightness(1.2);
+    }
 }
 
 /* View Toggles */

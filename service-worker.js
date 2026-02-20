@@ -4,7 +4,21 @@ const ASSETS = [
     './index.html',
     './styles/main.css',
     './app.js',
-    './manifest.json'
+    './manifest.json',
+    './core/state.js',
+    './core/audio.js',
+    './core/animations.js',
+    './core/security.js',
+    './data/config.js',
+    './ui/utils.js',
+    './ui/dashboard.js',
+    './modules/hexaflex.js',
+    './modules/abrirse.js',
+    './modules/presente.js',
+    './modules/importa.js',
+    './modules/analisis.js',
+    './modules/resumen.js',
+    './modules/sos.js'
 ];
 
 self.addEventListener('install', event => {
