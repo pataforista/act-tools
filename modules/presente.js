@@ -56,21 +56,38 @@ export function renderPresenteModule(container, module, { renderHome }) {
 
 function renderSTOPTool(container) {
     const steps = [
-        { id: 'S', title: 'S · Stop', text: 'Haz una pausa en lo que estás haciendo.' },
-        { id: 'T', title: 'T · Take a breath', text: 'Nota tu respiración mientras inhalas y exhalas.' },
-        { id: 'O', title: 'O · Observe', text: 'Observa qué está pasando en tu cuerpo y mente ahora.' },
-        { id: 'P', title: 'P · Proceed', text: 'Elige cómo quieres continuar en este momento.' }
+        {
+            id: 'S', title: 'S · Stop',
+            text: 'Haz una pausa en lo que estás haciendo.',
+            prompt: 'Interrumpe el piloto automático. No para huir — para elegir conscientemente qué viene después.'
+        },
+        {
+            id: 'T', title: 'T · Toma un respiro',
+            text: 'Nota tu respiración mientras inhalas y exhalas.',
+            prompt: 'La respiración ancla en el presente. No la controles — solo obsérvala llegar y marcharse.'
+        },
+        {
+            id: 'O', title: 'O · Observa',
+            text: 'Observa qué está pasando en tu cuerpo y mente ahora mismo.',
+            prompt: '¿Qué sensaciones hay? ¿Qué pensamientos aparecen? Nótalos sin juzgar ni resolver — como el cielo nota el clima.'
+        },
+        {
+            id: 'P', title: 'P · Procede',
+            text: 'Elige cómo quieres continuar en este momento.',
+            prompt: 'Con más información interna, ¿qué acción tiene sentido ahora? No la reacción automática — la elección consciente.'
+        }
     ];
     let currentStep = 0;
 
     const internalRender = () => {
         container.innerHTML = `
             <div class="tool-content">
-                <div class="stop-steps-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div class="stop-steps-container" style="display: flex; flex-direction: column; gap: 0.75rem;">
                     ${steps.map((s, i) => `
-                        <div class="glass" style="padding: 1.25rem; border-radius: var(--radius-md); opacity: ${i === currentStep ? '1' : '0.5'}; border-left: 4px solid ${i === currentStep ? 'var(--color-primary)' : 'transparent'};">
-                            <h4>${s.title}</h4>
-                            <p>${s.text}</p>
+                        <div class="glass" style="padding: 1.25rem; border-radius: var(--radius-md); opacity: ${i === currentStep ? '1' : '0.45'}; border-left: 4px solid ${i === currentStep ? 'var(--color-primary)' : 'transparent'}; transition: opacity 0.3s;">
+                            <h4 style="margin-bottom: 0.35rem;">${s.title}</h4>
+                            <p style="margin-bottom: ${i === currentStep ? '0.6rem' : '0'};">${s.text}</p>
+                            ${i === currentStep ? `<p style="font-size: 0.75rem; color: var(--color-text-secondary); border-top: 1px solid var(--glass-border); padding-top: 0.5rem; margin-top: 0.25rem;">${s.prompt}</p>` : ''}
                         </div>
                     `).join('')}
                 </div>
@@ -107,12 +124,17 @@ function render5SentidosTool(container) {
         const s = senses[currentSense];
         container.innerHTML = `
             <div class="tool-content" style="text-align: center;">
-                <div class="sense-display glass" style="padding: 3rem 2rem; border-radius: var(--radius-lg); border: 2px solid ${s.color};">
-                    <div style="font-size: 4rem; color: ${s.color};">${s.count}</div>
-                    <div style="font-size: 1.25rem;">${s.item}</div>
+                <div class="glass" style="padding: 0.6rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.75rem; color: var(--color-text-secondary); border-left: 3px solid var(--color-primary); text-align: left;">
+                    Anclarse en lo sensorial interrumpe la espiral de pensamientos. No hay que nombrar objetos concretos — solo notar.
                 </div>
-                <div style="margin-top: 2.5rem; display: flex; justify-content: center; gap: 1rem;">
+                <div class="sense-display glass" style="padding: 3rem 2rem; border-radius: var(--radius-lg); border: 2px solid ${s.color};">
+                    <div style="font-size: 4rem; color: ${s.color}; font-weight: 700;">${s.count}</div>
+                    <div style="font-size: 1.25rem; margin-top: 0.5rem;">${s.item}</div>
+                    <div style="font-size: 0.72rem; color: var(--color-text-secondary); margin-top: 1rem;">Tómate el tiempo que necesites. No hay ritmo correcto.</div>
+                </div>
+                <div style="margin-top: 2rem; display: flex; justify-content: center; align-items: center; gap: 1rem;">
                     <button class="btn-ghost" id="btn-prev-5" ${currentSense === 0 ? 'disabled' : ''}>Anterior</button>
+                    <span style="font-size: 0.75rem; color: var(--color-text-secondary);">${currentSense + 1} / ${senses.length}</span>
                     <button class="btn-primary" id="btn-next-5">${currentSense === senses.length - 1 ? 'Finalizar' : 'Siguiente'}</button>
                 </div>
             </div>
@@ -143,29 +165,40 @@ function renderCieloYClimaTool(container) {
     const internalRender = () => {
         container.innerHTML = `
             <div class="tool-content">
-                <div class="intro" style="margin-bottom: 1rem; text-align: center;">
-                    <p class="clinical-note">La metáfora del cielo no es literal: úsala para notar eventos internos y traducirlos a decisiones concretas en contexto.</p>
+                <div style="margin-bottom: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                    <div class="glass" style="padding: 0.65rem 0.9rem; border-radius: var(--radius-sm); border-top: 3px solid #818cf8; text-align: center;">
+                        <div style="font-size: 0.7rem; color: #818cf8; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.2rem;">TÚ ERES EL CIELO</div>
+                        <div style="font-size: 0.68rem; color: var(--color-text-secondary);">El Yo que observa — siempre presente, sin cambiar</div>
+                    </div>
+                    <div class="glass" style="padding: 0.65rem 0.9rem; border-radius: var(--radius-sm); border-top: 3px solid #94a3b8; text-align: center;">
+                        <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.2rem;">LOS PENSAMIENTOS SON EL CLIMA</div>
+                        <div style="font-size: 0.68rem; color: var(--color-text-secondary);">Pasan. Cambian. No definen el cielo.</div>
+                    </div>
                 </div>
-                <div class="sky-canvas glass" style="height: 300px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: ${isNight ? skyColors.night : skyColors.day}; transition: background 2s ease;">
+                <div class="sky-canvas glass" style="height: 280px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: ${isNight ? skyColors.night : skyColors.day}; transition: background 2s ease;">
                     ${isNight ? '<div class="stars" style="position: absolute; inset: 0; background: radial-gradient(white, transparent 2%) 0 0/50px 50px; opacity: 0.3;"></div>' : ''}
                     <div id="clouds-container">
                         ${state.persistence.weather.map((item, i) => `
-                            <div class="cloud-item glass animate-float" style="position: absolute; left: ${item.x}%; top: ${item.y}%; padding: 0.5rem 1rem; border-radius: 20px; background: rgba(255,255,255,0.1); backdrop-filter: blur(4px); font-size: 0.9rem;">
+                            <div class="cloud-item glass animate-float" style="position: absolute; left: ${item.x}%; top: ${item.y}%; padding: 0.5rem 1rem; border-radius: 20px; background: rgba(255,255,255,0.12); backdrop-filter: blur(4px); font-size: 0.85rem; color: rgba(255,255,255,0.85);">
                                 ${item.text}
                             </div>
                         `).join('')}
                     </div>
+                    ${state.persistence.weather.length === 0 ? `
+                    <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+                        <p style="font-size: 0.78rem; color: rgba(255,255,255,0.4); text-align: center;">Escribe un pensamiento para verlo pasar como nube</p>
+                    </div>` : ''}
                 </div>
-                <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
-                    <input type="text" id="weather-input" class="input-field" placeholder="Escribe un pensamiento/nube..." style="flex: 1;">
+                <div style="margin-top: 1.25rem; display: flex; gap: 0.5rem;">
+                    <input type="text" id="weather-input" class="input-field" placeholder="¿Qué pensamiento o emoción está en el cielo ahora?" style="flex: 1;">
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.5rem;">Aterrizaje clínico rápido</h4>
+                    <h4 style="margin-bottom: 0.75rem; font-size: 0.9rem;">Desde el cielo, ¿qué es posible?</h4>
                     <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="cielo-contexto" class="input-field" placeholder="¿Dónde aparece esto en tu día a día?" value="${state.persistence.grounding?.cielo?.contexto || ''}">
-                        <input type="text" id="cielo-aprendizaje" class="input-field" placeholder="¿Qué cambió al observar sin literalizar?" value="${state.persistence.grounding?.cielo?.aprendizaje || ''}">
-                        <input type="text" id="cielo-accion" class="input-field" placeholder="Siguiente acción breve alineada" value="${state.persistence.grounding?.cielo?.accion || ''}">
+                        <input type="text" id="cielo-contexto" class="input-field" placeholder="¿En qué situación de tu vida aparece ese clima?" value="${state.persistence.grounding?.cielo?.contexto || ''}">
+                        <input type="text" id="cielo-aprendizaje" class="input-field" placeholder="¿Qué notaste al observar desde el cielo?" value="${state.persistence.grounding?.cielo?.aprendizaje || ''}">
+                        <input type="text" id="cielo-accion" class="input-field" placeholder="Desde el Yo-observador, ¿qué acción tiene sentido?" value="${state.persistence.grounding?.cielo?.accion || ''}">
                     </div>
                 </div>
             </div>

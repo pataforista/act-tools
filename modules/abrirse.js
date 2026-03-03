@@ -76,7 +76,10 @@ function renderVisualizadorPensamientosTool(container) {
                 <!-- UI for thought visualization (as in original app.js) -->
                 <div class="intro" style="margin-bottom: 1.5rem; text-align: center;">
                     <h3 style="font-size: 1rem; color: var(--color-primary); margin-bottom: 0.5rem;">Visualizador de Pensamientos</h3>
-                    <p style="font-size: 0.8rem; color: var(--color-text-secondary);">Externaliza tus pensamientos y experimenta con su forma.</p>
+                    <p style="font-size: 0.8rem; color: var(--color-text-secondary);">Ponemos el pensamiento frente a nosotros para observarlo desde afuera — no para cambiarlo, sino para cambiar nuestra <em>relación</em> con él.</p>
+                </div>
+                <div class="glass" style="padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem; border-left: 3px solid var(--color-primary); font-size: 0.78rem; color: var(--color-text-secondary);">
+                    <strong style="color: var(--color-primary);">Defusión:</strong> El objetivo no es hacer desaparecer el pensamiento. Es notar que <em>tienes</em> ese pensamiento, sin ser ese pensamiento.
                 </div>
 
                 <div class="style-config glass" style="padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
@@ -125,24 +128,31 @@ function renderVisualizadorPensamientosTool(container) {
 
                 <div id="property-panel" class="glass" style="margin-top: 1rem; padding: 1.25rem; border-radius: var(--radius-md); display: ${selectedThoughtIndex !== null ? 'grid' : 'none'}; grid-template-columns: 1fr 1fr; gap: 1rem; animation: slideUp 0.3s ease;">
                     <div style="grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
-                        <h4 style="font-size: 0.85rem; font-weight: bold; color: var(--color-primary);">Propiedades del Pensamiento</h4>
+                        <div>
+                            <h4 style="font-size: 0.85rem; font-weight: bold; color: var(--color-primary);">Explora tu relación con el pensamiento</h4>
+                            <p style="font-size: 0.7rem; color: var(--color-text-secondary); margin-top: 0.15rem;">¿Cambia algo al verlo desde afuera?</p>
+                        </div>
                         <button class="btn-ghost" id="btn-delete-thought" style="color: #ef4444; font-size: 0.75rem;">Eliminar ×</button>
                     </div>
-                    
+
                     <div class="property-group">
-                        <label>Distanciamiento (Blur)</label>
+                        <label>Distancia psicológica</label>
+                        <span style="font-size: 0.68rem; color: var(--color-text-secondary); display: block; margin-bottom: 0.25rem;">¿Qué tan borroso se vuelve cuando te alejas de él?</span>
                         <input type="range" id="prop-blur" min="0" max="8" step="0.5" value="${state.persistence.thoughts[selectedThoughtIndex]?.blur || 0}" class="slider-act">
                     </div>
                     <div class="property-group">
-                        <label>Presencia (Opacidad)</label>
+                        <label>Presencia sin lucha</label>
+                        <span style="font-size: 0.68rem; color: var(--color-text-secondary); display: block; margin-bottom: 0.25rem;">Está ahí, pero no ocupa todo el espacio.</span>
                         <input type="range" id="prop-opacity" min="0.1" max="1" step="0.1" value="${state.persistence.thoughts[selectedThoughtIndex]?.opacity || 1}" class="slider-act">
                     </div>
                     <div class="property-group">
-                        <label>Espaciado (Stretching)</label>
+                        <label>Estiramiento (Desliteralización)</label>
+                        <span style="font-size: 0.68rem; color: var(--color-text-secondary); display: block; margin-bottom: 0.25rem;">Las palabras pierden peso cuando se estiran.</span>
                         <input type="range" id="prop-spacing" min="0" max="20" step="1" value="${state.persistence.thoughts[selectedThoughtIndex]?.spacing || 0}" class="slider-act">
                     </div>
                     <div class="property-group">
-                        <label>Perspectiva (3D)</label>
+                        <label>Perspectiva del observador</label>
+                        <span style="font-size: 0.68rem; color: var(--color-text-secondary); display: block; margin-bottom: 0.25rem;">El Yo que observa no es el contenido del pensamiento.</span>
                         <input type="range" id="prop-rotateX" min="-60" max="60" step="1" value="${state.persistence.thoughts[selectedThoughtIndex]?.rotateX || 0}" class="slider-act">
                     </div>
                     
@@ -250,10 +260,15 @@ function renderHojasAguaTool(container) {
     const internalRender = () => {
         container.innerHTML = `
             <div class="tool-content">
-                <div class="intro" style="margin-bottom: 1rem; text-align: center;">
-                    <p class="clinical-note">Usa la metáfora para observar el pensamiento sin discutir con él y luego aterrízalo a una acción concreta.</p>
+                <div style="margin-bottom: 1rem; display: grid; gap: 0.5rem;">
+                    <div class="glass" style="padding: 0.75rem 1rem; border-radius: var(--radius-sm); border-left: 3px solid #10b981; font-size: 0.78rem; color: var(--color-text-secondary);">
+                        <strong style="color: #10b981;">Tú eres la orilla.</strong> El pensamiento es la hoja. No tienes que subirte a ella — solo observa cómo pasa.
+                    </div>
+                    <div class="glass" style="padding: 0.6rem 1rem; border-radius: var(--radius-sm); font-size: 0.75rem; color: var(--color-text-secondary);">
+                        Si los pensamientos vienen muy rápido, agrúpalos en una sola hoja. La cantidad no importa — solo el observar.
+                    </div>
                 </div>
-                <div class="stream-canvas glass" style="height: 350px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: linear-gradient(to right, #0ea5e955, #38bdf855); border: 2px solid #38bdf844;">
+                <div class="stream-canvas glass" style="height: 320px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: linear-gradient(to right, #0ea5e955, #38bdf855); border: 2px solid #38bdf844;">
                     <div id="stream-flow" style="position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.05) 40px, rgba(255,255,255,0.05) 80px); animation: moveStream 20s linear infinite;"></div>
                     <div id="leaves-container">
                         ${leaves.map((l, i) => `
@@ -262,17 +277,20 @@ function renderHojasAguaTool(container) {
                             </div>
                         `).join('')}
                     </div>
+                    <div style="position: absolute; bottom: 0.75rem; left: 50%; transform: translateX(-50%); font-size: 0.7rem; color: rgba(255,255,255,0.4); pointer-events: none; white-space: nowrap;">
+                        Deja que la corriente fluya a su propio ritmo
+                    </div>
                 </div>
-                <div style="margin-top: 1.5rem;">
-                    <input type="text" id="leaf-input" class="input-field" placeholder="¿Qué pensamiento pones en la hoja?">
+                <div style="margin-top: 1.25rem;">
+                    <input type="text" id="leaf-input" class="input-field" placeholder="Tengo el pensamiento de que... (Enter para soltar la hoja)">
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.5rem;">Aterrizaje clínico rápido</h4>
+                    <h4 style="margin-bottom: 0.75rem; font-size: 0.9rem;">Del observar al actuar</h4>
                     <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="hojas-contexto" class="input-field" placeholder="¿En qué situación real apareció esto?" value="${state.persistence.grounding?.hojas?.contexto || ''}">
-                        <input type="text" id="hojas-aprendizaje" class="input-field" placeholder="¿Qué notaste al soltar la literalidad?" value="${state.persistence.grounding?.hojas?.aprendizaje || ''}">
-                        <input type="text" id="hojas-accion" class="input-field" placeholder="Próximo paso pequeño y observable" value="${state.persistence.grounding?.hojas?.accion || ''}">
+                        <input type="text" id="hojas-contexto" class="input-field" placeholder="¿Dónde aparece este pensamiento en tu vida real?" value="${state.persistence.grounding?.hojas?.contexto || ''}">
+                        <input type="text" id="hojas-aprendizaje" class="input-field" placeholder="¿Qué cambió al observarlo sin discutir con él?" value="${state.persistence.grounding?.hojas?.aprendizaje || ''}">
+                        <input type="text" id="hojas-accion" class="input-field" placeholder="Desde aquí, ¿hacia dónde puedes moverte?" value="${state.persistence.grounding?.hojas?.accion || ''}">
                     </div>
                 </div>
             </div>
@@ -349,8 +367,26 @@ function renderRadioDoomGloomTool(container) {
 
                     <div class="radio-controls" style="display: flex; flex-direction: column; gap: 1.25rem;">
                         <input type="text" id="radio-input" class="input-field center" value="${broadcast}" placeholder="¿Qué dice la voz ahora?" style="background: rgba(255,255,255,0.05); border-color: ${currentStation.color}44;">
-                        <input type="range" id="radio-volume" min="0" max="100" value="${volume}" class="slider-act">
-                        <input type="range" id="radio-tuning" min="0" max="100" value="${tuning}" class="slider-act">
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.35rem;">
+                                <label style="font-size: 0.75rem; color: ${currentStation.color}; font-weight: 600;">Atención que le doy</label>
+                                <span style="font-size: 0.68rem; color: var(--color-text-secondary);">¿Puedo notar el ruido sin sintonizarlo?</span>
+                            </div>
+                            <input type="range" id="radio-volume" min="0" max="100" value="${volume}" class="slider-act">
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.35rem;">
+                                <label style="font-size: 0.75rem; color: ${currentStation.color}; font-weight: 600;">Canal mental activo</label>
+                                <span style="font-size: 0.68rem; color: var(--color-text-secondary);">${currentStation.label}</span>
+                            </div>
+                            <input type="range" id="radio-tuning" min="0" max="100" value="${tuning}" class="slider-act">
+                        </div>
+
+                        <div class="glass" style="padding: 0.6rem 0.9rem; border-radius: var(--radius-sm); font-size: 0.72rem; color: var(--color-text-secondary); border-left: 2px solid ${currentStation.color}55;">
+                            La mente emite siempre. La clave no es apagar la radio — es notar que estás eligiendo escucharla.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -390,9 +426,19 @@ function renderInterruptorLuchaTool(container) {
                             ${isStruggling ? '⚡' : '🌊'}
                         </div>
                     </div>
-                    <div style="z-index: 2;">
-                        <h4 style="color: ${isStruggling ? '#ef4444' : '#3b82f6'}; margin-bottom: 0.5rem;">${isStruggling ? 'LUCHA (ON)' : 'DISPOSICIÓN (OFF)'}</h4>
-                        <p class="clinical-note" style="max-width: 200px;">${isStruggling ? 'Estas peleando con tu experiencia. Es agotador.' : 'Has soltado los guantes. Hay espacio para sentir.'}</p>
+                    <div style="z-index: 2; max-width: 260px;">
+                        <h4 style="color: ${isStruggling ? '#ef4444' : '#3b82f6'}; margin-bottom: 0.5rem;">${isStruggling ? 'LUCHA ACTIVA' : 'DISPOSICIÓN'}</h4>
+                        <p class="clinical-note" style="margin-bottom: 0.75rem;">${isStruggling
+                            ? 'Estás peleando con tu experiencia para que desaparezca. Ese esfuerzo consume energía y mantiene el foco en lo que quieres evitar.'
+                            : 'Has soltado los guantes. Hay espacio para sentir sin que el sentir dirija la acción.'
+                        }</p>
+                        ${!isStruggling ? `
+                        <div style="font-size: 0.72rem; color: var(--color-text-secondary); border-top: 1px solid var(--glass-border); padding-top: 0.5rem;">
+                            Desde aquí: ¿qué acción alineada con tus valores puedes dar ahora?
+                        </div>` : `
+                        <div style="font-size: 0.72rem; color: var(--color-text-secondary); border-top: 1px solid var(--glass-border); padding-top: 0.5rem;">
+                            Nota el coste de la lucha: ¿hacia qué te aleja? ¿hacia qué te acerca?
+                        </div>`}
                     </div>
                 </div>
             </div>
