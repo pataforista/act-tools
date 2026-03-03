@@ -251,7 +251,7 @@ function renderHojasAguaTool(container) {
         container.innerHTML = `
             <div class="tool-content">
                 <div class="intro" style="margin-bottom: 1rem; text-align: center;">
-                    <p class="clinical-note">Coloca cada pensamiento en una hoja y déjala fluir por el río.</p>
+                    <p class="clinical-note">Usa la metáfora para observar el pensamiento sin discutir con él y luego aterrízalo a una acción concreta.</p>
                 </div>
                 <div class="stream-canvas glass" style="height: 350px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: linear-gradient(to right, #0ea5e955, #38bdf855); border: 2px solid #38bdf844;">
                     <div id="stream-flow" style="position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.05) 40px, rgba(255,255,255,0.05) 80px); animation: moveStream 20s linear infinite;"></div>
@@ -266,6 +266,15 @@ function renderHojasAguaTool(container) {
                 <div style="margin-top: 1.5rem;">
                     <input type="text" id="leaf-input" class="input-field" placeholder="¿Qué pensamiento pones en la hoja?">
                 </div>
+
+                <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
+                    <h4 style="margin-bottom: 0.5rem;">Aterrizaje clínico rápido</h4>
+                    <div style="display: grid; gap: 0.5rem;">
+                        <input type="text" id="hojas-contexto" class="input-field" placeholder="¿En qué situación real apareció esto?" value="${state.persistence.grounding?.hojas?.contexto || ''}">
+                        <input type="text" id="hojas-aprendizaje" class="input-field" placeholder="¿Qué notaste al soltar la literalidad?" value="${state.persistence.grounding?.hojas?.aprendizaje || ''}">
+                        <input type="text" id="hojas-accion" class="input-field" placeholder="Próximo paso pequeño y observable" value="${state.persistence.grounding?.hojas?.accion || ''}">
+                    </div>
+                </div>
             </div>
             <style>
                 @keyframes moveStream {
@@ -277,6 +286,15 @@ function renderHojasAguaTool(container) {
 
         const input = document.getElementById('leaf-input');
         input.focus();
+
+        ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
+            const el = document.getElementById(`hojas-${key}`);
+            el?.addEventListener('input', (e) => {
+                state.persistence.grounding ??= { hojas: { contexto: '', aprendizaje: '', accion: '' }, cielo: { contexto: '', aprendizaje: '', accion: '' } };
+                state.persistence.grounding.hojas[key] = e.target.value;
+                saveState();
+            });
+        });
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && input.value.trim()) {
                 const text = input.value.trim();

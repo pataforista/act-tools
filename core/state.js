@@ -13,6 +13,10 @@ export const getDefaultSession = () => ({
         { id: 'leisure', label: 'Ocio / Social', x: 0, y: 0 }
     ],
     matrix: { top_left: [], top_right: [], bottom_left: [], bottom_right: [] },
+    grounding: {
+        hojas: { contexto: '', aprendizaje: '', accion: '' },
+        cielo: { contexto: '', aprendizaje: '', accion: '' }
+    },
     smart: { S: '', M: '', A: '', R: '', T: '' },
     fear: { F: '', E: '', A: '', R: '' },
     dare: { D: '', A: '', R: '', E: '' },

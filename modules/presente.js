@@ -144,7 +144,7 @@ function renderCieloYClimaTool(container) {
         container.innerHTML = `
             <div class="tool-content">
                 <div class="intro" style="margin-bottom: 1rem; text-align: center;">
-                    <p class="clinical-note">Tus pensamientos son como las nubes, y tú eres el cielo que las contiene.</p>
+                    <p class="clinical-note">La metáfora del cielo no es literal: úsala para notar eventos internos y traducirlos a decisiones concretas en contexto.</p>
                 </div>
                 <div class="sky-canvas glass" style="height: 300px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: ${isNight ? skyColors.night : skyColors.day}; transition: background 2s ease;">
                     ${isNight ? '<div class="stars" style="position: absolute; inset: 0; background: radial-gradient(white, transparent 2%) 0 0/50px 50px; opacity: 0.3;"></div>' : ''}
@@ -159,6 +159,15 @@ function renderCieloYClimaTool(container) {
                 <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
                     <input type="text" id="weather-input" class="input-field" placeholder="Escribe un pensamiento/nube..." style="flex: 1;">
                 </div>
+
+                <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
+                    <h4 style="margin-bottom: 0.5rem;">Aterrizaje clínico rápido</h4>
+                    <div style="display: grid; gap: 0.5rem;">
+                        <input type="text" id="cielo-contexto" class="input-field" placeholder="¿Dónde aparece esto en tu día a día?" value="${state.persistence.grounding?.cielo?.contexto || ''}">
+                        <input type="text" id="cielo-aprendizaje" class="input-field" placeholder="¿Qué cambió al observar sin literalizar?" value="${state.persistence.grounding?.cielo?.aprendizaje || ''}">
+                        <input type="text" id="cielo-accion" class="input-field" placeholder="Siguiente acción breve alineada" value="${state.persistence.grounding?.cielo?.accion || ''}">
+                    </div>
+                </div>
             </div>
         `;
 
@@ -171,6 +180,16 @@ function renderCieloYClimaTool(container) {
             direction: 'alternate',
             loop: true,
             easing: 'easeInOutSine'
+        });
+
+
+        ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
+            const el = document.getElementById(`cielo-${key}`);
+            el?.addEventListener('input', (e) => {
+                state.persistence.grounding ??= { hojas: { contexto: '', aprendizaje: '', accion: '' }, cielo: { contexto: '', aprendizaje: '', accion: '' } };
+                state.persistence.grounding.cielo[key] = e.target.value;
+                saveState();
+            });
         });
 
         document.getElementById('weather-input').addEventListener('keypress', (e) => {
