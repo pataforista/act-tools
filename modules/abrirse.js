@@ -4,7 +4,7 @@
 
 import { state, saveState } from '../core/state.js';
 import { radioAudio } from '../core/audio.js';
-import { renderModuleHeader, attachHeaderEvents } from '../ui/utils.js';
+import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
 import { animateDefusion } from '../core/animations.js';
 
 export function renderAbrirseModule(container, module, { renderHome }) {
@@ -65,18 +65,34 @@ export function renderAbrirseModule(container, module, { renderHome }) {
     render();
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// VISUALIZADOR DE PENSAMIENTOS
+// ─────────────────────────────────────────────────────────────────────────────
+
 function renderVisualizadorPensamientosTool(container) {
     let selectedThoughtIndex = null;
     let selectedColor = '#ffffff';
     let selectedSize = '0.9rem';
 
+    const guide = renderGuideBadge({
+        trigger: 'Rumiación activa o fusión con una narrativa ("soy un fracaso", "nada mejora"). El paciente habla desde sus pensamientos, no sobre ellos.',
+        intro: 'Vamos a sacar esos pensamientos de tu cabeza y a verlos desde afuera, como objetos. No para eliminarlos, sino para observarlos.',
+        questions: [
+            '¿Qué notás al verlo escrito ahí afuera?',
+            '¿El pensamiento dice algo sobre vos o simplemente ocurre?',
+            '¿Podés observarlo sin que te lleve a hacer algo?'
+        ],
+        abort: 'El paciente empieza a usar la herramienta para "sacar" pensamientos o reporta que se siente peor. Detener y hablar directamente.'
+    });
+
     const internalRender = () => {
         container.innerHTML = `
             <div class="tool-content">
-                <!-- UI for thought visualization (as in original app.js) -->
+                ${guide}
+
                 <div class="intro" style="margin-bottom: 1.5rem; text-align: center;">
                     <h3 style="font-size: 1rem; color: var(--color-primary); margin-bottom: 0.5rem;">Visualizador de Pensamientos</h3>
-                    <p style="font-size: 0.8rem; color: var(--color-text-secondary);">Externaliza tus pensamientos y experimenta con su forma.</p>
+                    <p style="font-size: 0.8rem; color: var(--color-text-secondary);">Externaliza el pensamiento. No es para eliminarlo: es para verlo desde afuera.</p>
                 </div>
 
                 <div class="style-config glass" style="padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
@@ -107,7 +123,6 @@ function renderVisualizadorPensamientosTool(container) {
             const distortClass = t.mode ? `distort-${t.mode}` : '';
             const rotationStyle = t.rotateX ? `perspective(500px) rotateX(${t.rotateX}deg) rotateY(${t.rotateY || 0}deg)` : '';
             const spacingStyle = t.spacing ? `letter-spacing: ${t.spacing}px;` : '';
-
             return `
                         <div class="thought-item glass animate-scale-in ${selectedThoughtIndex === i ? 'selected' : ''} ${distortClass}" 
                              data-index="${i}" 
@@ -130,11 +145,11 @@ function renderVisualizadorPensamientosTool(container) {
                     </div>
                     
                     <div class="property-group">
-                        <label>Distanciamiento (Blur)</label>
+                        <label>Distancia del pensamiento</label>
                         <input type="range" id="prop-blur" min="0" max="8" step="0.5" value="${state.persistence.thoughts[selectedThoughtIndex]?.blur || 0}" class="slider-act">
                     </div>
                     <div class="property-group">
-                        <label>Presencia (Opacidad)</label>
+                        <label>Peso percibido</label>
                         <input type="range" id="prop-opacity" min="0.1" max="1" step="0.1" value="${state.persistence.thoughts[selectedThoughtIndex]?.opacity || 1}" class="slider-act">
                     </div>
                     <div class="property-group">
@@ -142,7 +157,7 @@ function renderVisualizadorPensamientosTool(container) {
                         <input type="range" id="prop-spacing" min="0" max="20" step="1" value="${state.persistence.thoughts[selectedThoughtIndex]?.spacing || 0}" class="slider-act">
                     </div>
                     <div class="property-group">
-                        <label>Perspectiva (3D)</label>
+                        <label>Ángulo de observación</label>
                         <input type="range" id="prop-rotateX" min="-60" max="60" step="1" value="${state.persistence.thoughts[selectedThoughtIndex]?.rotateX || 0}" class="slider-act">
                     </div>
                     
@@ -153,9 +168,17 @@ function renderVisualizadorPensamientosTool(container) {
                             </button>
                         `).join('')}
                     </div>
+
+                    <div style="grid-column: 1 / -1; margin-top: 0.5rem; padding: 0.75rem; background: rgba(var(--color-primary-rgb, 99,102,241),0.08); border-radius: var(--radius-sm);">
+                        <p style="font-size: 0.75rem; color: var(--color-text-secondary); font-style: italic;">
+                            💭 ¿Notás que el pensamiento dice algo sobre vos, o simplemente ocurre?
+                        </p>
+                    </div>
                 </div>
             </div>
         `;
+
+        attachGuideBadgeEvents();
 
         const board = document.getElementById('thoughts-list');
         board.addEventListener('click', (e) => {
@@ -219,7 +242,7 @@ function renderVisualizadorPensamientosTool(container) {
         });
         document.getElementById('prop-rotateX')?.addEventListener('input', (e) => {
             state.persistence.thoughts[selectedThoughtIndex].rotateX = e.target.value;
-            state.persistence.thoughts[selectedThoughtIndex].rotateY = e.target.value / 2; // slight Y tilt for depth
+            state.persistence.thoughts[selectedThoughtIndex].rotateY = e.target.value / 2;
             saveState();
             internalRender();
         });
@@ -231,7 +254,6 @@ function renderVisualizadorPensamientosTool(container) {
             });
         });
 
-        // Add Defusion Animation
         animateDefusion('.thought-item');
 
         document.querySelectorAll('.color-swatch').forEach(sw => {
@@ -245,15 +267,30 @@ function renderVisualizadorPensamientosTool(container) {
     internalRender();
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// HOJAS EN AGUA
+// ─────────────────────────────────────────────────────────────────────────────
+
 function renderHojasAguaTool(container) {
     let leaves = [];
+
+    const guide = renderGuideBadge({
+        trigger: 'El paciente se queda atrapado en un pensamiento repetitivo o discute con él. Útil cuando hay fusión activa y el paciente "cree" el pensamiento.',
+        intro: 'Imagina que estás sentado junto a un arroyo. Cada vez que aparezca un pensamiento, lo ponemos en una hoja y lo dejamos flotar. No para que desaparezca, sino para verlo pasar.',
+        questions: [
+            '¿Qué notás al dejar que el pensamiento pase en lugar de agarrarlo?',
+            '¿El pensamiento desapareció o simplemente siguió de largo?',
+            '¿Qué pasó cuando intentaste empujarlo o retenerlo?'
+        ],
+        abort: 'El paciente empieza a agregar pensamientos repetidamente buscando que "desaparezcan". Señal de control encubierto: pausar y explorar verbalmente.'
+    });
+
     const internalRender = () => {
         container.innerHTML = `
             <div class="tool-content">
-                <div class="intro" style="margin-bottom: 1rem; text-align: center;">
-                    <p class="clinical-note">Usa la metáfora para observar el pensamiento sin discutir con él y luego aterrízalo a una acción concreta.</p>
-                </div>
-                <div class="stream-canvas glass" style="height: 350px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: linear-gradient(to right, #0ea5e955, #38bdf855); border: 2px solid #38bdf844;">
+                ${guide}
+
+                <div class="stream-canvas glass" style="height: 300px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: linear-gradient(to right, #0ea5e955, #38bdf855); border: 2px solid #38bdf844;">
                     <div id="stream-flow" style="position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.05) 40px, rgba(255,255,255,0.05) 80px); animation: moveStream 20s linear infinite;"></div>
                     <div id="leaves-container">
                         ${leaves.map((l, i) => `
@@ -262,17 +299,21 @@ function renderHojasAguaTool(container) {
                             </div>
                         `).join('')}
                     </div>
+                    <div style="position: absolute; bottom: 0.75rem; left: 0; right: 0; text-align: center;">
+                        <p style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">Los pensamientos pasan. Vos seguís aquí.</p>
+                    </div>
                 </div>
-                <div style="margin-top: 1.5rem;">
-                    <input type="text" id="leaf-input" class="input-field" placeholder="¿Qué pensamiento pones en la hoja?">
+
+                <div style="margin-top: 1.25rem;">
+                    <input type="text" id="leaf-input" class="input-field" placeholder="¿Qué pensamiento pones en la hoja? (Enter para lanzar)">
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.5rem;">Aterrizaje clínico rápido</h4>
+                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
                     <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="hojas-contexto" class="input-field" placeholder="¿En qué situación real apareció esto?" value="${state.persistence.grounding?.hojas?.contexto || ''}">
-                        <input type="text" id="hojas-aprendizaje" class="input-field" placeholder="¿Qué notaste al soltar la literalidad?" value="${state.persistence.grounding?.hojas?.aprendizaje || ''}">
-                        <input type="text" id="hojas-accion" class="input-field" placeholder="Próximo paso pequeño y observable" value="${state.persistence.grounding?.hojas?.accion || ''}">
+                        <input type="text" id="hojas-contexto" class="input-field" placeholder="¿En qué situación apareció este pensamiento?" value="${state.persistence.grounding?.hojas?.contexto || ''}">
+                        <input type="text" id="hojas-aprendizaje" class="input-field" placeholder="¿Qué notaste al observarlo en lugar de discutir con él?" value="${state.persistence.grounding?.hojas?.aprendizaje || ''}">
+                        <input type="text" id="hojas-accion" class="input-field" placeholder="Aunque ese pensamiento esté ahí, ¿qué podés hacer?" value="${state.persistence.grounding?.hojas?.accion || ''}">
                     </div>
                 </div>
             </div>
@@ -283,6 +324,8 @@ function renderHojasAguaTool(container) {
                 }
             </style>
         `;
+
+        attachGuideBadgeEvents();
 
         const input = document.getElementById('leaf-input');
         input.focus();
@@ -295,6 +338,7 @@ function renderHojasAguaTool(container) {
                 saveState();
             });
         });
+
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && input.value.trim()) {
                 const text = input.value.trim();
@@ -302,7 +346,6 @@ function renderHojasAguaTool(container) {
                 leaves.push(newLeaf);
                 input.value = '';
 
-                // We don't re-render everything to keep current leaf animations
                 const leafEl = document.createElement('div');
                 leafEl.className = 'leaf-item';
                 leafEl.style.cssText = `position: absolute; left: -150px; top: ${newLeaf.y}%; padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b98144; border-radius: 12px; color: #10b981; font-weight: bold; backdrop-filter: blur(4px); white-space: nowrap;`;
@@ -320,13 +363,19 @@ function renderHojasAguaTool(container) {
             }
         });
     };
+
     internalRender();
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RADIO DOOM & GLOOM → DEFUSIÓN LINGÜÍSTICA
+// ─────────────────────────────────────────────────────────────────────────────
 
 function renderRadioDoomGloomTool(container) {
     let broadcast = '';
     let volume = 80;
     let tuning = 50;
+    let defusedText = '';
 
     const stations = [
         { id: 'critic', label: '94.2 FM - El Crítico Interno', color: '#ef4444' },
@@ -334,27 +383,77 @@ function renderRadioDoomGloomTool(container) {
         { id: 'past', label: '88.1 FM - Melancolía & Culpa', color: '#3b82f6' }
     ];
 
+    const defusionPrefixes = [
+        { label: '«Estoy teniendo el pensamiento de que...»', prefix: 'Estoy teniendo el pensamiento de que ' },
+        { label: '«Mi mente dice que...»', prefix: 'Mi mente dice que ' },
+        { label: '«Gracias, mente»', prefix: 'Gracias, mente. Sé que querés ayudar. ' }
+    ];
+
+    const guide = renderGuideBadge({
+        trigger: 'Pensamientos catastrofistas o crítica interna muy intensa. El paciente habla sobre sí mismo con juicios absolutos ("soy un fracaso", "todo va a salir mal").',
+        intro: 'Vamos a poner ese pensamiento en una emisora de radio. Una voz que transmite, no una verdad. ¿Cuál sería el nombre de esa emisora?',
+        questions: [
+            '¿Podés escuchar la voz sin creerle del todo?',
+            '¿Qué cambia si lo decís como "mi mente dice que..." en lugar de creerlo directamente?',
+            '¿Cuánto volumen le estás dando a esa emisora ahora mismo?'
+        ],
+        abort: 'El paciente se ríe de sus pensamientos de forma defensiva o usa la herramienta para evitar sentirlos. Detener y explorar qué está evitando.'
+    });
+
     const internalRender = () => {
         const currentStation = stations[Math.floor((tuning / 101) * stations.length)];
         container.innerHTML = `
             <div class="tool-content">
+                ${guide}
+
                 <div class="radio-interface glass" style="padding: 1.5rem; border-radius: var(--radius-lg); border: 2px solid ${currentStation.color}88; background: rgba(0,0,0,0.2);">
-                    <div class="radio-screen" style="background: #050a05; padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-family: 'Courier New', monospace; color: ${currentStation.color}; min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+                    <div class="radio-screen" style="background: #050a05; padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-family: 'Courier New', monospace; color: ${currentStation.color}; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
                         <div class="noise-overlay" style="opacity: ${(100 - volume) / 200 + 0.05};"></div>
                         <div style="font-size: 0.6rem; margin-bottom: 0.5rem; opacity: 0.7; letter-spacing: 2px;">${currentStation.label}</div>
-                        <div id="broadcast-text" style="font-size: 1.1rem; text-align: center; font-weight: bold; transition: all 0.2s ease; filter: blur(${(100 - volume) / 20}px); opacity: ${volume / 100};">
+                        <div id="broadcast-text" style="font-size: 1rem; text-align: center; font-weight: bold; transition: all 0.2s ease; filter: blur(${(100 - volume) / 20}px); opacity: ${volume / 100};">
                             ${broadcast ? `"${broadcast}"` : 'BUSCANDO SEÑAL...'}
                         </div>
                     </div>
 
-                    <div class="radio-controls" style="display: flex; flex-direction: column; gap: 1.25rem;">
-                        <input type="text" id="radio-input" class="input-field center" value="${broadcast}" placeholder="¿Qué dice la voz ahora?" style="background: rgba(255,255,255,0.05); border-color: ${currentStation.color}44;">
-                        <input type="range" id="radio-volume" min="0" max="100" value="${volume}" class="slider-act">
-                        <input type="range" id="radio-tuning" min="0" max="100" value="${tuning}" class="slider-act">
+                    <div class="radio-controls" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <input type="text" id="radio-input" class="input-field" value="${broadcast}" placeholder="¿Qué dice la voz ahora mismo?" style="background: rgba(255,255,255,0.05); border-color: ${currentStation.color}44;">
+
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="font-size: 0.7rem; color: var(--color-text-secondary); min-width: 60px;">Volumen</span>
+                            <input type="range" id="radio-volume" min="0" max="100" value="${volume}" class="slider-act" style="flex: 1;">
+                            <span style="font-size: 0.7rem; color: var(--color-text-secondary); min-width: 30px;">${volume}%</span>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="font-size: 0.7rem; color: var(--color-text-secondary); min-width: 60px;">Emisora</span>
+                            <input type="range" id="radio-tuning" min="0" max="100" value="${tuning}" class="slider-act" style="flex: 1;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Defusión lingüística -->
+                <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
+                    <h4 style="font-size: 0.8rem; color: var(--color-primary); margin-bottom: 0.75rem;">Defusión lingüística</h4>
+                    <p style="font-size: 0.75rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Reformula el pensamiento con uno de estos prefijos y nota qué cambia:</p>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;" id="defusion-buttons">
+                        ${defusionPrefixes.map((d, i) => `
+                            <button class="btn-defusion" data-prefix="${d.prefix}" data-idx="${i}"
+                                style="text-align: left; padding: 0.6rem 0.85rem; border-radius: var(--radius-sm);
+                                       background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border);
+                                       color: var(--color-text-secondary); font-size: 0.78rem; cursor: pointer;
+                                       transition: all 0.2s; line-height: 1.4;">
+                                ${d.label}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="defused-result" style="margin-top: 0.75rem; min-height: 2.5rem; padding: 0.75rem; background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); font-size: 0.85rem; font-style: italic; color: var(--color-primary); display: ${defusedText ? 'block' : 'none'};">
+                        ${defusedText}
                     </div>
                 </div>
             </div>
         `;
+
+        attachGuideBadgeEvents();
 
         document.getElementById('radio-input').addEventListener('input', (e) => {
             broadcast = e.target.value;
@@ -373,31 +472,105 @@ function renderRadioDoomGloomTool(container) {
             radioAudio.init();
             internalRender();
         });
+
+        document.querySelectorAll('.btn-defusion').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const prefix = btn.dataset.prefix;
+                const base = broadcast.trim() || '...';
+                const lower = base.charAt(0).toLowerCase() + base.slice(1);
+                defusedText = prefix + lower;
+
+                const result = document.getElementById('defused-result');
+                result.style.display = 'block';
+                result.innerText = defusedText;
+
+                document.querySelectorAll('.btn-defusion').forEach(b => b.style.borderColor = 'var(--glass-border)');
+                btn.style.borderColor = 'var(--color-primary)';
+                btn.style.color = 'var(--color-primary)';
+            });
+        });
     };
 
     internalRender();
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// INTERRUPTOR DE LA LUCHA
+// ─────────────────────────────────────────────────────────────────────────────
+
 function renderInterruptorLuchaTool(container) {
     let isStruggling = true;
+    let observation = '';
+
+    const guide = renderGuideBadge({
+        trigger: 'El paciente describe resistencia activa a sentir, tensión corporal, o verbaliza que "no quiere sentir esto". Útil para hacer visible la lucha que ya está ocurriendo.',
+        intro: 'Quiero mostrarte algo. En este momento, ¿estás peleando con lo que estás sintiendo o lo estás dejando estar?',
+        questions: [
+            '¿Qué pasa en tu cuerpo cuando elegís no pelear?',
+            '¿La emoción cambió, o solo cambió tu relación con ella?',
+            '¿Cuánta energía está costando mantener esa lucha?'
+        ],
+        abort: 'El paciente usa el toggle repetidamente buscando alivio o empieza a frustrarse. La herramienta se está convirtiendo en otro mecanismo de control. Pausar.'
+    });
+
     const internalRender = () => {
         container.innerHTML = `
             <div class="tool-content">
-                <div class="switch-container glass" style="padding: 2.5rem; border-radius: var(--radius-lg); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2rem; position: relative; overflow: hidden;">
+                ${guide}
+
+                <div class="switch-container glass" style="padding: 2rem; border-radius: var(--radius-lg); display: flex; flex-direction: column; align-items: center; gap: 1.5rem; position: relative; overflow: hidden;">
                     <div class="switch-aura ${!isStruggling ? 'active' : ''}"></div>
+
+                    <!-- Fase 1: pregunta antes del toggle -->
+                    <div style="text-align: center; z-index: 2;">
+                        <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 0.5rem;">En este momento, ¿qué estás haciendo con esta experiencia?</p>
+                    </div>
+
                     <div id="struggle-toggle" style="width: 70px; height: 120px; background: #1e293b; border-radius: 35px; padding: 5px; cursor: pointer; position: relative; border: 3px solid ${isStruggling ? '#ef4444' : '#3b82f6'}; transition: 0.3s; z-index: 2;">
                         <div style="width: 60px; height: 60px; background: white; border-radius: 50%; position: absolute; left: 2px; transition: 0.4s; top: ${isStruggling ? '5px' : '55px'}; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
                             ${isStruggling ? '⚡' : '🌊'}
                         </div>
                     </div>
-                    <div style="z-index: 2;">
-                        <h4 style="color: ${isStruggling ? '#ef4444' : '#3b82f6'}; margin-bottom: 0.5rem;">${isStruggling ? 'LUCHA (ON)' : 'DISPOSICIÓN (OFF)'}</h4>
-                        <p class="clinical-note" style="max-width: 200px;">${isStruggling ? 'Estas peleando con tu experiencia. Es agotador.' : 'Has soltado los guantes. Hay espacio para sentir.'}</p>
+
+                    <div style="z-index: 2; text-align: center;">
+                        <h4 style="color: ${isStruggling ? '#ef4444' : '#3b82f6'}; margin-bottom: 0.4rem; font-size: 1rem;">
+                            ${isStruggling ? 'LUCHA' : 'DISPOSICIÓN'}
+                        </h4>
+                        <p class="clinical-note" style="max-width: 220px; font-size: 0.8rem;">
+                            ${isStruggling
+                ? 'Estás peleando con tu experiencia. Eso tiene un costo.'
+                : 'Has elegido no pelear por un momento. ¿Qué notás ahora?'}
+                        </p>
                     </div>
+
+                    <!-- Fase 2: observación después del toggle -->
+                    ${!isStruggling ? `
+                    <div style="width: 100%; z-index: 2;">
+                        <input type="text" id="observation-input" class="input-field"
+                            placeholder="¿Qué notás en tu cuerpo o en la experiencia ahora?"
+                            value="${observation}"
+                            style="font-size: 0.82rem;">
+                    </div>
+                    ` : ''}
+
+                    <p style="font-size: 0.7rem; color: var(--color-text-secondary); z-index: 2; font-style: italic; max-width: 220px; text-align: center;">
+                        El objetivo no es apagar la lucha, sino notarla.
+                    </p>
                 </div>
             </div>
         `;
-        document.getElementById('struggle-toggle').addEventListener('click', () => { isStruggling = !isStruggling; internalRender(); });
+
+        attachGuideBadgeEvents();
+
+        document.getElementById('struggle-toggle').addEventListener('click', () => {
+            isStruggling = !isStruggling;
+            internalRender();
+        });
+
+        document.getElementById('observation-input')?.addEventListener('input', (e) => {
+            observation = e.target.value;
+        });
     };
+
     internalRender();
 }

@@ -48,3 +48,73 @@ export function attachHeaderEvents(renderHome, saveState) {
 
     lucide.createIcons();
 }
+
+/**
+ * Renders a collapsible clinical guide badge for a tool.
+ * @param {Object} config
+ * @param {string} config.trigger      - When to use this tool (clinical trigger)
+ * @param {string} config.intro        - Suggested therapist intro phrase
+ * @param {string[]} config.questions  - Key questions to ask during the exercise
+ * @param {string} config.abort        - Signal to stop the exercise
+ * @returns {string} HTML string of the guide badge
+ */
+export function renderGuideBadge({ trigger, intro, questions, abort }) {
+    const id = 'guide-' + Math.random().toString(36).slice(2, 7);
+    return `
+        <div class="guide-badge-wrapper" style="margin-bottom: 1rem; position: relative;">
+            <button class="btn-guide-toggle" data-guide-id="${id}"
+                style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem;
+                       color: var(--color-text-secondary); background: transparent;
+                       border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+                       padding: 0.3rem 0.7rem; cursor: pointer; transition: all 0.2s;">
+                <span style="font-size: 0.9rem;">🧭</span> Guía clínica
+            </button>
+            <div id="${id}" class="guide-panel glass" style="display: none; margin-top: 0.5rem;
+                 padding: 1rem 1.1rem; border-radius: var(--radius-md); border-left: 3px solid var(--color-primary);
+                 background: rgba(0,0,0,0.18); animation: slideUp 0.2s ease; font-size: 0.8rem;">
+
+                <div style="display: grid; gap: 0.65rem;">
+                    <div>
+                        <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;
+                              color: var(--color-primary); font-weight: 700;">⚡ TRIGGER</span>
+                        <p style="margin-top: 0.2rem; color: var(--color-text-secondary);">${trigger}</p>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;
+                              color: var(--color-primary); font-weight: 700;">💬 INTRODUCCIÓN SUGERIDA</span>
+                        <p style="margin-top: 0.2rem; font-style: italic; color: var(--color-text-secondary);">"${intro}"</p>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;
+                              color: var(--color-primary); font-weight: 700;">❓ PREGUNTAS CLAVE</span>
+                        <ul style="margin-top: 0.3rem; padding-left: 1rem; display: flex; flex-direction: column; gap: 0.25rem; color: var(--color-text-secondary);">
+                            ${questions.map(q => `<li>${q}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;
+                              color: #ef4444; font-weight: 700;">🛑 SEÑAL DE ABORTO</span>
+                        <p style="margin-top: 0.2rem; color: var(--color-text-secondary);">${abort}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Attaches toggle behavior for all .btn-guide-toggle elements.
+ * Call this after rendering guide badges.
+ */
+export function attachGuideBadgeEvents() {
+    document.querySelectorAll('.btn-guide-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const panel = document.getElementById(btn.dataset.guideId);
+            if (!panel) return;
+            const isOpen = panel.style.display !== 'none';
+            panel.style.display = isOpen ? 'none' : 'block';
+            btn.style.borderColor = isOpen ? 'var(--glass-border)' : 'var(--color-primary)';
+            btn.style.color = isOpen ? 'var(--color-text-secondary)' : 'var(--color-primary)';
+        });
+    });
+}

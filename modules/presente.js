@@ -3,7 +3,7 @@
  */
 
 import { state, saveState } from '../core/state.js';
-import { renderModuleHeader, attachHeaderEvents } from '../ui/utils.js';
+import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
 
 export function renderPresenteModule(container, module, { renderHome }) {
     let activeToolId = 'stop';
@@ -140,13 +140,23 @@ function renderCieloYClimaTool(container) {
         night: 'linear-gradient(to bottom, #0f172a 0%, #1e293b 100%)'
     };
 
+    const guide = renderGuideBadge({
+        trigger: 'Confusión identitaria o fusión con estados emocionales intensos ("soy mi ansiedad", "soy así"). Útil para trabajar Yo Observador.',
+        intro: 'Imagina que sos el cielo. Los pensamientos y emociones son el clima: pueden ser tormentas o días soleados. El cielo no cambia aunque haya tormenta. ¿Podés notar quién está observando todo esto?',
+        questions: [
+            '¿Quién está notando estas nubes?',
+            '¿El cielo cambió, o solo cambió el clima?',
+            '¿Podés ser el cielo que contiene la tormenta sin ser la tormenta?'
+        ],
+        abort: 'El paciente usa la metáfora para disociarse o evitar sentir. Si nota que "se va" en lugar de observar, detener y volver a anclar en sensaciones del cuerpo.'
+    });
+
     const internalRender = () => {
         container.innerHTML = `
             <div class="tool-content">
-                <div class="intro" style="margin-bottom: 1rem; text-align: center;">
-                    <p class="clinical-note">La metáfora del cielo no es literal: úsala para notar eventos internos y traducirlos a decisiones concretas en contexto.</p>
-                </div>
-                <div class="sky-canvas glass" style="height: 300px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: ${isNight ? skyColors.night : skyColors.day}; transition: background 2s ease;">
+                ${guide}
+
+                <div class="sky-canvas glass" style="height: 280px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: ${isNight ? skyColors.night : skyColors.day}; transition: background 2s ease;">
                     ${isNight ? '<div class="stars" style="position: absolute; inset: 0; background: radial-gradient(white, transparent 2%) 0 0/50px 50px; opacity: 0.3;"></div>' : ''}
                     <div id="clouds-container">
                         ${state.persistence.weather.map((item, i) => `
@@ -155,21 +165,27 @@ function renderCieloYClimaTool(container) {
                             </div>
                         `).join('')}
                     </div>
+                    <div style="position: absolute; bottom: 0.75rem; left: 0; right: 0; text-align: center;">
+                        <p style="font-size: 0.7rem; color: rgba(255,255,255,0.55);">Vos sos el cielo. Esto es el clima.</p>
+                    </div>
                 </div>
-                <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
-                    <input type="text" id="weather-input" class="input-field" placeholder="Escribe un pensamiento/nube..." style="flex: 1;">
+
+                <div style="margin-top: 1.25rem;">
+                    <input type="text" id="weather-input" class="input-field" placeholder="Escribe un pensamiento o emoción (Enter para agregar)">
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.5rem;">Aterrizaje clínico rápido</h4>
+                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
                     <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="cielo-contexto" class="input-field" placeholder="¿Dónde aparece esto en tu día a día?" value="${state.persistence.grounding?.cielo?.contexto || ''}">
-                        <input type="text" id="cielo-aprendizaje" class="input-field" placeholder="¿Qué cambió al observar sin literalizar?" value="${state.persistence.grounding?.cielo?.aprendizaje || ''}">
-                        <input type="text" id="cielo-accion" class="input-field" placeholder="Siguiente acción breve alineada" value="${state.persistence.grounding?.cielo?.accion || ''}">
+                        <input type="text" id="cielo-contexto" class="input-field" placeholder="¿Dónde aparece esto en tu vida cotidiana?" value="${state.persistence.grounding?.cielo?.contexto || ''}">
+                        <input type="text" id="cielo-aprendizaje" class="input-field" placeholder="¿Qué notaste al observar desde afuera?" value="${state.persistence.grounding?.cielo?.aprendizaje || ''}">
+                        <input type="text" id="cielo-accion" class="input-field" placeholder="Aunque esté el clima, ¿qué elegís hacer?" value="${state.persistence.grounding?.cielo?.accion || ''}">
                     </div>
                 </div>
             </div>
         `;
+
+        attachGuideBadgeEvents();
 
         // Slower cloud animation for mobile/clinical use
         anime({
@@ -181,7 +197,6 @@ function renderCieloYClimaTool(container) {
             loop: true,
             easing: 'easeInOutSine'
         });
-
 
         ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
             const el = document.getElementById(`cielo-${key}`);
