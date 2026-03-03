@@ -76,7 +76,7 @@ function renderVisualizadorPensamientosTool(container) {
                 <!-- UI for thought visualization (as in original app.js) -->
                 <div class="intro" style="margin-bottom: 1.5rem; text-align: center;">
                     <h3 style="font-size: 1rem; color: var(--color-primary); margin-bottom: 0.5rem;">Visualizador de Pensamientos</h3>
-                    <p style="font-size: 0.8rem; color: var(--color-text-secondary);">Externaliza tus pensamientos y experimenta con su forma.</p>
+                    <p style="font-size: 0.8rem; color: var(--color-text-secondary);">Externaliza el pensamiento como objeto observable. Cambiar su forma no lo elimina — crea distancia para notar que eres quien lo observa, no el pensamiento mismo.</p>
                 </div>
 
                 <div class="style-config glass" style="padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
@@ -130,19 +130,19 @@ function renderVisualizadorPensamientosTool(container) {
                     </div>
                     
                     <div class="property-group">
-                        <label>Distanciamiento (Blur)</label>
+                        <label>Distancia del observador</label>
                         <input type="range" id="prop-blur" min="0" max="8" step="0.5" value="${state.persistence.thoughts[selectedThoughtIndex]?.blur || 0}" class="slider-act">
                     </div>
                     <div class="property-group">
-                        <label>Presencia (Opacidad)</label>
+                        <label>Peso en la mente</label>
                         <input type="range" id="prop-opacity" min="0.1" max="1" step="0.1" value="${state.persistence.thoughts[selectedThoughtIndex]?.opacity || 1}" class="slider-act">
                     </div>
                     <div class="property-group">
-                        <label>Espaciado (Stretching)</label>
+                        <label>Carga verbal (stretching)</label>
                         <input type="range" id="prop-spacing" min="0" max="20" step="1" value="${state.persistence.thoughts[selectedThoughtIndex]?.spacing || 0}" class="slider-act">
                     </div>
                     <div class="property-group">
-                        <label>Perspectiva (3D)</label>
+                        <label>Perspectiva del observador</label>
                         <input type="range" id="prop-rotateX" min="-60" max="60" step="1" value="${state.persistence.thoughts[selectedThoughtIndex]?.rotateX || 0}" class="slider-act">
                     </div>
                     
@@ -338,6 +338,9 @@ function renderRadioDoomGloomTool(container) {
         const currentStation = stations[Math.floor((tuning / 101) * stations.length)];
         container.innerHTML = `
             <div class="tool-content">
+                <div class="intro" style="margin-bottom: 1rem; text-align: center;">
+                    <p class="clinical-note">La voz interior como señal de radio: no es la realidad, es ruido de fondo. Escucharla no es creerla — el volumen y la sintonía son propiedades de la señal, no de la persona.</p>
+                </div>
                 <div class="radio-interface glass" style="padding: 1.5rem; border-radius: var(--radius-lg); border: 2px solid ${currentStation.color}88; background: rgba(0,0,0,0.2);">
                     <div class="radio-screen" style="background: #050a05; padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-family: 'Courier New', monospace; color: ${currentStation.color}; min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
                         <div class="noise-overlay" style="opacity: ${(100 - volume) / 200 + 0.05};"></div>
@@ -351,6 +354,15 @@ function renderRadioDoomGloomTool(container) {
                         <input type="text" id="radio-input" class="input-field center" value="${broadcast}" placeholder="¿Qué dice la voz ahora?" style="background: rgba(255,255,255,0.05); border-color: ${currentStation.color}44;">
                         <input type="range" id="radio-volume" min="0" max="100" value="${volume}" class="slider-act">
                         <input type="range" id="radio-tuning" min="0" max="100" value="${tuning}" class="slider-act">
+                    </div>
+                </div>
+
+                <div class="glass" style="margin-top: 1.25rem; padding: 1rem; border-radius: var(--radius-md);">
+                    <h4 style="margin-bottom: 0.5rem;">Aterrizaje clínico rápido</h4>
+                    <div style="display: grid; gap: 0.5rem;">
+                        <input type="text" id="radio-observado" class="input-field" placeholder="¿Qué notaste al escuchar la voz desde distancia?" value="${state.persistence.grounding?.radio?.observado || ''}">
+                        <input type="text" id="radio-valor" class="input-field" placeholder="¿Qué importa para ti más allá de esa voz?" value="${state.persistence.grounding?.radio?.valor || ''}">
+                        <input type="text" id="radio-accion" class="input-field" placeholder="Próxima acción alineada con ese valor" value="${state.persistence.grounding?.radio?.accion || ''}">
                     </div>
                 </div>
             </div>
@@ -373,6 +385,16 @@ function renderRadioDoomGloomTool(container) {
             radioAudio.init();
             internalRender();
         });
+
+        ['observado', 'valor', 'accion'].forEach((key) => {
+            const el = document.getElementById(`radio-${key}`);
+            el?.addEventListener('input', (e) => {
+                state.persistence.grounding ??= {};
+                state.persistence.grounding.radio ??= { observado: '', valor: '', accion: '' };
+                state.persistence.grounding.radio[key] = e.target.value;
+                saveState();
+            });
+        });
     };
 
     internalRender();
@@ -383,6 +405,9 @@ function renderInterruptorLuchaTool(container) {
     const internalRender = () => {
         container.innerHTML = `
             <div class="tool-content">
+                <div class="intro" style="margin-bottom: 1rem; text-align: center;">
+                    <p class="clinical-note">El interruptor no elimina el malestar — ilustra el coste de la lucha y el espacio que aparece al soltar el control. No es resignación: es apertura para actuar desde los valores.</p>
+                </div>
                 <div class="switch-container glass" style="padding: 2.5rem; border-radius: var(--radius-lg); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2rem; position: relative; overflow: hidden;">
                     <div class="switch-aura ${!isStruggling ? 'active' : ''}"></div>
                     <div id="struggle-toggle" style="width: 70px; height: 120px; background: #1e293b; border-radius: 35px; padding: 5px; cursor: pointer; position: relative; border: 3px solid ${isStruggling ? '#ef4444' : '#3b82f6'}; transition: 0.3s; z-index: 2;">
@@ -392,12 +417,31 @@ function renderInterruptorLuchaTool(container) {
                     </div>
                     <div style="z-index: 2;">
                         <h4 style="color: ${isStruggling ? '#ef4444' : '#3b82f6'}; margin-bottom: 0.5rem;">${isStruggling ? 'LUCHA (ON)' : 'DISPOSICIÓN (OFF)'}</h4>
-                        <p class="clinical-note" style="max-width: 200px;">${isStruggling ? 'Estas peleando con tu experiencia. Es agotador.' : 'Has soltado los guantes. Hay espacio para sentir.'}</p>
+                        <p class="clinical-note" style="max-width: 200px;">${isStruggling ? 'Estás peleando con tu experiencia. Es agotador.' : 'Has soltado los guantes. Hay espacio para sentir.'}</p>
+                    </div>
+                </div>
+
+                <div class="glass" style="margin-top: 1.25rem; padding: 1rem; border-radius: var(--radius-md);">
+                    <h4 style="margin-bottom: 0.5rem;">Aterrizaje clínico rápido</h4>
+                    <div style="display: grid; gap: 0.5rem;">
+                        <input type="text" id="lucha-apertura" class="input-field" placeholder="¿Qué aparece cuando soltás los guantes?" value="${state.persistence.grounding?.lucha?.apertura || ''}">
+                        <input type="text" id="lucha-hacia" class="input-field" placeholder="¿Hacia qué te dirigís con ese espacio?" value="${state.persistence.grounding?.lucha?.hacia || ''}">
+                        <input type="text" id="lucha-paso" class="input-field" placeholder="Un paso concreto y observable" value="${state.persistence.grounding?.lucha?.paso || ''}">
                     </div>
                 </div>
             </div>
         `;
         document.getElementById('struggle-toggle').addEventListener('click', () => { isStruggling = !isStruggling; internalRender(); });
+
+        ['apertura', 'hacia', 'paso'].forEach((key) => {
+            const el = document.getElementById(`lucha-${key}`);
+            el?.addEventListener('input', (e) => {
+                state.persistence.grounding ??= {};
+                state.persistence.grounding.lucha ??= { apertura: '', hacia: '', paso: '' };
+                state.persistence.grounding.lucha[key] = e.target.value;
+                saveState();
+            });
+        });
     };
     internalRender();
 }
