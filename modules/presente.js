@@ -129,40 +129,158 @@ function render5SentidosTool(container) {
     internalRender();
 }
 
-function renderCieloYClimaTool(container) {
-    // Automatic day/night based on system hour
-    const hour = new Date().getHours();
-    const isNight = hour < 6 || hour > 19;
+/**
+ * Returns sky configuration based on current hour.
+ * Covers 7 phases: night, dawn, morning, midday, afternoon, sunset, dusk.
+ */
+function getSkyConfig() {
+    const now = new Date();
+    const t = now.getHours() + now.getMinutes() / 60;
 
-    // Smooth color mapping
-    const skyColors = {
-        day: 'linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%)',
-        night: 'linear-gradient(to bottom, #0f172a 0%, #1e293b 100%)'
+    if (t < 5.5) return {
+        gradient: 'linear-gradient(to bottom, #020818 0%, #071428 55%, #0d1f3a 100%)',
+        period: 'noche', showStars: true, showMoon: true, showSun: false,
+        cloudColor: 'rgba(180,200,255,0.12)', textLight: true
     };
+    if (t < 7) return {
+        gradient: 'linear-gradient(to bottom, #0d1f3a 0%, #5c3060 30%, #e8724a 65%, #f9b44b 100%)',
+        period: 'amanecer', showStars: false, showMoon: false, showSun: true,
+        cloudColor: 'rgba(255,180,120,0.3)', textLight: true
+    };
+    if (t < 11) return {
+        gradient: 'linear-gradient(to bottom, #1e90ff 0%, #87ceeb 55%, #dff0fa 100%)',
+        period: 'mañana', showStars: false, showMoon: false, showSun: true,
+        cloudColor: 'rgba(255,255,255,0.6)', textLight: false
+    };
+    if (t < 14) return {
+        gradient: 'linear-gradient(to bottom, #1565c0 0%, #42a5f5 50%, #90caf9 100%)',
+        period: 'mediodía', showStars: false, showMoon: false, showSun: true,
+        cloudColor: 'rgba(255,255,255,0.65)', textLight: false
+    };
+    if (t < 17) return {
+        gradient: 'linear-gradient(to bottom, #2979b8 0%, #64b5f6 55%, #b3d9f7 100%)',
+        period: 'tarde', showStars: false, showMoon: false, showSun: true,
+        cloudColor: 'rgba(255,255,255,0.6)', textLight: false
+    };
+    if (t < 19.5) return {
+        gradient: 'linear-gradient(to bottom, #1a2560 0%, #7b3fa0 28%, #e05c2a 58%, #f5a623 100%)',
+        period: 'atardecer', showStars: false, showMoon: false, showSun: true,
+        cloudColor: 'rgba(255,160,80,0.38)', textLight: true
+    };
+    if (t < 21.5) return {
+        gradient: 'linear-gradient(to bottom, #080c24 0%, #1a2055 45%, #2d3a7a 100%)',
+        period: 'anochecer', showStars: true, showMoon: true, showSun: false,
+        cloudColor: 'rgba(150,165,255,0.15)', textLight: true
+    };
+    return {
+        gradient: 'linear-gradient(to bottom, #020818 0%, #071428 55%, #0d1f3a 100%)',
+        period: 'noche', showStars: true, showMoon: true, showSun: false,
+        cloudColor: 'rgba(180,200,255,0.12)', textLight: true
+    };
+}
+
+/**
+ * Calculates sun position as a smooth arc from sunrise to sunset.
+ * Returns {x, y} as percentages within the sky canvas.
+ */
+function getSunPosition(t) {
+    const start = 6, end = 19.5, span = end - start;
+    const progress = Math.max(0, Math.min(1, (t - start) / span));
+    const angle = Math.PI * progress;
+    const x = 88 - progress * 76;          // 88% (right) → 12% (left)
+    const y = 88 - Math.sin(angle) * 76;   // 88% at horizon → ~12% at noon
+    return { x: Math.round(x), y: Math.round(y) };
+}
+
+/** Generates individual star divs with random CSS twinkle timing. */
+function generateStars(count) {
+    return Array.from({ length: count }, () => {
+        const x = (Math.random() * 96 + 1).toFixed(1);
+        const y = (Math.random() * 85 + 1).toFixed(1);
+        const size = (0.8 + Math.random() * 2.2).toFixed(1);
+        const opacity = (0.35 + Math.random() * 0.65).toFixed(2);
+        const dur = (2 + Math.random() * 3).toFixed(1);
+        const delay = (Math.random() * 5).toFixed(1);
+        return `<div class="sky-star" style="left:${x}%;top:${y}%;width:${size}px;height:${size}px;opacity:${opacity};--twinkle-dur:${dur}s;--twinkle-delay:${delay}s;"></div>`;
+    }).join('');
+}
+
+function renderCieloYClimaTool(container) {
+    const sky = getSkyConfig();
+    const now = new Date();
+    const t = now.getHours() + now.getMinutes() / 60;
+    const sunPos = sky.showSun ? getSunPosition(t) : null;
 
     const internalRender = () => {
+        const clouds = state.persistence.weather || [];
+        const textColor = sky.textLight ? 'rgba(255,255,255,0.92)' : 'rgba(20,30,60,0.85)';
+        const periodColors = { noche: '#8090c0', amanecer: '#f9a870', mañana: '#1a6ea8', mediodía: '#0d5096', tarde: '#1a5f9e', atardecer: '#e07030', anochecer: '#5060a0' };
+        const periodColor = periodColors[sky.period] || '#fff';
+
         container.innerHTML = `
             <div class="tool-content">
                 <div class="intro" style="margin-bottom: 1rem; text-align: center;">
                     <p class="clinical-note">La metáfora del cielo no es literal: úsala para notar eventos internos y traducirlos a decisiones concretas en contexto.</p>
                 </div>
-                <div class="sky-canvas glass" style="height: 300px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: ${isNight ? skyColors.night : skyColors.day}; transition: background 2s ease;">
-                    ${isNight ? '<div class="stars" style="position: absolute; inset: 0; background: radial-gradient(white, transparent 2%) 0 0/50px 50px; opacity: 0.3;"></div>' : ''}
+
+                <div id="sky-canvas" style="height: 340px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: ${sky.gradient}; transition: background 3s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.35);">
+
+                    ${sky.showStars ? generateStars(28) : ''}
+
+                    ${sky.showSun && sunPos ? `
+                        <div class="sky-sun" style="position:absolute; left:${sunPos.x}%; top:${sunPos.y}%; transform:translate(-50%,-50%); width:52px; height:52px; border-radius:50%;
+                            background: radial-gradient(circle, #fff9c4 0%, #ffe066 35%, #ffa500 70%, rgba(255,120,0,0) 100%);
+                            box-shadow: 0 0 28px 10px rgba(255,200,0,0.5), 0 0 60px 25px rgba(255,150,0,0.2);">
+                        </div>` : ''}
+
+                    ${sky.showMoon ? `
+                        <div class="sky-moon" style="position:absolute; right:18%; top:18%; transform:translate(50%,-50%); width:46px; height:46px; border-radius:50%;
+                            background: radial-gradient(circle at 38% 38%, #f8f4d8 0%, #d8d09a 55%, #b8b080 100%);
+                            box-shadow: 0 0 18px 5px rgba(210,220,160,0.32);">
+                            <div style="position:absolute;top:22%;left:24%;width:9px;height:9px;border-radius:50%;background:rgba(0,0,0,0.09);"></div>
+                            <div style="position:absolute;top:54%;left:58%;width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,0.07);"></div>
+                            <div style="position:absolute;top:32%;left:60%;width:4px;height:4px;border-radius:50%;background:rgba(0,0,0,0.06);"></div>
+                        </div>` : ''}
+
                     <div id="clouds-container">
-                        ${state.persistence.weather.map((item, i) => `
-                            <div class="cloud-item glass animate-float" style="position: absolute; left: ${item.x}%; top: ${item.y}%; padding: 0.5rem 1rem; border-radius: 20px; background: rgba(255,255,255,0.1); backdrop-filter: blur(4px); font-size: 0.9rem;">
-                                ${item.text}
+                        ${clouds.map((item, i) => `
+                            <div class="sky-cloud" data-index="${i}" style="position:absolute; left:${item.x}%; top:${item.y}%; max-width:145px; cursor:pointer;">
+                                <div class="sky-cloud-inner" style="
+                                    background:${sky.cloudColor};
+                                    backdrop-filter:blur(10px);
+                                    -webkit-backdrop-filter:blur(10px);
+                                    border:1px solid rgba(255,255,255,0.28);
+                                    border-radius:18px;
+                                    padding:0.45rem 0.8rem;
+                                    font-size:0.8rem;
+                                    font-weight:500;
+                                    color:${textColor};
+                                    box-shadow:0 4px 14px rgba(0,0,0,0.12);
+                                    white-space:nowrap;
+                                    overflow:hidden;
+                                    text-overflow:ellipsis;
+                                    max-width:132px;
+                                    position:relative;
+                                ">
+                                    ${item.text}
+                                    <span class="sky-cloud-del" title="Eliminar">×</span>
+                                </div>
                             </div>
                         `).join('')}
                     </div>
-                </div>
-                <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
-                    <input type="text" id="weather-input" class="input-field" placeholder="Escribe un pensamiento/nube..." style="flex: 1;">
+
+                    <div style="position:absolute;bottom:10px;right:14px;font-size:0.7rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${periodColor};opacity:0.85;">${sky.period}</div>
                 </div>
 
-                <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.5rem;">Aterrizaje clínico rápido</h4>
-                    <div style="display: grid; gap: 0.5rem;">
+                <div style="margin-top:1.25rem; display:flex; gap:0.5rem; align-items:center;">
+                    <input type="text" id="weather-input" class="input-field" placeholder="Escribe un pensamiento o nube…" style="flex:1;">
+                    <button class="btn-ghost" id="btn-add-cloud" style="min-height:44px;padding:0 1rem;font-size:0.9rem;flex-shrink:0;">+</button>
+                </div>
+                ${clouds.length > 0 ? '<p style="font-size:0.73rem;color:var(--color-text-secondary);margin-top:0.4rem;text-align:center;">Toca una nube para eliminarla</p>' : ''}
+
+                <div class="glass" style="margin-top:1.25rem; padding:1.25rem; border-radius:var(--radius-md);">
+                    <h4 style="margin-bottom:0.75rem;font-size:0.9rem;opacity:0.8;">Aterrizaje clínico rápido</h4>
+                    <div style="display:grid; gap:0.5rem;">
                         <input type="text" id="cielo-contexto" class="input-field" placeholder="¿Dónde aparece esto en tu día a día?" value="${state.persistence.grounding?.cielo?.contexto || ''}">
                         <input type="text" id="cielo-aprendizaje" class="input-field" placeholder="¿Qué cambió al observar sin literalizar?" value="${state.persistence.grounding?.cielo?.aprendizaje || ''}">
                         <input type="text" id="cielo-accion" class="input-field" placeholder="Siguiente acción breve alineada" value="${state.persistence.grounding?.cielo?.accion || ''}">
@@ -171,37 +289,69 @@ function renderCieloYClimaTool(container) {
             </div>
         `;
 
-        // Slower cloud animation for mobile/clinical use
-        anime({
-            targets: '.cloud-item',
-            translateX: () => [0, anime.random(-20, 20)],
-            translateY: () => [0, anime.random(-10, 10)],
-            duration: 10000,
-            direction: 'alternate',
-            loop: true,
-            easing: 'easeInOutSine'
+        // Per-cloud drift animation at varying speeds and directions
+        clouds.forEach((_, i) => {
+            const el = document.querySelector(`.sky-cloud[data-index="${i}"]`);
+            if (el && typeof anime !== 'undefined') {
+                anime({
+                    targets: el,
+                    translateX: [0, (Math.random() - 0.5) * 28],
+                    translateY: [0, (Math.random() - 0.5) * 14],
+                    duration: 9000 + Math.random() * 8000,
+                    direction: 'alternate',
+                    loop: true,
+                    easing: 'easeInOutSine'
+                });
+            }
         });
 
+        // Sun pulsing glow
+        if (sky.showSun && typeof anime !== 'undefined') {
+            anime({
+                targets: '.sky-sun',
+                boxShadow: [
+                    '0 0 28px 10px rgba(255,200,0,0.5), 0 0 60px 25px rgba(255,150,0,0.2)',
+                    '0 0 40px 16px rgba(255,220,0,0.7), 0 0 80px 40px rgba(255,170,0,0.35)'
+                ],
+                duration: 4000,
+                direction: 'alternate',
+                loop: true,
+                easing: 'easeInOutSine'
+            });
+        }
 
-        ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
-            const el = document.getElementById(`cielo-${key}`);
-            el?.addEventListener('input', (e) => {
+        // Delete cloud on click
+        document.querySelectorAll('.sky-cloud').forEach(el => {
+            el.addEventListener('click', () => {
+                const idx = parseInt(el.dataset.index);
+                state.persistence.weather.splice(idx, 1);
+                saveState();
+                internalRender();
+            });
+        });
+
+        // Grounding inputs
+        ['contexto', 'aprendizaje', 'accion'].forEach(key => {
+            document.getElementById(`cielo-${key}`)?.addEventListener('input', e => {
                 state.persistence.grounding ??= { hojas: { contexto: '', aprendizaje: '', accion: '' }, cielo: { contexto: '', aprendizaje: '', accion: '' } };
                 state.persistence.grounding.cielo[key] = e.target.value;
                 saveState();
             });
         });
 
-        document.getElementById('weather-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const text = e.target.value.trim();
-                if (text) {
-                    state.persistence.weather.push({ text, x: 20 + Math.random() * 60, y: 10 + Math.random() * 60 });
-                    saveState();
-                    internalRender();
-                }
+        // Add cloud
+        const addCloud = () => {
+            const input = document.getElementById('weather-input');
+            const text = input?.value.trim();
+            if (text) {
+                state.persistence.weather.push({ text, x: 8 + Math.random() * 72, y: 6 + Math.random() * 68 });
+                saveState();
+                internalRender();
             }
-        });
+        };
+        document.getElementById('weather-input').addEventListener('keypress', e => { if (e.key === 'Enter') addCloud(); });
+        document.getElementById('btn-add-cloud').addEventListener('click', addCloud);
     };
+
     internalRender();
 }
