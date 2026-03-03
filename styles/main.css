@@ -504,30 +504,70 @@ button {
     opacity: 0.75;
 }
 
+/* Delete badge: sits OUTSIDE .sky-cloud-inner so overflow:hidden doesn't clip it */
 .sky-cloud-del {
     position: absolute;
-    top: -7px;
-    right: -7px;
-    width: 18px;
-    height: 18px;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
-    background: rgba(220, 60, 60, 0.82);
+    background: rgba(210, 50, 50, 0.88);
     color: #fff;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
+    font-family: var(--font-main);
     display: flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    border: none;
+    padding: 0;
+    min-height: unset;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     cursor: pointer;
     transition: transform 0.15s ease, background 0.15s ease;
+    z-index: 2;
 }
 
-.sky-cloud:hover .sky-cloud-del,
-.sky-cloud:focus-within .sky-cloud-del {
-    transform: scale(1.15);
-    background: rgba(200, 30, 30, 0.95);
+.sky-cloud-del:hover,
+.sky-cloud:hover .sky-cloud-del {
+    transform: scale(1.2);
+    background: rgba(190, 20, 20, 0.98);
+}
+
+/* Birds */
+@keyframes birdAcross {
+    from { left: -40px; }
+    to   { left: calc(100% + 40px); }
+}
+
+@keyframes birdFlap {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-5px); }
+}
+
+.sky-bird {
+    position: absolute;
+    color: rgba(20, 35, 60, 0.45);
+    animation: birdAcross linear infinite, birdFlap 1.6s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Airplane */
+@keyframes planeAcross {
+    from { left: -60px; transform: translateY(0px);   }
+    to   { left: calc(100% + 60px); transform: translateY(-18px); }
+}
+
+.sky-plane {
+    position: absolute;
+    font-size: 17px;
+    color: rgba(220, 235, 255, 0.68);
+    animation: planeAcross 52s linear infinite;
+    pointer-events: none;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    filter: drop-shadow(0 1px 4px rgba(255,255,255,0.3));
 }
 
 .clinical-note {
