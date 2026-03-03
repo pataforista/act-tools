@@ -4,94 +4,265 @@
 
 import { state, saveState, getDefaultSession, archiveCurrentSession } from '../core/state.js';
 
+const dashboardUiState = {
+    searchTerm: '',
+    sortBy: 'recent',
+    showCreateForm: false
+};
+
+function persistPatients() {
+    localStorage.setItem('act_patients', JSON.stringify(state.patients));
+}
+
+function getCurrentPatient() {
+    return state.patients.find(patient => patient.id === state.currentPatientId) || null;
+}
+
+function getPatientLastActivity(patient) {
+    if (patient.currentSession?.date) return new Date(patient.currentSession.date).getTime();
+    if (patient.history.length > 0) return new Date(patient.history[patient.history.length - 1].date).getTime();
+    return 0;
+}
+
+function getPatientMetrics() {
+    const totalPatients = state.patients.length;
+    const activeSessions = state.patients.filter(patient => patient.currentSession).length;
+    const totalSessions = state.patients.reduce((acc, patient) => acc + patient.history.length, 0);
+
+    return { totalPatients, activeSessions, totalSessions };
+}
+
+function getVisiblePatients() {
+    const normalizedSearch = dashboardUiState.searchTerm.trim().toLowerCase();
+
+    const filtered = state.patients.filter(patient => {
+        if (!normalizedSearch) return true;
+
+        const patientName = patient.name.toLowerCase();
+        const historyCount = String(patient.history.length);
+
+        return patientName.includes(normalizedSearch) || historyCount.includes(normalizedSearch);
+    });
+
+    if (dashboardUiState.sortBy === 'name') {
+        filtered.sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
+    } else if (dashboardUiState.sortBy === 'sessions') {
+        filtered.sort((a, b) => b.history.length - a.history.length);
+    } else {
+        filtered.sort((a, b) => getPatientLastActivity(b) - getPatientLastActivity(a));
+    }
+
+    return filtered;
+}
+
 export function renderDashboard(container, navigateToHome, navigateToHistory) {
     state.currentModule = 'dashboard';
+
+    const currentPatient = getCurrentPatient();
+    const metrics = getPatientMetrics();
+    const visiblePatients = getVisiblePatients();
+
     container.innerHTML = `
         <div class="dashboard-view animate-slide-up">
-            <header class="dashboard-header" style="text-align: center; margin-bottom: 2.5rem;">
-                <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--color-primary); margin-bottom: 0.5rem;">ACT In-Session</h1>
-                <p style="color: var(--color-text-secondary); font-size: 0.9rem;">Gestión de Consultantes y Sesiones</p>
-            </header>
-
-            <div class="patient-manager glass-card" style="padding: 1.5rem; border-radius: var(--radius-lg); margin-bottom: 2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2 style="font-size: 1.1rem; font-weight: 600;">Consultantes</h2>
-                    <button class="btn-primary" id="btn-add-patient" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">+ Nuevo</button>
+            <section class="dashboard-hero glass-card">
+                <div class="dashboard-hero__header">
+                    <div>
+                        <p class="dashboard-kicker">Panel clínico</p>
+                        <h1>ACT In-Session</h1>
+                        <p class="dashboard-subtitle">Un espacio premium para gestionar consultantes, sesiones y continuidad terapéutica.</p>
+                    </div>
+                    <button class="btn-ghost dashboard-create-toggle" id="btn-toggle-create">
+                        ${dashboardUiState.showCreateForm ? 'Cancelar' : '+ Nuevo consultante'}
+                    </button>
                 </div>
 
-                <div id="patient-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                    ${state.patients.length === 0 ? `
-                        <div style="text-align: center; padding: 2rem; color: var(--color-text-secondary); font-style: italic; font-size: 0.85rem;">
-                            No hay pacientes registrados.
+                <div class="dashboard-stats">
+                    <article class="dashboard-stat-card">
+                        <span>Total consultantes</span>
+                        <strong>${metrics.totalPatients}</strong>
+                    </article>
+                    <article class="dashboard-stat-card">
+                        <span>Sesiones activas</span>
+                        <strong>${metrics.activeSessions}</strong>
+                    </article>
+                    <article class="dashboard-stat-card">
+                        <span>Sesiones cerradas</span>
+                        <strong>${metrics.totalSessions}</strong>
+                    </article>
+                </div>
+
+                <form class="dashboard-create-form ${dashboardUiState.showCreateForm ? '' : 'is-hidden'}" id="dashboard-create-form">
+                    <label for="patient-name-input">Nombre del consultante</label>
+                    <div class="dashboard-create-row">
+                        <input id="patient-name-input" class="dashboard-input" name="name" type="text" maxlength="80" placeholder="Ej. Ana Rodríguez" required>
+                        <button class="btn-primary" type="submit">Guardar</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="patient-manager glass-card">
+                <div class="dashboard-toolbar">
+                    <div class="dashboard-toolbar__search">
+                        <label for="patient-search">Buscar</label>
+                        <input id="patient-search" class="dashboard-input" type="search" value="${dashboardUiState.searchTerm}" placeholder="Nombre o n° de sesiones">
+                    </div>
+                    <div class="dashboard-toolbar__sort">
+                        <label for="patient-sort">Ordenar por</label>
+                        <select id="patient-sort" class="dashboard-input">
+                            <option value="recent" ${dashboardUiState.sortBy === 'recent' ? 'selected' : ''}>Actividad reciente</option>
+                            <option value="name" ${dashboardUiState.sortBy === 'name' ? 'selected' : ''}>Nombre</option>
+                            <option value="sessions" ${dashboardUiState.sortBy === 'sessions' ? 'selected' : ''}>Cantidad de sesiones</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="patient-list" class="patient-list">
+                    ${visiblePatients.length === 0 ? `
+                        <div class="dashboard-empty-state">
+                            ${state.patients.length === 0
+            ? 'No hay consultantes registrados. Usa el botón “Nuevo consultante” para comenzar.'
+            : 'No encontramos resultados para tu búsqueda actual.'}
                         </div>
-                    ` : state.patients.map(p => `
-                        <div class="patient-item glass ${state.currentPatientId === p.id ? 'active' : ''}" 
-                             data-id="${p.id}" 
-                             style="padding: 1rem; border-radius: var(--radius-md); cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid ${state.currentPatientId === p.id ? 'var(--color-primary)' : 'var(--glass-border)'};">
-                            <div>
-                                <div style="font-weight: 600; font-size: 0.95rem;">${p.name}</div>
-                                <div style="font-size: 0.75rem; color: var(--color-text-secondary);">${p.history.length} sesiones previas</div>
+                    ` : visiblePatients.map(patient => `
+                        <article class="patient-item glass ${state.currentPatientId === patient.id ? 'active' : ''}" data-id="${patient.id}">
+                            <div class="patient-item__main">
+                                <h3>${patient.name}</h3>
+                                <p>${patient.history.length} sesiones previas ${patient.currentSession ? '• sesión en curso' : ''}</p>
                             </div>
-                            ${state.currentPatientId === p.id ? '<span style="color: var(--color-primary);">● Seleccionado</span>' : ''}
-                        </div>
+                            <div class="patient-item__actions">
+                                <button class="btn-ghost btn-select-patient" data-action="select" data-id="${patient.id}">
+                                    ${state.currentPatientId === patient.id ? 'Seleccionado' : 'Seleccionar'}
+                                </button>
+                                <button class="btn-ghost btn-rename-patient" data-action="rename" data-id="${patient.id}">Renombrar</button>
+                                <button class="btn-ghost btn-delete-patient" data-action="delete" data-id="${patient.id}">Eliminar</button>
+                            </div>
+                        </article>
                     `).join('')}
                 </div>
-            </div>
+            </section>
 
-            <div id="session-controls" style="display: ${state.currentPatientId ? 'flex' : 'none'}; flex-direction: column; gap: 1rem;">
-                <button class="btn-primary" id="btn-start-session" style="padding: 1.25rem;">Comenzar Nueva Sesión</button>
-                ${state.patients.find(p => p.id === state.currentPatientId)?.currentSession ? `
-                    <button class="btn-ghost" id="btn-resume-session" style="padding: 1rem; border: 1px solid var(--color-primary);">Continuar Sesión Pendiente</button>
+            <section id="session-controls" class="session-controls ${state.currentPatientId ? '' : 'is-hidden'}">
+                <button class="btn-primary" id="btn-start-session">Comenzar nueva sesión</button>
+                ${currentPatient?.currentSession ? `
+                    <button class="btn-ghost" id="btn-resume-session">Continuar sesión pendiente</button>
                 ` : ''}
-                <button class="btn-ghost" id="btn-view-history" style="opacity: 0.7;">Ver Historial de Sesiones</button>
-            </div>
+                <div class="session-controls__secondary">
+                    <button class="btn-ghost" id="btn-view-history">Ver historial</button>
+                    <button class="btn-ghost" id="btn-clear-selection">Quitar selección</button>
+                </div>
+            </section>
         </div>
     `;
 
-    // Event Listeners
-    document.getElementById('btn-add-patient').addEventListener('click', () => {
-        const name = prompt('Nombre del pacien/consultante:');
-        if (name) {
-            const newPatient = {
-                id: 'p_' + Date.now(),
-                name: name,
-                history: [],
-                currentSession: null
-            };
-            state.patients.push(newPatient);
-            localStorage.setItem('act_patients', JSON.stringify(state.patients));
-            renderDashboard(container, navigateToHome, navigateToHistory);
-        }
+    document.getElementById('btn-toggle-create').addEventListener('click', () => {
+        dashboardUiState.showCreateForm = !dashboardUiState.showCreateForm;
+        renderDashboard(container, navigateToHome, navigateToHistory);
     });
 
-    document.querySelectorAll('.patient-item').forEach(item => {
-        item.addEventListener('click', () => {
-            state.currentPatientId = item.dataset.id;
-            localStorage.setItem('act_current_patient_id', state.currentPatientId);
+    const createForm = document.getElementById('dashboard-create-form');
+    createForm?.addEventListener('submit', event => {
+        event.preventDefault();
+        const formData = new FormData(createForm);
+        const name = (formData.get('name') || '').toString().trim();
+        if (!name) return;
+
+        state.patients.unshift({
+            id: `p_${Date.now()}`,
+            name,
+            history: [],
+            currentSession: null
+        });
+
+        dashboardUiState.showCreateForm = false;
+        dashboardUiState.searchTerm = '';
+        persistPatients();
+        renderDashboard(container, navigateToHome, navigateToHistory);
+    });
+
+    document.getElementById('patient-search').addEventListener('input', event => {
+        dashboardUiState.searchTerm = event.target.value;
+        renderDashboard(container, navigateToHome, navigateToHistory);
+    });
+
+    document.getElementById('patient-sort').addEventListener('change', event => {
+        dashboardUiState.sortBy = event.target.value;
+        renderDashboard(container, navigateToHome, navigateToHistory);
+    });
+
+    document.querySelectorAll('[data-action="select"]').forEach(button => {
+        button.addEventListener('click', event => {
+            const patientId = event.currentTarget.dataset.id;
+            state.currentPatientId = patientId;
+            localStorage.setItem('act_current_patient_id', patientId);
             renderDashboard(container, navigateToHome, navigateToHistory);
         });
     });
 
-    if (state.currentPatientId) {
-        document.getElementById('btn-start-session').addEventListener('click', () => {
-            const patient = state.patients.find(p => p.id === state.currentPatientId);
-            if (patient.currentSession && confirm('Hay una sesión en curso. ¿Deseas guardarla en el historial e iniciar una nueva?')) {
-                archiveCurrentSession();
+    document.querySelectorAll('[data-action="rename"]').forEach(button => {
+        button.addEventListener('click', event => {
+            const patientId = event.currentTarget.dataset.id;
+            const patient = state.patients.find(item => item.id === patientId);
+            if (!patient) return;
+
+            const updatedName = prompt('Nuevo nombre del consultante:', patient.name)?.trim();
+            if (!updatedName) return;
+
+            patient.name = updatedName;
+            persistPatients();
+            renderDashboard(container, navigateToHome, navigateToHistory);
+        });
+    });
+
+    document.querySelectorAll('[data-action="delete"]').forEach(button => {
+        button.addEventListener('click', event => {
+            const patientId = event.currentTarget.dataset.id;
+            const patient = state.patients.find(item => item.id === patientId);
+            if (!patient) return;
+
+            const confirmed = confirm(`¿Eliminar definitivamente a ${patient.name} y su historial?`);
+            if (!confirmed) return;
+
+            state.patients = state.patients.filter(item => item.id !== patientId);
+            if (state.currentPatientId === patientId) {
+                state.currentPatientId = null;
+                localStorage.removeItem('act_current_patient_id');
             }
-            state.persistence = getDefaultSession();
-            saveState();
+
+            persistPatients();
+            renderDashboard(container, navigateToHome, navigateToHistory);
+        });
+    });
+
+    if (!state.currentPatientId) return;
+
+    document.getElementById('btn-start-session').addEventListener('click', () => {
+        const patient = getCurrentPatient();
+        if (!patient) return;
+
+        if (patient.currentSession && confirm('Hay una sesión en curso. ¿Deseas guardarla en el historial e iniciar una nueva?')) {
+            archiveCurrentSession();
+        }
+
+        state.persistence = getDefaultSession();
+        saveState();
+        navigateToHome();
+    });
+
+    const resumeButton = document.getElementById('btn-resume-session');
+    if (resumeButton) {
+        resumeButton.addEventListener('click', () => {
+            const patient = getCurrentPatient();
+            if (!patient?.currentSession) return;
+            state.persistence = patient.currentSession;
             navigateToHome();
         });
-
-        const resumeBtn = document.getElementById('btn-resume-session');
-        if (resumeBtn) {
-            resumeBtn.addEventListener('click', () => {
-                const patient = state.patients.find(p => p.id === state.currentPatientId);
-                state.persistence = patient.currentSession;
-                navigateToHome();
-            });
-        }
-
-        document.getElementById('btn-view-history').addEventListener('click', navigateToHistory);
     }
+
+    document.getElementById('btn-view-history').addEventListener('click', navigateToHistory);
+
+    document.getElementById('btn-clear-selection').addEventListener('click', () => {
+        state.currentPatientId = null;
+        localStorage.removeItem('act_current_patient_id');
+        renderDashboard(container, navigateToHome, navigateToHistory);
+    });
 }

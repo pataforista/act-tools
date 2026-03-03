@@ -582,3 +582,208 @@ button {
         height: 52px;
     }
 }
+/* Dashboard Premium Controls */
+.dashboard-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.dashboard-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background: linear-gradient(140deg, rgba(251, 191, 36, 0.12), rgba(14, 165, 233, 0.06));
+}
+
+.dashboard-hero__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.dashboard-kicker {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.2rem;
+}
+
+.dashboard-hero h1 {
+    font-size: 1.8rem;
+    line-height: 1.15;
+    color: var(--color-primary);
+}
+
+.dashboard-subtitle {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    color: var(--color-text-secondary);
+    max-width: 45ch;
+}
+
+.dashboard-create-toggle {
+    min-height: 42px;
+    padding: 0.6rem 1rem;
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.dashboard-stat-card {
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.dashboard-stat-card span {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--color-text-secondary);
+}
+
+.dashboard-stat-card strong {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 1.45rem;
+    line-height: 1;
+}
+
+.dashboard-create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.dashboard-create-row {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.dashboard-input {
+    width: 100%;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--color-text-primary);
+    padding: 0.7rem 0.85rem;
+    min-height: 44px;
+    font-family: inherit;
+}
+
+.dashboard-input::placeholder {
+    color: var(--color-text-secondary);
+}
+
+.is-hidden {
+    display: none !important;
+}
+
+.dashboard-toolbar {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.dashboard-toolbar label {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.35rem;
+}
+
+.patient-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.patient-item {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.9rem;
+    border: 1px solid var(--glass-border);
+}
+
+.patient-item.active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.15);
+}
+
+.patient-item__main h3 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.patient-item__main p {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+}
+
+.patient-item__actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.patient-item__actions .btn-ghost {
+    min-height: 38px;
+    font-size: 0.8rem;
+    padding: 0.45rem 0.65rem;
+}
+
+.dashboard-empty-state {
+    text-align: center;
+    padding: 1.4rem 1rem;
+    color: var(--color-text-secondary);
+    border: 1px dashed var(--glass-border);
+    border-radius: var(--radius-md);
+}
+
+.session-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.session-controls__secondary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+@media (max-width: 540px) {
+    .dashboard-hero__header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dashboard-toolbar,
+    .dashboard-stats,
+    .session-controls__secondary {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-create-row,
+    .patient-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .patient-item__actions {
+        justify-content: flex-start;
+    }
+}
