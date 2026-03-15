@@ -93,7 +93,7 @@ function renderSTOPTool(container) {
     internalRender();
 }
 
-function render5SentidosTool(container) {
+export function render5SentidosTool(container) {
     const senses = [
         { count: 5, item: 'cosas que puedes ver', color: '#f59e0b' },
         { count: 4, item: 'cosas que puedes tocar', color: '#10b981' },
