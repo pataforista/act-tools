@@ -16,6 +16,7 @@ export function renderHexaflexModule(container, { modules, loadModule, renderHom
         { id: 'resumen', title: 'Resumen', icon: 'clipboard', color: 'var(--color-primary)', isSpecial: true }
     ];
 
+    const processPoints = points.filter(p => !p.isSpecial);
     const centerX = 200, centerY = 200, radius = 135;
     const getCoords = (angle, r) => ({
         x: centerX + r * Math.cos((angle * Math.PI) / 180),
@@ -78,13 +79,13 @@ export function renderHexaflexModule(container, { modules, loadModule, renderHom
                             `;
     }).join('')}
                     ` : `
-                        <polygon points="${points.map(p => {
+                        <polygon points="${processPoints.map(p => {
         const c = getCoords(p.angle, radius);
         return `${c.x},${c.y}`;
     }).join(' ')}" class="hex-line" style="stroke-dasharray: none; opacity: 0.15;" />
                         
-                        ${points.map((p, i) => {
-        const target = points[(i + 1) % points.length];
+                        ${processPoints.map((p, i) => {
+        const target = processPoints[(i + 1) % processPoints.length];
         const start = getCoords(p.angle, radius);
         const end = getCoords(target.angle, radius);
         return `<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" class="hex-line-gradient" stroke="url(#grad-${p.id})" />`;
