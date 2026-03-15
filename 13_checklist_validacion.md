@@ -6,6 +6,7 @@
 - ¿Facilita contacto?
 - ¿Evita control?
 - ¿No promete alivio?
+- ¿Aterriza la metáfora en contexto, aprendizaje y acción concreta?
 - ¿Es abortable?
 - ¿Respeta control clínico?
 

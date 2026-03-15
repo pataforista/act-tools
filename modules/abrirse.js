@@ -138,6 +138,15 @@ function renderVisualizadorPensamientosTool(container) {
         }).join('')}
                 </div>
 
+                <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
+                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <div style="display: grid; gap: 0.5rem;">
+                        <input type="text" id="visualizador-contexto" class="input-field" placeholder="¿Dónde te enganchaste con este pensamiento hoy?" value="${state.persistence.grounding?.visualizador?.contexto || ''}">
+                        <input type="text" id="visualizador-aprendizaje" class="input-field" placeholder="¿Qué cambió al verlo como pensamiento y no como hecho?" value="${state.persistence.grounding?.visualizador?.aprendizaje || ''}">
+                        <input type="text" id="visualizador-accion" class="input-field" placeholder="Con este pensamiento presente, ¿qué acción útil podés hacer?" value="${state.persistence.grounding?.visualizador?.accion || ''}">
+                    </div>
+                </div>
+
                 <div id="property-panel" class="glass" style="margin-top: 1rem; padding: 1.25rem; border-radius: var(--radius-md); display: ${selectedThoughtIndex !== null ? 'grid' : 'none'}; grid-template-columns: 1fr 1fr; gap: 1rem; animation: slideUp 0.3s ease;">
                     <div style="grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
                         <h4 style="font-size: 0.85rem; font-weight: bold; color: var(--color-primary);">Propiedades del Pensamiento</h4>
@@ -179,6 +188,22 @@ function renderVisualizadorPensamientosTool(container) {
         `;
 
         attachGuideBadgeEvents();
+
+        ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
+            const el = document.getElementById(`visualizador-${key}`);
+            el?.addEventListener('input', (e) => {
+                state.persistence.grounding ??= {
+                    hojas: { contexto: '', aprendizaje: '', accion: '' },
+                    cielo: { contexto: '', aprendizaje: '', accion: '' },
+                    visualizador: { contexto: '', aprendizaje: '', accion: '' },
+                    radio: { contexto: '', aprendizaje: '', accion: '' },
+                    lucha: { contexto: '', aprendizaje: '', accion: '' }
+                };
+                state.persistence.grounding.visualizador ??= { contexto: '', aprendizaje: '', accion: '' };
+                state.persistence.grounding.visualizador[key] = e.target.value;
+                saveState();
+            });
+        });
 
         const board = document.getElementById('thoughts-list');
         board.addEventListener('click', (e) => {
@@ -450,10 +475,35 @@ function renderRadioDoomGloomTool(container) {
                         ${defusedText}
                     </div>
                 </div>
+
+                <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
+                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <div style="display: grid; gap: 0.5rem;">
+                        <input type="text" id="radio-contexto" class="input-field" placeholder="¿En qué situación apareció esta emisora?" value="${state.persistence.grounding?.radio?.contexto || ''}">
+                        <input type="text" id="radio-aprendizaje" class="input-field" placeholder="¿Qué notaste al escucharla como voz de la mente?" value="${state.persistence.grounding?.radio?.aprendizaje || ''}">
+                        <input type="text" id="radio-accion" class="input-field" placeholder="Aunque suene fuerte, ¿qué acción elegís sostener?" value="${state.persistence.grounding?.radio?.accion || ''}">
+                    </div>
+                </div>
             </div>
         `;
 
         attachGuideBadgeEvents();
+
+        ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
+            const el = document.getElementById(`radio-${key}`);
+            el?.addEventListener('input', (e) => {
+                state.persistence.grounding ??= {
+                    hojas: { contexto: '', aprendizaje: '', accion: '' },
+                    cielo: { contexto: '', aprendizaje: '', accion: '' },
+                    visualizador: { contexto: '', aprendizaje: '', accion: '' },
+                    radio: { contexto: '', aprendizaje: '', accion: '' },
+                    lucha: { contexto: '', aprendizaje: '', accion: '' }
+                };
+                state.persistence.grounding.radio ??= { contexto: '', aprendizaje: '', accion: '' };
+                state.persistence.grounding.radio[key] = e.target.value;
+                saveState();
+            });
+        });
 
         document.getElementById('radio-input').addEventListener('input', (e) => {
             broadcast = e.target.value;
@@ -557,6 +607,15 @@ function renderInterruptorLuchaTool(container) {
                         El objetivo no es apagar la lucha, sino notarla.
                     </p>
                 </div>
+
+                <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
+                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <div style="display: grid; gap: 0.5rem;">
+                        <input type="text" id="lucha-contexto" class="input-field" placeholder="¿Cuándo se activa más esta lucha en tu semana?" value="${state.persistence.grounding?.lucha?.contexto || ''}">
+                        <input type="text" id="lucha-aprendizaje" class="input-field" placeholder="¿Qué notaste al dejar de pelear por unos segundos?" value="${state.persistence.grounding?.lucha?.aprendizaje || ''}">
+                        <input type="text" id="lucha-accion" class="input-field" placeholder="Con esta emoción presente, ¿qué acción valiosa podés sostener?" value="${state.persistence.grounding?.lucha?.accion || ''}">
+                    </div>
+                </div>
             </div>
         `;
 
@@ -569,6 +628,32 @@ function renderInterruptorLuchaTool(container) {
 
         document.getElementById('observation-input')?.addEventListener('input', (e) => {
             observation = e.target.value;
+            state.persistence.grounding ??= {
+                hojas: { contexto: '', aprendizaje: '', accion: '' },
+                cielo: { contexto: '', aprendizaje: '', accion: '' },
+                visualizador: { contexto: '', aprendizaje: '', accion: '' },
+                radio: { contexto: '', aprendizaje: '', accion: '' },
+                lucha: { contexto: '', aprendizaje: '', accion: '' }
+            };
+            state.persistence.grounding.lucha ??= { contexto: '', aprendizaje: '', accion: '' };
+            state.persistence.grounding.lucha.aprendizaje = e.target.value;
+            saveState();
+        });
+
+        ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
+            const el = document.getElementById(`lucha-${key}`);
+            el?.addEventListener('input', (e) => {
+                state.persistence.grounding ??= {
+                    hojas: { contexto: '', aprendizaje: '', accion: '' },
+                    cielo: { contexto: '', aprendizaje: '', accion: '' },
+                    visualizador: { contexto: '', aprendizaje: '', accion: '' },
+                    radio: { contexto: '', aprendizaje: '', accion: '' },
+                    lucha: { contexto: '', aprendizaje: '', accion: '' }
+                };
+                state.persistence.grounding.lucha ??= { contexto: '', aprendizaje: '', accion: '' };
+                state.persistence.grounding.lucha[key] = e.target.value;
+                saveState();
+            });
         });
     };
 
