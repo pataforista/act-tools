@@ -73,6 +73,16 @@ function renderVisualizadorPensamientosTool(container) {
     let selectedThoughtIndex = null;
     let selectedColor = '#ffffff';
     let selectedSize = '0.9rem';
+    let selectedFont = "'Outfit', sans-serif";
+    const availableFonts = [
+        { id: "'Outfit', sans-serif", label: 'Outfit' },
+        { id: "'Poppins', sans-serif", label: 'Poppins' },
+        { id: "'Nunito', sans-serif", label: 'Nunito' },
+        { id: "'Fira Sans', sans-serif", label: 'Fira Sans' },
+        { id: "'Caveat', cursive", label: 'Caveat' },
+        { id: "'Permanent Marker', cursive", label: 'Marker' },
+        { id: "'Courier New', monospace", label: 'Mono' }
+    ];
 
     const guide = renderGuideBadge({
         trigger: 'Rumiación activa o fusión con una narrativa ("soy un fracaso", "nada mejora"). El paciente habla desde sus pensamientos, no sobre ellos.',
@@ -115,6 +125,14 @@ function renderVisualizadorPensamientosTool(container) {
                         <input type="text" id="thought-input" class="input-field" placeholder="Tengo el pensamiento de que..." style="flex: 1; font-size: 0.9rem; border-color: ${selectedColor}44;">
                         <button id="btn-add-thought" class="btn-primary" style="background: ${selectedColor};">+</button>
                     </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem;">
+                        ${availableFonts.map(font => `
+                            <button class="btn-toggle ${selectedFont === font.id ? 'active' : ''}" data-font="${font.id.replace(/"/g, '&quot;')}" style="font-size: 0.72rem; min-height: auto; padding: 0.35rem 0.5rem; font-family: ${font.id};">
+                                ${font.label}
+                            </button>
+                        `).join('')}
+                    </div>
                 </div>
 
                 <div id="thoughts-list" style="height: 400px; padding: 1.5rem; border: 2px dashed var(--glass-border); border-radius: var(--radius-lg); position: relative; background: rgba(0,0,0,0.1); overflow: hidden; perspective: 1000px;">
@@ -123,6 +141,7 @@ function renderVisualizadorPensamientosTool(container) {
             const distortClass = t.mode ? `distort-${t.mode}` : '';
             const rotationStyle = t.rotateX ? `perspective(500px) rotateX(${t.rotateX}deg) rotateY(${t.rotateY || 0}deg)` : '';
             const spacingStyle = t.spacing ? `letter-spacing: ${t.spacing}px;` : '';
+            const fontStyle = t.fontFamily ? `font-family: ${t.fontFamily};` : '';
             return `
                         <div class="thought-item glass animate-scale-in ${selectedThoughtIndex === i ? 'selected' : ''} ${distortClass}" 
                              data-index="${i}" 
@@ -131,7 +150,7 @@ function renderVisualizadorPensamientosTool(container) {
                                     border: 2px solid ${selectedThoughtIndex === i ? 'var(--color-primary)' : (t.color || 'var(--glass-border)') + '22'}; 
                                     opacity: ${t.opacity ?? 1}; filter: blur(${t.blur ?? 0}px); cursor: move; user-select: none; 
                                     z-index: ${selectedThoughtIndex === i ? 100 : 10}; transition: border 0.3s, box-shadow 0.3s, transform 0.3s;
-                                    transform: ${rotationStyle}; ${spacingStyle}">
+                                    transform: ${rotationStyle}; ${spacingStyle} ${fontStyle}">
                             ${t.text || t}
                         </div>
                     `;
@@ -230,6 +249,7 @@ function renderVisualizadorPensamientosTool(container) {
                     text: val,
                     color: selectedColor,
                     size: selectedSize,
+                    fontFamily: selectedFont,
                     blur: 0,
                     opacity: 1,
                     x: 10 + Math.random() * 60,
@@ -286,6 +306,9 @@ function renderVisualizadorPensamientosTool(container) {
         });
         document.querySelectorAll('.size-picker .btn-toggle').forEach(btn => {
             btn.addEventListener('click', () => { selectedSize = btn.dataset.size; internalRender(); });
+        });
+        document.querySelectorAll('[data-font]').forEach(btn => {
+            btn.addEventListener('click', () => { selectedFont = btn.dataset.font; internalRender(); });
         });
     };
 
