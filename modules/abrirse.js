@@ -397,10 +397,17 @@ function renderHojasAguaTool(container) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function renderRadioDoomGloomTool(container) {
-    let broadcast = '';
+    const savedRadioData = state.persistence?.grounding?.radio || {};
+
+    let broadcast = savedRadioData.broadcast || '';
     let volume = 80;
     let tuning = 50;
-    let defusedText = '';
+    let defusedText = savedRadioData.defusedText || '';
+    let customColor = savedRadioData.customColor || '#fbbf24';
+    let customFontSize = Number(savedRadioData.customFontSize || 16);
+    let textShape = savedRadioData.textShape || 'normal';
+    let snippets = Array.isArray(savedRadioData.snippets) ? savedRadioData.snippets : [];
+    let snippetDraft = '';
 
     const stations = [
         { id: 'critic', label: '94.2 FM - El Crítico Interno', color: '#ef4444' },
@@ -427,6 +434,34 @@ function renderRadioDoomGloomTool(container) {
 
     const internalRender = () => {
         const currentStation = stations[Math.floor((tuning / 101) * stations.length)];
+        const shapeStyleMap = {
+            normal: '',
+            mayusculas: 'text-transform: uppercase;',
+            espaciado: 'letter-spacing: 2px;',
+            italica: 'font-style: italic;'
+        };
+
+        const persistRadioState = () => {
+            state.persistence.grounding ??= {
+                hojas: { contexto: '', aprendizaje: '', accion: '' },
+                cielo: { contexto: '', aprendizaje: '', accion: '' },
+                visualizador: { contexto: '', aprendizaje: '', accion: '' },
+                radio: { contexto: '', aprendizaje: '', accion: '' },
+                lucha: { contexto: '', aprendizaje: '', accion: '' }
+            };
+            state.persistence.grounding.radio ??= { contexto: '', aprendizaje: '', accion: '' };
+
+            Object.assign(state.persistence.grounding.radio, {
+                broadcast,
+                defusedText,
+                customColor,
+                customFontSize,
+                textShape,
+                snippets
+            });
+            saveState();
+        };
+
         container.innerHTML = `
             <div class="tool-content">
                 ${guide}
@@ -435,7 +470,7 @@ function renderRadioDoomGloomTool(container) {
                     <div class="radio-screen" style="background: #050a05; padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-family: 'Courier New', monospace; color: ${currentStation.color}; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
                         <div class="noise-overlay" style="opacity: ${(100 - volume) / 200 + 0.05};"></div>
                         <div style="font-size: 0.6rem; margin-bottom: 0.5rem; opacity: 0.7; letter-spacing: 2px;">${currentStation.label}</div>
-                        <div id="broadcast-text" style="font-size: 1rem; text-align: center; font-weight: bold; transition: all 0.2s ease; filter: blur(${(100 - volume) / 20}px); opacity: ${volume / 100};">
+                        <div id="broadcast-text" style="font-size: ${customFontSize}px; text-align: center; font-weight: bold; transition: all 0.2s ease; filter: blur(${(100 - volume) / 20}px); opacity: ${volume / 100}; color: ${customColor}; ${shapeStyleMap[textShape]}">
                             ${broadcast ? `"${broadcast}"` : 'BUSCANDO SEÑAL...'}
                         </div>
                     </div>
@@ -452,6 +487,48 @@ function renderRadioDoomGloomTool(container) {
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
                             <span style="font-size: 0.7rem; color: var(--color-text-secondary); min-width: 60px;">Emisora</span>
                             <input type="range" id="radio-tuning" min="0" max="100" value="${tuning}" class="slider-act" style="flex: 1;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
+                    <h4 style="font-size: 0.8rem; color: var(--color-primary); margin-bottom: 0.75rem;">Editor de mensaje</h4>
+                    <p style="font-size: 0.75rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Ajustá el texto para clarificar el ejercicio y guardar frases durante la sesión.</p>
+                    <div style="display: grid; gap: 0.75rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; align-items: center;">
+                            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: var(--color-text-secondary);">
+                                Color
+                                <input type="color" id="radio-color" value="${customColor}" style="width: 34px; height: 28px; border: none; background: transparent; cursor: pointer;">
+                            </label>
+                            <label style="display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.72rem; color: var(--color-text-secondary);">
+                                Tamaño (${customFontSize}px)
+                                <input type="range" id="radio-font-size" min="12" max="32" value="${customFontSize}" class="slider-act">
+                            </label>
+                            <label style="display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.72rem; color: var(--color-text-secondary);">
+                                Forma
+                                <select id="radio-shape" class="input-field" style="height: 2rem; font-size: 0.75rem; padding: 0.2rem 0.5rem;">
+                                    <option value="normal" ${textShape === 'normal' ? 'selected' : ''}>Normal</option>
+                                    <option value="mayusculas" ${textShape === 'mayusculas' ? 'selected' : ''}>MAYÚSCULAS</option>
+                                    <option value="espaciado" ${textShape === 'espaciado' ? 'selected' : ''}>Espaciado</option>
+                                    <option value="italica" ${textShape === 'italica' ? 'selected' : ''}>Itálica</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="snippet-input" class="input-field" placeholder="Escribí una frase para reutilizar" value="${snippetDraft}" style="font-size: 0.8rem;">
+                            <button id="btn-add-snippet" class="btn-primary" style="padding: 0.45rem 0.8rem; font-size: 0.75rem;">Agregar</button>
+                        </div>
+
+                        <div id="snippet-list" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            ${snippets.length
+                ? snippets.map((snippet, index) => `
+                                      <div style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 0.4rem 0.5rem;">
+                                        <button class="btn-use-snippet" data-index="${index}" style="flex: 1; text-align: left; font-size: 0.76rem; color: var(--color-text-secondary); background: transparent; border: none; cursor: pointer;">${snippet}</button>
+                                        <button class="btn-delete-snippet" data-index="${index}" style="font-size: 0.72rem; color: #ef4444; background: transparent; border: 1px solid #ef444466; border-radius: 6px; padding: 0.2rem 0.45rem; cursor: pointer;">Borrar</button>
+                                      </div>
+                                  `).join('')
+                : '<p style="font-size: 0.72rem; color: var(--color-text-secondary); margin: 0;">Todavía no hay frases guardadas.</p>'}
                         </div>
                     </div>
                 </div>
@@ -509,6 +586,7 @@ function renderRadioDoomGloomTool(container) {
             broadcast = e.target.value;
             const text = document.getElementById('broadcast-text');
             text.innerText = broadcast ? `"${broadcast}"` : 'BUSCANDO SEÑAL...';
+            persistRadioState();
         });
 
         document.getElementById('radio-volume').addEventListener('input', (e) => {
@@ -521,6 +599,56 @@ function renderRadioDoomGloomTool(container) {
             tuning = e.target.value;
             radioAudio.init();
             internalRender();
+        });
+
+        document.getElementById('radio-color')?.addEventListener('input', (e) => {
+            customColor = e.target.value;
+            persistRadioState();
+            internalRender();
+        });
+
+        document.getElementById('radio-font-size')?.addEventListener('input', (e) => {
+            customFontSize = Number(e.target.value);
+            persistRadioState();
+            internalRender();
+        });
+
+        document.getElementById('radio-shape')?.addEventListener('change', (e) => {
+            textShape = e.target.value;
+            persistRadioState();
+            internalRender();
+        });
+
+        document.getElementById('snippet-input')?.addEventListener('input', (e) => {
+            snippetDraft = e.target.value;
+        });
+
+        document.getElementById('btn-add-snippet')?.addEventListener('click', () => {
+            const cleanedSnippet = (document.getElementById('snippet-input')?.value || '').trim();
+            if (!cleanedSnippet) return;
+            snippets = [cleanedSnippet, ...snippets.filter((item) => item !== cleanedSnippet)].slice(0, 8);
+            snippetDraft = '';
+            persistRadioState();
+            internalRender();
+        });
+
+        document.querySelectorAll('.btn-use-snippet').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const index = Number(btn.dataset.index);
+                broadcast = snippets[index] || broadcast;
+                persistRadioState();
+                internalRender();
+            });
+        });
+
+        document.querySelectorAll('.btn-delete-snippet').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const index = Number(btn.dataset.index);
+                snippets.splice(index, 1);
+                snippets = [...snippets];
+                persistRadioState();
+                internalRender();
+            });
         });
 
         document.querySelectorAll('.btn-defusion').forEach(btn => {
@@ -537,6 +665,7 @@ function renderRadioDoomGloomTool(container) {
                 document.querySelectorAll('.btn-defusion').forEach(b => b.style.borderColor = 'var(--glass-border)');
                 btn.style.borderColor = 'var(--color-primary)';
                 btn.style.color = 'var(--color-primary)';
+                persistRadioState();
             });
         });
     };
