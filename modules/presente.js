@@ -5,14 +5,14 @@
 import { state, saveState } from '../core/state.js';
 import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
 
-export function renderPresenteModule(container, module, { renderHome }) {
-    let activeToolId = 'stop';
-
+export function renderPresenteModule(container, module, { renderHome, initialTool } = {}) {
     const tools = [
         { id: 'stop', title: 'STOP', icon: 'octagon' },
         { id: 'sentidos', title: '5 Sentidos', icon: 'hand' },
         { id: 'cielo', title: 'Cielo y Clima', icon: 'cloud' }
     ];
+
+    let activeToolId = tools.some(t => t.id === initialTool) ? initialTool : 'stop';
 
     const render = () => {
         container.innerHTML = `

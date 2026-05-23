@@ -9,8 +9,8 @@ export function renderSOSModule(container, { navigateToHome }) {
     let activeTool = 'breathing';
     let animation = null;
     const tools = [
-        { id: 'breathing', title: 'Respiración', icon: '🫁' },
-        { id: '54321', title: '5-4-3-2-1', icon: '🖐️' }
+        { id: 'breathing', title: 'Respiración', icon: 'wind' },
+        { id: '54321', title: '5-4-3-2-1', icon: 'hand' }
     ];
 
     const render = () => {
@@ -26,7 +26,7 @@ export function renderSOSModule(container, { navigateToHome }) {
 
                 <nav class="tool-selector glass-card" style="display: flex; gap: 0.5rem; padding: 0.5rem; margin-top: 1rem; margin-bottom: 1.5rem;">
                     ${tools.map(t => `
-                        <button class="btn-tool ${activeTool | 'active' === t.id ? 'active' : ''}" data-id="${t.id}" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex: 1; font-size: 0.85rem; padding: 0.5rem; border-radius: var(--radius-sm);">
+                        <button class="btn-tool ${activeTool === t.id ? 'active' : ''}" data-id="${t.id}" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex: 1; font-size: 0.85rem; padding: 0.5rem; border-radius: var(--radius-sm);">
                             <i data-lucide="${t.icon}" style="width: 1rem; height: 1rem;"></i>
                             <span>${t.title}</span>
                         </button>
@@ -48,6 +48,8 @@ export function renderSOSModule(container, { navigateToHome }) {
                 render();
             });
         });
+
+        lucide.createIcons();
 
         const toolContainer = document.getElementById('sos-tool-container');
         if (activeTool === 'breathing') {

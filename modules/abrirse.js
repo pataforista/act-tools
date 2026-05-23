@@ -702,7 +702,6 @@ function renderRadioDoomGloomTool(container) {
 
 function renderInterruptorLuchaTool(container) {
     let isStruggling = true;
-    let observation = '';
 
     const guide = renderGuideBadge({
         trigger: 'El paciente describe resistencia activa a sentir, tensión corporal, o verbaliza que "no quiere sentir esto". Útil para hacer visible la lucha que ya está ocurriendo.',
@@ -745,14 +744,11 @@ function renderInterruptorLuchaTool(container) {
                         </p>
                     </div>
 
-                    <!-- Fase 2: observación después del toggle -->
+                    <!-- Fase 2: invitación a observar después del toggle -->
                     ${!isStruggling ? `
-                    <div style="width: 100%; z-index: 2;">
-                        <input type="text" id="observation-input" class="input-field"
-                            placeholder="¿Qué notás en tu cuerpo o en la experiencia ahora?"
-                            value="${observation}"
-                            style="font-size: 0.82rem;">
-                    </div>
+                    <p style="font-size: 0.78rem; color: var(--color-text-secondary); z-index: 2; max-width: 240px; text-align: center;">
+                        ¿Qué notás en tu cuerpo o en la experiencia ahora? Registralo abajo, en el aterrizaje.
+                    </p>
                     ` : ''}
 
                     <p style="font-size: 0.7rem; color: var(--color-text-secondary); z-index: 2; font-style: italic; max-width: 220px; text-align: center;">
@@ -776,20 +772,6 @@ function renderInterruptorLuchaTool(container) {
         document.getElementById('struggle-toggle').addEventListener('click', () => {
             isStruggling = !isStruggling;
             internalRender();
-        });
-
-        document.getElementById('observation-input')?.addEventListener('input', (e) => {
-            observation = e.target.value;
-            state.persistence.grounding ??= {
-                hojas: { contexto: '', aprendizaje: '', accion: '' },
-                cielo: { contexto: '', aprendizaje: '', accion: '' },
-                visualizador: { contexto: '', aprendizaje: '', accion: '' },
-                radio: { contexto: '', aprendizaje: '', accion: '' },
-                lucha: { contexto: '', aprendizaje: '', accion: '' }
-            };
-            state.persistence.grounding.lucha ??= { contexto: '', aprendizaje: '', accion: '' };
-            state.persistence.grounding.lucha.aprendizaje = e.target.value;
-            saveState();
         });
 
         ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
