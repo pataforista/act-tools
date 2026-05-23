@@ -5,13 +5,14 @@
 import { state, saveState } from '../core/state.js';
 import { renderModuleHeader, attachHeaderEvents } from '../ui/utils.js';
 
-export function renderImportaModule(container, module, { renderHome }) {
-    let activeToolId = 'diana';
+export function renderImportaModule(container, module, { renderHome, initialTool } = {}) {
     const tools = [
         { id: 'diana', title: 'Diana (Target)', icon: 'target' },
         { id: 'smart', title: 'SMART-ACT', icon: 'file-text' },
         { id: 'dare', title: 'FEAR → DARE', icon: 'rocket' }
     ];
+
+    let activeToolId = tools.some(t => t.id === initialTool) ? initialTool : 'diana';
 
     const render = () => {
         container.innerHTML = `
@@ -127,5 +128,68 @@ function renderSMARTTool(container) {
 }
 
 function renderDARETool(container) {
-    // DARE tool logic...
+    state.persistence.fear ??= { F: '', E: '', A: '', R: '' };
+    state.persistence.dare ??= { D: '', A: '', R: '', E: '' };
+
+    const fearItems = [
+        { key: 'F', label: 'F · Fusión', placeholder: '¿Con qué pensamiento te estás enganchando?' },
+        { key: 'E', label: 'E · Expectativas / Evaluaciones', placeholder: '¿Qué expectativa o juicio se interpone?' },
+        { key: 'A', label: 'A · Evitación del malestar', placeholder: '¿Qué malestar estás evitando?' },
+        { key: 'R', label: 'R · Alejamiento de los valores', placeholder: '¿De qué valor te aleja esto?' }
+    ];
+
+    const dareItems = [
+        { key: 'D', label: 'D · Defusión', placeholder: '¿Cómo podés tomar distancia del pensamiento?' },
+        { key: 'A', label: 'A · Aceptación del malestar', placeholder: '¿A qué estás dispuesto/a a hacer espacio?' },
+        { key: 'R', label: 'R · Dirección realista', placeholder: '¿Qué paso pequeño y posible aparece?' },
+        { key: 'E', label: 'E · Encarnar los valores', placeholder: '¿Qué valor querés llevar a la acción?' }
+    ];
+
+    container.innerHTML = `
+        <div class="tool-content">
+            <div class="intro" style="text-align: center; margin-bottom: 1.5rem;">
+                <p class="clinical-note">Nota las barreras (FEAR) y, frente a cada una, la dirección que elegís (DARE). No es para corregir: es para ver el contraste.</p>
+            </div>
+
+            <div style="display: grid; gap: 1.5rem;">
+                <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); border-left: 3px solid #ef4444;">
+                    <h4 style="font-size: 0.85rem; color: #ef4444; margin-bottom: 0.75rem;">FEAR · Lo que aleja</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                        ${fearItems.map(item => `
+                            <div>
+                                <label style="font-size: 0.72rem; color: var(--color-text-secondary);">${item.label}</label>
+                                <input type="text" data-fear="${item.key}" value="${state.persistence.fear[item.key] || ''}" placeholder="${item.placeholder}" class="input-underline">
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); border-left: 3px solid #10b981;">
+                    <h4 style="font-size: 0.85rem; color: #10b981; margin-bottom: 0.75rem;">DARE · La dirección que elegís</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                        ${dareItems.map(item => `
+                            <div>
+                                <label style="font-size: 0.72rem; color: var(--color-text-secondary);">${item.label}</label>
+                                <input type="text" data-dare="${item.key}" value="${state.persistence.dare[item.key] || ''}" placeholder="${item.placeholder}" class="input-underline">
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.querySelectorAll('[data-fear]').forEach(input => {
+        input.addEventListener('input', (e) => {
+            state.persistence.fear[e.target.dataset.fear] = e.target.value;
+            saveState();
+        });
+    });
+
+    container.querySelectorAll('[data-dare]').forEach(input => {
+        input.addEventListener('input', (e) => {
+            state.persistence.dare[e.target.dataset.dare] = e.target.value;
+            saveState();
+        });
+    });
 }

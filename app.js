@@ -11,7 +11,7 @@ import { renderAbrirseModule } from './modules/abrirse.js';
 import { renderPresenteModule } from './modules/presente.js';
 import { renderImportaModule } from './modules/importa.js';
 import { renderAnalisisModule } from './modules/analisis.js';
-import { renderResumenModule, renderHistoryView } from './modules/resumen.js';
+import { renderResumenModule, renderHistoryView, renderHomeworkScreen } from './modules/resumen.js';
 import { renderSOSModule } from './modules/sos.js';
 
 const mainContent = document.getElementById('main-content');
@@ -33,22 +33,53 @@ function navigateToHistory() {
 }
 
 function renderHomeworkView(session) {
-    // Homework view logic... (can be in its own file if needed)
+    const isHistorical = session !== state.persistence;
+    renderHomeworkScreen(mainContent, session, () => {
+        renderResumenModule(mainContent, {
+            sessionData: isHistorical ? session : null,
+            navigateToDashboard,
+            navigateToHome,
+            renderHistoryView: navigateToHistory,
+            renderHomeworkView
+        });
+    });
 }
 
 function loadModule(id) {
+    if (id === 'resumen') {
+        renderResumenModule(mainContent, { navigateToDashboard, navigateToHome, renderHistoryView: navigateToHistory, renderHomeworkView });
+        return;
+    }
+
     const config = modules.find(m => m.id === id);
     if (!config) return;
 
     if (id === 'abrirse') renderAbrirseModule(mainContent, config, { renderHome: navigateToHome });
-    else if (id === 'presente' || id === 'yo') renderPresenteModule(mainContent, config, { renderHome: navigateToHome });
-    else if (id === 'importa' || id === 'accion') renderImportaModule(mainContent, config, { renderHome: navigateToHome });
+    else if (id === 'presente') renderPresenteModule(mainContent, config, { renderHome: navigateToHome });
+    else if (id === 'yo') renderPresenteModule(mainContent, config, { renderHome: navigateToHome, initialTool: 'cielo' });
+    else if (id === 'importa') renderImportaModule(mainContent, config, { renderHome: navigateToHome });
+    else if (id === 'accion') renderImportaModule(mainContent, config, { renderHome: navigateToHome, initialTool: 'smart' });
     else if (id === 'analisis') renderAnalisisModule(mainContent, config, { renderHome: navigateToHome });
-    else if (id === 'resumen') renderResumenModule(mainContent, { navigateToDashboard, navigateToHome, renderHistoryView: navigateToHistory, renderHomeworkView });
 }
 
 function togglePause() {
-    // Pause logic...
+    const existing = document.getElementById('pause-overlay');
+    if (existing) {
+        existing.remove();
+        return;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.id = 'pause-overlay';
+    overlay.style.cssText = 'position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; background: rgba(8, 12, 20, 0.92); backdrop-filter: blur(8px); text-align: center; padding: 2rem;';
+    overlay.innerHTML = `
+        <div style="font-size: 2.5rem;">⏸</div>
+        <h2 style="font-size: 1.3rem; color: var(--color-primary); margin: 0;">Sesión en pausa</h2>
+        <p style="font-size: 0.85rem; color: var(--color-text-secondary); max-width: 280px; margin: 0;">El espacio queda en pausa. Retomá cuando lo decidas.</p>
+        <button class="btn-primary" id="btn-resume-pause">Reanudar</button>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#btn-resume-pause')?.addEventListener('click', () => overlay.remove());
 }
 
 function init() {
