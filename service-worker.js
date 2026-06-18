@@ -18,7 +18,8 @@ const ASSETS = [
     './modules/importa.js',
     './modules/analisis.js',
     './modules/resumen.js',
-    './modules/sos.js'
+    './modules/sos.js',
+    './modules/estres.js'
 ];
 
 self.addEventListener('install', event => {
