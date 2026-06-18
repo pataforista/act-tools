@@ -13,6 +13,7 @@ import { renderImportaModule } from './modules/importa.js';
 import { renderAnalisisModule } from './modules/analisis.js';
 import { renderResumenModule, renderHistoryView, renderHomeworkScreen } from './modules/resumen.js';
 import { renderSOSModule } from './modules/sos.js';
+import { renderEstresModule } from './modules/estres.js';
 
 const mainContent = document.getElementById('main-content');
 
@@ -60,6 +61,7 @@ function loadModule(id) {
     else if (id === 'importa') renderImportaModule(mainContent, config, { renderHome: navigateToHome });
     else if (id === 'accion') renderImportaModule(mainContent, config, { renderHome: navigateToHome, initialTool: 'smart' });
     else if (id === 'analisis') renderAnalisisModule(mainContent, config, { renderHome: navigateToHome });
+    else if (id === 'estres') renderEstresModule(mainContent, config, { renderHome: navigateToHome });
 }
 
 function togglePause() {

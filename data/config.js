@@ -9,5 +9,6 @@ export const modules = [
     { id: 'yo', title: 'Yo Observador', icon: 'eye', color: 'var(--hex-yo)' },
     { id: 'importa', title: 'Valores', icon: 'target', color: 'var(--hex-valores)' },
     { id: 'accion', title: 'Acción Comprometida', icon: 'check-circle', color: 'var(--hex-accion)' },
-    { id: 'analisis', title: 'Análisis Funcional', icon: 'search', color: 'var(--hex-analisis)' }
+    { id: 'analisis', title: 'Análisis Funcional', icon: 'search', color: 'var(--hex-analisis)' },
+    { id: 'estres', title: 'Vaso de Estrés', icon: 'cup-soda', color: '#f59e0b' }
 ];
