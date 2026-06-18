@@ -115,10 +115,101 @@ const STRATEGIES = [
     }
 ];
 
+// Paper cup SVG inspired by the classic Jazz/brushstroke paper cup design
+function buildCupSVG(percent) {
+    const TOP_Y = 22, BTM_Y = 264, CUP_H = BTM_Y - TOP_Y;
+    const liqTopY = TOP_Y + CUP_H * (1 - percent / 100);
+    const liqH = CUP_H * (percent / 100);
+
+    let liqTop, liqBot;
+    if (percent >= 90)      { liqTop = '#f43f5e'; liqBot = '#9f1239'; }
+    else if (percent >= 70) { liqTop = '#f59e0b'; liqBot = '#b45309'; }
+    else if (percent <= 20) { liqTop = '#10b981'; liqBot = '#065f46'; }
+    else                    { liqTop = '#d35400'; liqBot = '#873600'; }
+
+    return `
+    <div style="filter: drop-shadow(0 10px 28px rgba(0,0,0,0.65));">
+      <svg viewBox="0 0 200 280" width="148" height="207" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="cup-clip">
+            <path d="M19,${TOP_Y} L181,${TOP_Y} L161,${BTM_Y} L39,${BTM_Y} Z"/>
+          </clipPath>
+          <linearGradient id="liq-g" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${liqTop}"/>
+            <stop offset="100%" stop-color="${liqBot}"/>
+          </linearGradient>
+          <linearGradient id="rim-g" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#d8d8d8"/>
+          </linearGradient>
+          <linearGradient id="body-g" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#e8e8e8"/>
+            <stop offset="50%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#e8e8e8"/>
+          </linearGradient>
+        </defs>
+
+        <!-- White cup body -->
+        <path d="M19,${TOP_Y} L181,${TOP_Y} L161,${BTM_Y} L39,${BTM_Y} Z" fill="url(#body-g)"/>
+
+        <!-- Liquid fill (clipped) -->
+        <g clip-path="url(#cup-clip)">
+          <rect x="0" y="${liqTopY}" width="200" height="${Math.max(0, liqH)}" fill="url(#liq-g)" opacity="0.85"/>
+          ${percent > 2 ? `<rect x="0" y="${liqTopY}" width="200" height="5" fill="rgba(255,255,255,0.35)"/>` : ''}
+        </g>
+
+        <!-- Brushstroke decoration (teal + purple, always on top of liquid) -->
+        <g clip-path="url(#cup-clip)">
+          <!-- Main teal area - diagonal sweep upper-left to center-right -->
+          <path d="M-5,18 C45,-6 130,8 210,30 C222,85 200,115 162,122 C108,142 32,120 -5,96 Z"
+                fill="#00b4d8"/>
+          <!-- Lighter teal secondary / splash -->
+          <path d="M32,114 C88,88 162,95 208,110 C212,142 192,158 156,150 C98,160 28,150 32,114 Z"
+                fill="#48cae4" opacity="0.65"/>
+          <!-- White texture highlights on teal -->
+          <path d="M25,30 C82,10 162,24 204,42 L204,52 C162,32 82,20 20,44 Z" fill="white" opacity="0.28"/>
+          <path d="M-5,62 C42,46 114,52 194,66 L194,76 C114,60 42,56 -5,72 Z" fill="white" opacity="0.18"/>
+          <!-- Purple/magenta accent streak -->
+          <path d="M-5,88 C52,65 148,78 212,94 C214,120 206,130 192,126 C132,120 38,122 -5,120 Z"
+                fill="#9b5de5" opacity="0.82"/>
+          <!-- Dark indigo vein inside purple -->
+          <path d="M5,98 C58,80 152,90 200,104 C200,114 196,118 188,115 C132,110 50,110 5,117 Z"
+                fill="#4c1d95" opacity="0.5"/>
+          <!-- Scattered teal speckles (texture) -->
+          <circle cx="145" cy="135" r="18" fill="#00b4d8" opacity="0.35"/>
+          <circle cx="160" cy="148" r="10" fill="#48cae4" opacity="0.3"/>
+          <circle cx="55" cy="130" r="8"  fill="#00b4d8" opacity="0.25"/>
+        </g>
+
+        <!-- Danger line at 90% level -->
+        <line x1="21" y1="${TOP_Y + CUP_H * 0.10}"
+              x2="179" y2="${TOP_Y + CUP_H * 0.10}"
+              stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.45"/>
+
+        <!-- Cup side sheen (right edge highlight) -->
+        <path d="M175,${TOP_Y + 4} L161,${BTM_Y - 4}" stroke="rgba(255,255,255,0.5)" stroke-width="3" stroke-linecap="round"/>
+
+        <!-- Cup outline -->
+        <path d="M19,${TOP_Y} L181,${TOP_Y} L161,${BTM_Y} L39,${BTM_Y} Z"
+              fill="none" stroke="rgba(180,180,180,0.6)" stroke-width="2"/>
+
+        <!-- Rim ellipse -->
+        <ellipse cx="100" cy="${TOP_Y}" rx="82" ry="9" fill="url(#rim-g)" stroke="#bbbbbb" stroke-width="1.5"/>
+
+        <!-- Percentage badge -->
+        <rect x="69" y="27" width="62" height="22" rx="11" fill="rgba(0,0,0,0.62)"/>
+        <text x="100" y="42" text-anchor="middle" fill="white"
+              font-size="12" font-weight="700" font-family="system-ui,sans-serif">
+          ${Math.round(percent)}%
+        </text>
+      </svg>
+    </div>`;
+}
+
 export function renderEstresModule(container, config, { renderHome }) {
     let cupSize = state.estres?.cupSize || 'medium';
     let level = state.estres?.level ?? SIZES[cupSize] * 0.4;
-    let activeTab = 'estresores'; // 'estresores' | 'estrategias'
+    let activeTab = 'estresores';
 
     function getMax() { return SIZES[cupSize]; }
     function getPercent() { return Math.min(100, Math.max(0, (level / getMax()) * 100)); }
@@ -152,8 +243,7 @@ export function renderEstresModule(container, config, { renderHome }) {
     function applyChip(label, pct, sign) {
         const signedPct = pct * sign;
         const delta = (signedPct / 100) * getMax();
-        const prefix = sign > 0 ? '⬆ ' : '⬇ ';
-        addHistory(prefix + label, signedPct);
+        addHistory((sign > 0 ? '⬆ ' : '⬇ ') + label, signedPct);
         changeLevel(delta, label);
     }
 
@@ -182,21 +272,17 @@ export function renderEstresModule(container, config, { renderHome }) {
     function renderInner() {
         const percent = getPercent();
 
-        let liquidColor, statusClass, statusHTML;
+        let statusClass, statusHTML;
         if (percent >= 90) {
-            liquidColor = 'linear-gradient(180deg, #f43f5e 0%, #9f1239 100%)';
             statusClass = 'estres-status-danger';
             statusHTML = '💥 ¡CUIDADO! El vaso está a punto de desbordarse. Aplica una estrategia ya.';
         } else if (percent >= 70) {
-            liquidColor = 'linear-gradient(180deg, #f59e0b 0%, #b45309 100%)';
             statusClass = 'estres-status-warn';
             statusHTML = '⚠️ Vaso muy lleno. Aplica una estrategia de afrontamiento.';
         } else if (percent <= 20) {
-            liquidColor = 'linear-gradient(180deg, #10b981 0%, #065f46 100%)';
             statusClass = 'estres-status-safe';
             statusHTML = '🧘 Nivel bajo. Tienes mucho margen.';
         } else {
-            liquidColor = 'linear-gradient(180deg, #d35400 0%, #873600 100%)';
             statusClass = 'estres-status-safe';
             statusHTML = '✅ Nivel equilibrado. Sigue así.';
         }
@@ -230,17 +316,7 @@ export function renderEstresModule(container, config, { renderHome }) {
 
                 <!-- Vaso visual + estado -->
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
-                    <div style="position: relative; width: 140px; height: 210px;">
-                        <div style="width: 100%; height: 100%; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid rgba(255,255,255,0.5); border-radius: 0 0 32px 32px; overflow: hidden; background: var(--glass-bg); box-shadow: var(--glass-shadow); position: relative;">
-                            <div style="position: absolute; top: 8%; left: 0; width: 100%; height: 2px; background: repeating-linear-gradient(90deg, #f43f5e, #f43f5e 6px, transparent 6px, transparent 12px); opacity: 0.5; z-index: 2;"></div>
-                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: ${percent}%; background: ${liquidColor}; transition: height 0.4s cubic-bezier(0.34,1.56,0.64,1); box-shadow: inset 0 8px 16px rgba(255,200,100,0.2);"></div>
-                            <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.65); padding: 3px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; z-index: 5; color: #fff; backdrop-filter: blur(4px);">
-                                ${Math.round(percent)}%
-                            </div>
-                        </div>
-                        <div style="position: absolute; right: -22px; top: 28px; width: 22px; height: 58px; border: 4px solid rgba(255,255,255,0.3); border-left: none; border-radius: 0 24px 24px 0;"></div>
-                    </div>
-
+                    ${buildCupSVG(percent)}
                     <div class="estres-status ${statusClass}" style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-md); text-align: center; font-weight: 600; font-size: 0.9rem;">
                         ${statusHTML}
                     </div>
@@ -264,7 +340,6 @@ export function renderEstresModule(container, config, { renderHome }) {
 
                 <!-- Tabs: Estresores / Estrategias -->
                 <div class="glass-card" style="padding: 0; overflow: hidden;">
-                    <!-- Tab headers -->
                     <div style="display: flex; border-bottom: 1px solid var(--glass-border);">
                         <button class="estres-tab ${activeTab === 'estresores' ? 'active' : ''}" data-tab="estresores"
                             style="flex: 1; padding: 0.75rem; border: none; background: ${activeTab === 'estresores' ? 'rgba(234,88,12,0.15)' : 'transparent'}; color: ${activeTab === 'estresores' ? '#fb923c' : 'var(--color-text-secondary)'}; font-weight: 700; font-size: 0.85rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'estresores' ? '#fb923c' : 'transparent'}; transition: var(--transition-base);">
@@ -275,13 +350,8 @@ export function renderEstresModule(container, config, { renderHome }) {
                             🔵 Estrategias
                         </button>
                     </div>
-                    <!-- Tab content -->
                     <div style="padding: 1rem; max-height: 260px; overflow-y: auto;">
-                        ${activeTab === 'estresores'
-                            ? buildChipPanel(STRESSORS, 1)
-                            : buildChipPanel(STRATEGIES, -1)
-                        }
-                        <!-- Acción personalizada inline -->
+                        ${activeTab === 'estresores' ? buildChipPanel(STRESSORS, 1) : buildChipPanel(STRATEGIES, -1)}
                         <div style="margin-top: 0.5rem; display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;">
                             <input id="estres-custom-desc" type="text"
                                 placeholder="${activeTab === 'estresores' ? 'Otro estresor…' : 'Otra estrategia…'}"
@@ -328,10 +398,8 @@ export function renderEstresModule(container, config, { renderHome }) {
 
         lucide.createIcons();
 
-        // Nav
         document.getElementById('btn-estres-back')?.addEventListener('click', renderHome);
 
-        // Size buttons
         container.querySelectorAll('.estres-size-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const prevPct = getPercent();
@@ -342,7 +410,6 @@ export function renderEstresModule(container, config, { renderHome }) {
             });
         });
 
-        // Quick buttons
         container.querySelectorAll('.estres-quick').forEach(btn => {
             btn.addEventListener('click', () => {
                 const pct = parseInt(btn.dataset.delta);
@@ -352,7 +419,6 @@ export function renderEstresModule(container, config, { renderHome }) {
             });
         });
 
-        // Reset
         document.getElementById('btn-estres-reset')?.addEventListener('click', () => {
             if (confirm('¿Vaciar el vaso y borrar el historial?')) {
                 level = 0;
@@ -362,7 +428,6 @@ export function renderEstresModule(container, config, { renderHome }) {
             }
         });
 
-        // Tab switching
         container.querySelectorAll('.estres-tab').forEach(btn => {
             btn.addEventListener('click', () => {
                 activeTab = btn.dataset.tab;
@@ -370,16 +435,15 @@ export function renderEstresModule(container, config, { renderHome }) {
             });
         });
 
-        // Chip buttons
         container.querySelectorAll('.estres-chip').forEach(btn => {
             btn.addEventListener('click', () => {
                 applyChip(btn.dataset.label, parseInt(btn.dataset.pct), parseInt(btn.dataset.sign));
             });
         });
 
-        // Custom apply
         document.getElementById('btn-custom-apply')?.addEventListener('click', () => {
-            const desc = document.getElementById('estres-custom-desc')?.value.trim() || (activeTab === 'estresores' ? 'Estresor personalizado' : 'Estrategia personalizada');
+            const desc = document.getElementById('estres-custom-desc')?.value.trim()
+                || (activeTab === 'estresores' ? 'Estresor personalizado' : 'Estrategia personalizada');
             const pct = parseInt(document.getElementById('estres-custom-pct')?.value || '10');
             const sign = activeTab === 'estresores' ? 1 : -1;
             applyChip(desc, pct, sign);
