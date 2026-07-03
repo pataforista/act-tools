@@ -157,6 +157,9 @@ export function renderEstresModule(container, config, { renderHome }) {
 
     let activeTab = 'carga';
     let responseDraft = '';
+    // Animate the entrance only once; re-rendering on every interaction would
+    // otherwise restart the fade-in and make the whole module flicker.
+    let firstRender = true;
 
     const factor = () => CAPACITY[est.cupSize];
     const rawLoad = () => est.load.reduce((a, s) => a + (s.pct || 0), 0);
@@ -213,7 +216,7 @@ export function renderEstresModule(container, config, { renderHome }) {
         else statusText = 'Hay algo de carga en el vaso. Solo nótala.';
 
         container.innerHTML = `
-            <div class="module-view animate-scale-in" style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <div class="module-view${firstRender ? ' animate-scale-in' : ''}" style="display: flex; flex-direction: column; gap: 1.25rem;">
 
                 <header class="tool-header" style="border-bottom: 2px solid #38bdf8; padding-bottom: 1rem;">
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -287,6 +290,7 @@ export function renderEstresModule(container, config, { renderHome }) {
             </div>
         `;
 
+        firstRender = false;
         if (window.lucide) lucide.createIcons();
         attachGuideBadgeEvents();
         attachEvents();
