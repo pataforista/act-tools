@@ -13,6 +13,8 @@ const GROUNDING_TOOLS = [
     { key: 'cielo', label: 'Cielo y Clima' }
 ];
 
+const PASO_LABELS = { area: 'Área de valor', accion: 'Paso mínimo', disposicion: 'Disposición', cuando: 'Cuándo' };
+// Legacy labels kept so archived sessions still render.
 const SMART_LABELS = { S: 'Específica', M: 'Medible', A: 'Alcanzable', R: 'Relevante', T: 'Tiempo' };
 const DOTS_LABELS = { D: 'Distracción', O: 'Otros', T: 'Pensamiento', S: 'Sustancias' };
 const FEAR_LABELS = { F: 'Fusión', E: 'Expectativas / Evaluaciones', A: 'Evitación del malestar', R: 'Alejamiento de los valores' };
@@ -37,11 +39,15 @@ function computeRadarScores(p) {
     const filled = (key) => groundingFilledCount(g[key]);
     const thoughts = p.thoughts?.length || 0;
     const weather = p.weather?.length || 0;
-    const smartFilled = p.smart ? Object.values(p.smart).filter(v => (v || '').trim()).length : 0;
+    const pasoFilled = p.paso
+        ? Object.values(p.paso).filter(v => (v || '').trim()).length
+        : (p.smart ? Object.values(p.smart).filter(v => (v || '').trim()).length : 0);
     const dareFilled = p.dare ? Object.values(p.dare).filter(v => (v || '').trim()).length : 0;
     const fearFilled = p.fear ? Object.values(p.fear).filter(v => (v || '').trim()).length : 0;
     const matrixCount = p.matrix ? Object.values(p.matrix).reduce((a, arr) => a + (arr?.length || 0), 0) : 0;
-    const dotsFilled = p.dots ? Object.values(p.dots).filter(v => (v || '').trim()).length : 0;
+    const evitCount = Array.isArray(p.evitacion)
+        ? p.evitacion.length
+        : (p.dots ? Object.values(p.dots).filter(v => (v || '').trim()).length : 0);
     const dianaSet = p.diana ? p.diana.some(d => d.x !== 0 || d.y !== 0) : false;
     const accionLanded = GROUNDING_TOOLS.reduce((acc, t) => acc + ((g[t.key]?.accion || '').trim() ? 1 : 0), 0);
     const abrirseLanded = filled('visualizador') + filled('hojas') + filled('radio') + filled('lucha');
@@ -51,8 +57,8 @@ function computeRadarScores(p) {
         abrirse: clamp01((thoughts ? 0.5 : 0) + (abrirseLanded ? 0.5 : 0) + (thoughts > 2 ? 0.2 : 0)),
         yo: clamp01((filled('cielo') ? 0.7 : 0) + (weather ? 0.3 : 0)),
         valores: clamp01(dianaSet ? 0.85 : 0.1),
-        accion: clamp01(smartFilled * 0.12 + dareFilled * 0.08 + accionLanded * 0.12),
-        analisis: clamp01(matrixCount * 0.12 + dotsFilled * 0.12 + fearFilled * 0.05)
+        accion: clamp01(pasoFilled * 0.15 + dareFilled * 0.08 + accionLanded * 0.12),
+        analisis: clamp01(matrixCount * 0.12 + evitCount * 0.12 + fearFilled * 0.05)
     };
 }
 
@@ -129,10 +135,15 @@ function renderSummarySections(p) {
     const dianaSet = (p.diana || []).filter(d => d.x !== 0 || d.y !== 0).map(d => d.label);
     sections.push(listSection('🎯 Valores · Áreas situadas en la Diana', dianaSet));
 
-    const smartItems = p.smart
-        ? Object.entries(p.smart).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${SMART_LABELS[k] || k}:</strong> ${v}`)
-        : [];
-    sections.push(listSection('✅ Acción · SMART-ACT', smartItems));
+    if (p.paso && Object.values(p.paso).some(v => (v || '').trim())) {
+        const pasoItems = ['area', 'accion', 'disposicion', 'cuando']
+            .filter(k => (p.paso[k] || '').trim())
+            .map(k => `<strong>${PASO_LABELS[k]}:</strong> ${p.paso[k]}`);
+        sections.push(listSection('✅ Acción · Paso mínimo', pasoItems));
+    } else if (p.smart) {
+        const smartItems = Object.entries(p.smart).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${SMART_LABELS[k] || k}:</strong> ${v}`);
+        sections.push(listSection('✅ Acción · SMART-ACT', smartItems));
+    }
 
     const fearItems = p.fear
         ? Object.entries(p.fear).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${FEAR_LABELS[k] || k}:</strong> ${v}`)
@@ -158,10 +169,18 @@ function renderSummarySections(p) {
     }
     sections.push(listSection('🧩 Análisis · Matrix', matrixItems));
 
-    const dotsItems = p.dots
-        ? Object.entries(p.dots).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${DOTS_LABELS[k] || k}:</strong> ${v}`)
-        : [];
-    sections.push(listSection('🔁 Análisis · DOTS (evitación)', dotsItems));
+    if (Array.isArray(p.evitacion) && p.evitacion.length) {
+        const evitItems = p.evitacion.map(e => {
+            const detail = [];
+            if ((e.alivio || '').trim()) detail.push(`alivio: ${e.alivio}`);
+            if ((e.costo || '').trim()) detail.push(`coste: ${e.costo}`);
+            return `<strong>${(e.tipo || '').trim() || 'Evitación'}</strong>${detail.length ? ' — ' + detail.join(' · ') : ''}`;
+        });
+        sections.push(listSection('🔁 Análisis · Coste de la evitación', evitItems));
+    } else if (p.dots) {
+        const dotsItems = Object.entries(p.dots).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${DOTS_LABELS[k] || k}:</strong> ${v}`);
+        sections.push(listSection('🔁 Análisis · DOTS (evitación)', dotsItems));
+    }
 
     const rendered = sections.filter(Boolean);
     if (!rendered.length) {
@@ -197,7 +216,10 @@ function buildSummaryText(p, patientName) {
     const dianaSet = (p.diana || []).filter(d => d.x !== 0 || d.y !== 0).map(d => d.label);
     if (dianaSet.length) { lines.push('VALORES · DIANA', ...dianaSet.map(t => `  - ${t}`), ''); }
 
-    if (p.smart) {
+    if (p.paso && Object.values(p.paso).some(v => (v || '').trim())) {
+        const items = ['area', 'accion', 'disposicion', 'cuando'].filter(k => (p.paso[k] || '').trim());
+        lines.push('ACCIÓN · PASO MÍNIMO', ...items.map(k => `  - ${PASO_LABELS[k]}: ${p.paso[k]}`), '');
+    } else if (p.smart) {
         const items = Object.entries(p.smart).filter(([, v]) => (v || '').trim());
         if (items.length) { lines.push('ACCIÓN · SMART-ACT', ...items.map(([k, v]) => `  - ${SMART_LABELS[k] || k}: ${v}`), ''); }
     }
@@ -217,7 +239,15 @@ function buildSummaryText(p, patientName) {
         if (rows.length) { lines.push('ANÁLISIS · MATRIX', ...rows, ''); }
     }
 
-    if (p.dots) {
+    if (Array.isArray(p.evitacion) && p.evitacion.length) {
+        lines.push('ANÁLISIS · COSTE DE LA EVITACIÓN');
+        p.evitacion.forEach(e => {
+            lines.push(`  - ${(e.tipo || '').trim() || 'Evitación'}`);
+            if ((e.alivio || '').trim()) lines.push(`      alivio corto: ${e.alivio}`);
+            if ((e.costo || '').trim()) lines.push(`      coste largo: ${e.costo}`);
+        });
+        lines.push('');
+    } else if (p.dots) {
         const items = Object.entries(p.dots).filter(([, v]) => (v || '').trim());
         if (items.length) { lines.push('ANÁLISIS · DOTS', ...items.map(([k, v]) => `  - ${DOTS_LABELS[k] || k}: ${v}`), ''); }
     }
@@ -341,7 +371,7 @@ export function renderHomeworkScreen(container, session, onBack) {
 
     const dianaSet = (p.diana || []).filter(d => d.x !== 0 || d.y !== 0).map(d => d.label);
     const embrace = (p.dare?.E || '').trim();
-    const smartSpecific = (p.smart?.S || '').trim();
+    const pasoAccion = (p.paso?.accion || '').trim() || (p.smart?.S || '').trim();
     const thoughts = (p.thoughts || []).map(thoughtText).filter(Boolean).slice(0, 5);
 
     const block = (title, html) => html ? `
@@ -367,7 +397,7 @@ export function renderHomeworkScreen(container, session, onBack) {
                 ${block('Acciones que elegiste',
                     acciones.length
                         ? `<ul style="font-size: 0.85rem; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.3rem;">${acciones.map(a => `<li><strong>${a.label}:</strong> ${a.text}</li>`).join('')}</ul>`
-                        : (smartSpecific ? `<p style="font-size: 0.85rem;">${smartSpecific}</p>` : ''))}
+                        : (pasoAccion ? `<p style="font-size: 0.85rem;">${pasoAccion}</p>` : ''))}
 
                 ${block('Dirección valiosa',
                     (dianaSet.length || embrace)

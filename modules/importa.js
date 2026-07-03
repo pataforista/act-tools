@@ -3,12 +3,12 @@
  */
 
 import { state, saveState } from '../core/state.js';
-import { renderModuleHeader, attachHeaderEvents } from '../ui/utils.js';
+import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
 
 export function renderImportaModule(container, module, { renderHome, initialTool } = {}) {
     const tools = [
         { id: 'diana', title: 'Diana (Target)', icon: 'target' },
-        { id: 'smart', title: 'SMART-ACT', icon: 'file-text' },
+        { id: 'paso', title: 'Paso Mínimo', icon: 'footprints' },
         { id: 'dare', title: 'FEAR → DARE', icon: 'rocket' }
     ];
 
@@ -35,7 +35,7 @@ export function renderImportaModule(container, module, { renderHome, initialTool
         });
         const toolContainer = document.getElementById('tool-container');
         if (activeToolId === 'diana') renderDianaTool(toolContainer);
-        else if (activeToolId === 'smart') renderSMARTTool(toolContainer);
+        else if (activeToolId === 'paso') renderPasoTool(toolContainer);
         else if (activeToolId === 'dare') renderDARETool(toolContainer);
     };
     render();
@@ -111,20 +111,76 @@ function renderDianaTool(container) {
     internalRender();
 }
 
-function renderSMARTTool(container) {
-    container.innerHTML = `
-        <div class="smart-form" style="display: flex; flex-direction: column; gap: 1rem;">
-            ${['S', 'M', 'A', 'R', 'T'].map(k => `
-                <div class="glass" style="padding: 1rem;">
-                    <label style="font-size: 0.7rem;">${k}</label>
-                    <input type="text" data-key="${k}" value="${state.persistence.smart[k]}" class="input-underline">
-                </div>
-            `).join('')}
-        </div>
-    `;
-    container.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', (e) => { state.persistence.smart[e.target.dataset.key] = e.target.value; saveState(); });
+function renderPasoTool(container) {
+    // Replaces the SMART worksheet: a values-linked micro-commitment with willingness
+    // baked in, instead of five achievement-framed criteria to fill.
+    state.persistence.paso ??= { area: '', accion: '', disposicion: '', cuando: '' };
+    const paso = state.persistence.paso;
+    const areas = state.persistence.diana;
+
+    const guide = renderGuideBadge({
+        trigger: 'El paciente identifica un valor pero no lo traduce en conducta, o plantea metas grandes/abstractas. Útil para pasar de la intención a un paso concreto y posible.',
+        intro: 'No buscamos una gran meta. Buscamos el paso más pequeño que puedas dar en dirección a lo que importa, incluso llevando el malestar contigo.',
+        questions: [
+            '¿Cuál es el paso más pequeño que sí depende de vos?',
+            '¿Qué malestar estás dispuesto/a a llevar para darlo?',
+            '¿Esto es una dirección, o una meta que tenés que alcanzar?'
+        ],
+        abort: 'El paso se vuelve una exigencia de rendimiento o se usa para calmar culpa. Volver a la dirección, no al logro.'
     });
+
+    const internalRender = () => {
+        container.innerHTML = `
+            <div class="tool-content">
+                ${guide}
+                <div class="intro" style="text-align: center; margin-bottom: 1.25rem;">
+                    <p class="clinical-note">Un paso mínimo, en una dirección valiosa. No es una meta a cumplir: es hacia dónde te movés.</p>
+                </div>
+
+                <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+                    <label style="font-size: 0.72rem; color: var(--color-text-secondary);">¿Hacia qué área querés moverte?</label>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
+                        ${areas.map(a => `
+                            <button class="btn-toggle ${paso.area === a.label ? 'active' : ''}" data-area="${a.label.replace(/"/g, '&quot;')}" style="font-size: 0.78rem; padding: 0.6rem; height: auto;">
+                                ${a.label}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); display: grid; gap: 0.95rem;">
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--color-text-secondary);">El paso más pequeño posible (próximas 24 h)</label>
+                        <input type="text" id="paso-accion" class="input-underline" value="${paso.accion || ''}" placeholder="Hoy voy a...">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--color-text-secondary);">¿Qué malestar estás dispuesto/a a llevar contigo para darlo?</label>
+                        <input type="text" id="paso-disposicion" class="input-underline" value="${paso.disposicion || ''}" placeholder="Hago espacio a...">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; color: var(--color-text-secondary);">¿Cuándo?</label>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 0.4rem;">
+                            ${['Hoy', 'Esta semana'].map(w => `
+                                <button class="btn-toggle ${paso.cuando === w ? 'active' : ''}" data-cuando="${w}" style="flex: 1; font-size: 0.78rem;">${w}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        attachGuideBadgeEvents();
+
+        container.querySelectorAll('[data-area]').forEach(btn => {
+            btn.addEventListener('click', () => { paso.area = btn.dataset.area; saveState(); internalRender(); });
+        });
+        container.querySelectorAll('[data-cuando]').forEach(btn => {
+            btn.addEventListener('click', () => { paso.cuando = btn.dataset.cuando; saveState(); internalRender(); });
+        });
+        document.getElementById('paso-accion')?.addEventListener('input', e => { paso.accion = e.target.value; saveState(); });
+        document.getElementById('paso-disposicion')?.addEventListener('input', e => { paso.disposicion = e.target.value; saveState(); });
+    };
+    internalRender();
 }
 
 function renderDARETool(container) {

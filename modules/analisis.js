@@ -3,13 +3,13 @@
  */
 
 import { state, saveState } from '../core/state.js';
-import { renderModuleHeader, attachHeaderEvents } from '../ui/utils.js';
+import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
 
 export function renderAnalisisModule(container, module, { renderHome }) {
     let activeToolId = 'matrix';
     const tools = [
         { id: 'matrix', title: 'Matrix Swipe', icon: 'layout' },
-        { id: 'dots', title: 'DOTS', icon: 'clipboard-list' }
+        { id: 'costo', title: 'Coste Evitación', icon: 'scale' }
     ];
 
     const render = () => {
@@ -33,7 +33,7 @@ export function renderAnalisisModule(container, module, { renderHome }) {
         });
         const toolContainer = document.getElementById('tool-container');
         if (activeToolId === 'matrix') renderMatrixTool(toolContainer);
-        else if (activeToolId === 'dots') renderDOTSTool(toolContainer);
+        else if (activeToolId === 'costo') renderEvitacionTool(toolContainer);
     };
     render();
 }
@@ -115,24 +115,113 @@ function renderMatrixTool(container) {
     internalRender();
 }
 
-function renderDOTSTool(container) {
-    const strategies = [
-        { id: 'D', label: 'D · Distracción' },
-        { id: 'O', label: 'O · Otros' },
-        { id: 'T', label: 'T · Thinking' },
-        { id: 'S', label: 'S · Substances' }
+function renderEvitacionTool(container) {
+    // Replaces the flat DOTS inventory: instead of cataloguing avoidance, the patient
+    // *weighs* each move — short-term relief against long-term cost (creative hopelessness).
+    state.persistence.evitacion ??= [];
+    let draft = { tipo: '', alivio: '', costo: '' };
+
+    // DOTS taxonomy kept as optional scaffolding prompts, not required fields.
+    const prompts = [
+        { label: 'Distracción', hint: 'Me distraigo con...' },
+        { label: 'Otros', hint: 'Me apoyo / descargo en otros con...' },
+        { label: 'Pensar', hint: 'Le doy vueltas a...' },
+        { label: 'Sustancias', hint: 'Uso ... para no sentir' }
     ];
-    container.innerHTML = `
-        <div class="dots-list" style="display: flex; flex-direction: column; gap: 1rem;">
-            ${strategies.map(s => `
-                <div class="glass" style="padding: 1.25rem;">
-                    <h4>${s.label}</h4>
-                    <input type="text" data-key="${s.id}" value="${state.persistence.dots[s.id] || ''}" class="input-underline">
-                </div>
-            `).join('')}
-        </div>
-    `;
-    container.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', (e) => { state.persistence.dots[e.target.dataset.key] = e.target.value; saveState(); });
+
+    const guide = renderGuideBadge({
+        trigger: 'El paciente describe estrategias para no sentir (distracción, rumiación, sustancias, buscar tranquilización). Útil para hacer contacto con la inviabilidad del control a largo plazo (desesperanza creativa).',
+        intro: 'No vamos a juzgar lo que hacés para aliviarte. Vamos a mirar de cerca qué te da a corto plazo... y qué te ha costado a la larga.',
+        questions: [
+            '¿Esto funciona a corto plazo? ¿Y a largo plazo?',
+            '¿Qué te ha costado en tiempo, energía o cercanía a lo que importa?',
+            '¿Te acerca a tu vida, o solo te aleja del malestar?'
+        ],
+        abort: 'El paciente entra en autocrítica ("qué mal lo hago"). Devolver a la observación funcional: no es culpa, es coste.'
     });
+
+    const internalRender = () => {
+        const list = state.persistence.evitacion;
+        container.innerHTML = `
+            <div class="tool-content">
+                ${guide}
+                <div class="intro" style="text-align: center; margin-bottom: 1rem;">
+                    <p class="clinical-note">Las cosas que hacés para no sentir. No para juzgarlas: para ver qué te dan y qué te cuestan.</p>
+                </div>
+
+                <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); display: grid; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                        ${prompts.map(p => `
+                            <button class="btn-toggle btn-evit-prompt" data-hint="${p.hint.replace(/"/g, '&quot;')}" style="font-size: 0.72rem; padding: 0.35rem 0.7rem; height: auto;">${p.label}</button>
+                        `).join('')}
+                    </div>
+                    <input type="text" id="evit-tipo" class="input-field" placeholder="¿Qué hacés para no sentir?" value="${draft.tipo.replace(/"/g, '&quot;')}">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <input type="text" id="evit-alivio" class="input-field" placeholder="Alivio a corto plazo" value="${draft.alivio.replace(/"/g, '&quot;')}" style="border-color: #10b98144;">
+                        <input type="text" id="evit-costo" class="input-field" placeholder="Coste a largo plazo" value="${draft.costo.replace(/"/g, '&quot;')}" style="border-color: #ef444444;">
+                    </div>
+                    <button id="btn-add-evit" class="btn-primary" style="font-size: 0.8rem;">Añadir a la balanza</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    ${list.length === 0
+                ? '<p style="text-align: center; font-size: 0.8rem; color: var(--color-text-secondary); opacity: 0.5;">Todavía no hay nada en la balanza.</p>'
+                : list.map((e, i) => `
+                            <div class="glass" style="padding: 0.85rem; border-radius: var(--radius-md);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <strong style="font-size: 0.85rem;">${e.tipo || 'Evitación'}</strong>
+                                    <button class="btn-ghost btn-del-evit" data-idx="${i}" style="color: #ef4444; font-size: 0.72rem;">Quitar ×</button>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                                    <div style="padding: 0.5rem; border-radius: var(--radius-sm); background: rgba(16,185,129,0.08); border-left: 2px solid #10b981;">
+                                        <span style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; color: #10b981;">Corto plazo</span>
+                                        <p style="font-size: 0.78rem; margin: 0.2rem 0 0;">${e.alivio || '—'}</p>
+                                    </div>
+                                    <div style="padding: 0.5rem; border-radius: var(--radius-sm); background: rgba(239,68,68,0.08); border-left: 2px solid #ef4444;">
+                                        <span style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; color: #ef4444;">Largo plazo</span>
+                                        <p style="font-size: 0.78rem; margin: 0.2rem 0 0;">${e.costo || '—'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                </div>
+
+                ${list.length ? `
+                <div class="glass" style="margin-top: 1rem; padding: 0.85rem; border-radius: var(--radius-sm); background: rgba(var(--color-primary-rgb, 99,102,241),0.08);">
+                    <p style="font-size: 0.78rem; font-style: italic; color: var(--color-text-secondary); margin: 0;">💭 Si esto funcionara de verdad a largo plazo, ¿seguirías necesitando hacerlo?</p>
+                </div>` : ''}
+            </div>
+        `;
+
+        attachGuideBadgeEvents();
+
+        document.getElementById('evit-tipo')?.addEventListener('input', e => draft.tipo = e.target.value);
+        document.getElementById('evit-alivio')?.addEventListener('input', e => draft.alivio = e.target.value);
+        document.getElementById('evit-costo')?.addEventListener('input', e => draft.costo = e.target.value);
+
+        container.querySelectorAll('.btn-evit-prompt').forEach(btn => {
+            btn.addEventListener('click', () => {
+                draft.tipo = btn.dataset.hint;
+                internalRender();
+                document.getElementById('evit-tipo')?.focus();
+            });
+        });
+
+        document.getElementById('btn-add-evit')?.addEventListener('click', () => {
+            if (!draft.tipo.trim() && !draft.alivio.trim() && !draft.costo.trim()) return;
+            state.persistence.evitacion.push({ tipo: draft.tipo.trim(), alivio: draft.alivio.trim(), costo: draft.costo.trim() });
+            draft = { tipo: '', alivio: '', costo: '' };
+            saveState();
+            internalRender();
+        });
+
+        container.querySelectorAll('.btn-del-evit').forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.persistence.evitacion.splice(parseInt(btn.dataset.idx), 1);
+                saveState();
+                internalRender();
+            });
+        });
+    };
+    internalRender();
 }
