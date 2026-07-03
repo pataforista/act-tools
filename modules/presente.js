@@ -55,38 +55,109 @@ export function renderPresenteModule(container, module, { renderHome, initialToo
 }
 
 function renderSTOPTool(container) {
+    // STOP is experiential, not a set of cards to read: each letter is *done*.
+    // Notes here are ephemeral (in-session only) to avoid turning grounding into self-monitoring.
     const steps = [
-        { id: 'S', title: 'S · Stop', text: 'Haz una pausa en lo que estás haciendo.' },
-        { id: 'T', title: 'T · Take a breath', text: 'Nota tu respiración mientras inhalas y exhalas.' },
-        { id: 'O', title: 'O · Observe', text: 'Observa qué está pasando en tu cuerpo y mente ahora.' },
-        { id: 'P', title: 'P · Proceed', text: 'Elige cómo quieres continuar en este momento.' }
+        {
+            id: 'S',
+            title: 'S · Detente',
+            body: `
+                <p class="clinical-note" style="max-width: 260px; margin: 0 auto;">Suelta lo que estabas haciendo. Por un momento no hay nada que resolver.</p>
+                <button class="btn-primary" id="stop-advance" style="margin-top: 2rem;">Estoy en pausa</button>
+            `
+        },
+        {
+            id: 'T',
+            title: 'T · Respira',
+            body: `
+                <div class="breathing-circle-container" style="position: relative; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    <div id="stop-breath-circle" style="width: 70px; height: 70px; background: var(--color-primary); border-radius: 50%; box-shadow: 0 0 40px var(--color-primary); opacity: 0.8;"></div>
+                    <span id="stop-breath-label" style="position: absolute; font-size: 0.85rem; color: white; font-weight: 600;">Inhala</span>
+                </div>
+                <p class="clinical-note" style="margin-top: 1.5rem; max-width: 260px; margin-left: auto; margin-right: auto;">Sigue el círculo. No cambies la respiración: solo nótala.</p>
+                <button class="btn-primary" id="stop-advance" style="margin-top: 1.5rem;">Continuar</button>
+            `
+        },
+        {
+            id: 'O',
+            title: 'O · Observa',
+            body: `
+                <p class="clinical-note" style="max-width: 260px; margin: 0 auto 1.25rem;">¿Qué hay aquí ahora? Nómbralo, sin arreglarlo.</p>
+                <div style="display: grid; gap: 0.75rem; max-width: 340px; margin: 0 auto;">
+                    <input type="text" id="stop-body" class="input-field" placeholder="En el cuerpo noto...">
+                    <input type="text" id="stop-mind" class="input-field" placeholder="En la mente aparece...">
+                </div>
+                <button class="btn-primary" id="stop-advance" style="margin-top: 1.5rem;">Continuar</button>
+            `
+        },
+        {
+            id: 'P',
+            title: 'P · Procede',
+            body: `
+                <p class="clinical-note" style="max-width: 260px; margin: 0 auto 1.25rem;">Con esto presente, ¿hacia dónde eliges dar el siguiente paso?</p>
+                <input type="text" id="stop-proceed" class="input-field" placeholder="Elijo seguir hacia..." style="max-width: 340px; margin: 0 auto; display: block;">
+                <button class="btn-primary" id="stop-advance" style="margin-top: 1.5rem;">Terminar</button>
+            `
+        }
     ];
-    let currentStep = 0;
+
+    let current = 0;
+    let breathAnim = null;
+    const notes = { body: '', mind: '', proceed: '' };
+
+    const stopBreath = () => { if (breathAnim) { breathAnim.pause(); breathAnim = null; } };
+
+    const startBreathing = () => {
+        const circle = document.getElementById('stop-breath-circle');
+        const label = document.getElementById('stop-breath-label');
+        if (!circle) return;
+        breathAnim = anime({
+            targets: circle,
+            scale: [0.7, 1.5],
+            duration: 5000,
+            easing: 'easeInOutSine',
+            direction: 'alternate',
+            loop: true,
+            update: (a) => { if (label) label.innerText = a.reversed ? 'Exhala' : 'Inhala'; }
+        });
+    };
 
     const internalRender = () => {
+        stopBreath();
+        const s = steps[current];
         container.innerHTML = `
-            <div class="tool-content">
-                <div class="stop-steps-container" style="display: flex; flex-direction: column; gap: 1rem;">
-                    ${steps.map((s, i) => `
-                        <div class="glass" style="padding: 1.25rem; border-radius: var(--radius-md); opacity: ${i === currentStep ? '1' : '0.5'}; border-left: 4px solid ${i === currentStep ? 'var(--color-primary)' : 'transparent'};">
-                            <h4>${s.title}</h4>
-                            <p>${s.text}</p>
-                        </div>
-                    `).join('')}
+            <div class="tool-content" style="text-align: center;">
+                <div style="display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 1.5rem;">
+                    ${steps.map((st, i) => `<span style="width: 26px; height: 4px; border-radius: 2px; background: ${i <= current ? 'var(--color-primary)' : 'var(--glass-border)'};"></span>`).join('')}
                 </div>
-                <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
-                    <button class="btn-ghost" id="btn-prev-stop" ${currentStep === 0 ? 'disabled' : ''}>Anterior</button>
-                    <button class="btn-primary" id="btn-next-stop">${currentStep === steps.length - 1 ? 'Reiniciar' : 'Siguiente'}</button>
+                <div class="glass" style="padding: 2rem 1.5rem; border-radius: var(--radius-lg);">
+                    <h3 style="color: var(--color-primary); font-size: 1.1rem; margin-bottom: 1.25rem;">${s.title}</h3>
+                    ${s.body}
                 </div>
+                ${current > 0 ? `<button class="btn-ghost" id="stop-back" style="margin-top: 1rem;">Anterior</button>` : ''}
             </div>
         `;
 
-        document.getElementById('btn-next-stop').addEventListener('click', () => {
-            currentStep = (currentStep + 1) % steps.length;
+        const bodyEl = document.getElementById('stop-body');
+        if (bodyEl) { bodyEl.value = notes.body; bodyEl.addEventListener('input', e => notes.body = e.target.value); }
+        const mindEl = document.getElementById('stop-mind');
+        if (mindEl) { mindEl.value = notes.mind; mindEl.addEventListener('input', e => notes.mind = e.target.value); }
+        const procEl = document.getElementById('stop-proceed');
+        if (procEl) { procEl.value = notes.proceed; procEl.addEventListener('input', e => notes.proceed = e.target.value); }
+
+        if (s.id === 'T') startBreathing();
+
+        document.getElementById('stop-advance')?.addEventListener('click', () => {
+            if (current === steps.length - 1) {
+                current = 0;
+                notes.body = notes.mind = notes.proceed = '';
+            } else {
+                current++;
+            }
             internalRender();
         });
-        document.getElementById('btn-prev-stop')?.addEventListener('click', () => {
-            if (currentStep > 0) currentStep--;
+        document.getElementById('stop-back')?.addEventListener('click', () => {
+            if (current > 0) current--;
             internalRender();
         });
     };
@@ -94,29 +165,69 @@ function renderSTOPTool(container) {
 }
 
 export function render5SentidosTool(container) {
+    // Experiential grounding: the patient actively *names* what they perceive
+    // (anchoring by doing) instead of reading a count. Answers are ephemeral —
+    // this is in-the-moment anchoring, used in session and in crisis (SOS).
     const senses = [
-        { count: 5, item: 'cosas que puedes ver', color: '#f59e0b' },
-        { count: 4, item: 'cosas que puedes tocar', color: '#10b981' },
-        { count: 3, item: 'sonidos que puedes oír', color: '#3b82f6' },
-        { count: 2, item: 'olores que puedes notar', color: '#8b5cf6' },
-        { count: 1, item: 'sabor o sensación en la boca', color: '#ef4444' }
+        { count: 5, item: 'cosas que puedes ver', verb: 'Nombra', color: '#f59e0b' },
+        { count: 4, item: 'cosas que puedes tocar', verb: 'Nombra', color: '#10b981' },
+        { count: 3, item: 'sonidos que puedes oír', verb: 'Nombra', color: '#3b82f6' },
+        { count: 2, item: 'olores que puedes notar', verb: 'Nombra', color: '#8b5cf6' },
+        { count: 1, item: 'sabor o sensación en la boca', verb: 'Nota', color: '#ef4444' }
     ];
     let currentSense = 0;
+    const answers = senses.map(() => []);
 
     const internalRender = () => {
         const s = senses[currentSense];
+        const named = answers[currentSense];
+        const remaining = Math.max(0, s.count - named.length);
+        const done = remaining === 0;
+        const isLast = currentSense === senses.length - 1;
+
         container.innerHTML = `
             <div class="tool-content" style="text-align: center;">
-                <div class="sense-display glass" style="padding: 3rem 2rem; border-radius: var(--radius-lg); border: 2px solid ${s.color};">
-                    <div style="font-size: 4rem; color: ${s.color};">${s.count}</div>
-                    <div style="font-size: 1.25rem;">${s.item}</div>
+                <div class="sense-display glass" style="padding: 2rem 1.5rem; border-radius: var(--radius-lg); border: 2px solid ${s.color};">
+                    <div style="font-size: 3rem; color: ${s.color}; line-height: 1;">${remaining}</div>
+                    <div style="font-size: 1.05rem; margin-top: 0.35rem;">${s.verb} ${s.count} ${s.item}</div>
+                    <p style="font-size: 0.72rem; color: var(--color-text-secondary); margin-top: 0.4rem;">${done ? 'Listo. Notá que estás aquí.' : `Faltan ${remaining}`}</p>
+
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1.25rem;">
+                        <input type="text" id="sense-input" class="input-field" placeholder="Escribe lo que notás..." style="flex: 1; border-color: ${s.color}55;" ${done ? 'disabled' : ''}>
+                        <button class="btn-primary" id="btn-add-sense" style="background: ${s.color};" ${done ? 'disabled' : ''}>+</button>
+                    </div>
+
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-top: 1rem;">
+                        ${named.map((t, i) => `
+                            <span class="sense-chip" style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; border-radius: 16px; background: ${s.color}1f; border: 1px solid ${s.color}55; font-size: 0.78rem;">
+                                ${t}<button class="btn-del-sense" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
+                            </span>
+                        `).join('')}
+                    </div>
                 </div>
-                <div style="margin-top: 2.5rem; display: flex; justify-content: center; gap: 1rem;">
+                <div style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
                     <button class="btn-ghost" id="btn-prev-5" ${currentSense === 0 ? 'disabled' : ''}>Anterior</button>
-                    <button class="btn-primary" id="btn-next-5">${currentSense === senses.length - 1 ? 'Finalizar' : 'Siguiente'}</button>
+                    <button class="btn-primary" id="btn-next-5">${isLast ? 'Finalizar' : 'Siguiente'}</button>
                 </div>
             </div>
         `;
+
+        const input = document.getElementById('sense-input');
+        input?.focus();
+
+        const addItem = () => {
+            const v = input.value.trim();
+            if (!v) return;
+            named.push(v);
+            internalRender();
+        };
+        document.getElementById('btn-add-sense')?.addEventListener('click', addItem);
+        input?.addEventListener('keypress', e => { if (e.key === 'Enter') addItem(); });
+
+        container.querySelectorAll('.btn-del-sense').forEach(btn => {
+            btn.addEventListener('click', () => { named.splice(parseInt(btn.dataset.idx), 1); internalRender(); });
+        });
+
         document.getElementById('btn-next-5').addEventListener('click', () => {
             currentSense = (currentSense + 1) % senses.length;
             internalRender();

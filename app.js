@@ -59,7 +59,7 @@ function loadModule(id) {
     else if (id === 'presente') renderPresenteModule(mainContent, config, { renderHome: navigateToHome });
     else if (id === 'yo') renderPresenteModule(mainContent, config, { renderHome: navigateToHome, initialTool: 'cielo' });
     else if (id === 'importa') renderImportaModule(mainContent, config, { renderHome: navigateToHome });
-    else if (id === 'accion') renderImportaModule(mainContent, config, { renderHome: navigateToHome, initialTool: 'smart' });
+    else if (id === 'accion') renderImportaModule(mainContent, config, { renderHome: navigateToHome, initialTool: 'paso' });
     else if (id === 'analisis') renderAnalisisModule(mainContent, config, { renderHome: navigateToHome });
     else if (id === 'estres') renderEstresModule(mainContent, config, { renderHome: navigateToHome });
 }

@@ -20,10 +20,10 @@ export const getDefaultSession = () => ({
         radio: { contexto: '', aprendizaje: '', accion: '' },
         lucha: { contexto: '', aprendizaje: '', accion: '' }
     },
-    smart: { S: '', M: '', A: '', R: '', T: '' },
+    paso: { area: '', accion: '', disposicion: '', cuando: '' },
     fear: { F: '', E: '', A: '', R: '' },
     dare: { D: '', A: '', R: '', E: '' },
-    dots: { D: '', O: '', T: '', S: '' }
+    evitacion: []
 });
 
 export const state = {
