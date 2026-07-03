@@ -184,68 +184,97 @@ function renderPasoTool(container) {
 }
 
 function renderDARETool(container) {
+    // Instead of two static worksheets of 8 fields, the patient walks one barrier→move
+    // *pivot* at a time: name the barrier, then turn it toward its direction. The felt
+    // turn (not the cataloguing) is the point. Data model (fear/dare) is unchanged.
     state.persistence.fear ??= { F: '', E: '', A: '', R: '' };
     state.persistence.dare ??= { D: '', A: '', R: '', E: '' };
 
-    const fearItems = [
-        { key: 'F', label: 'F · Fusión', placeholder: '¿Con qué pensamiento te estás enganchando?' },
-        { key: 'E', label: 'E · Expectativas / Evaluaciones', placeholder: '¿Qué expectativa o juicio se interpone?' },
-        { key: 'A', label: 'A · Evitación del malestar', placeholder: '¿Qué malestar estás evitando?' },
-        { key: 'R', label: 'R · Alejamiento de los valores', placeholder: '¿De qué valor te aleja esto?' }
+    const pivots = [
+        { fearKey: 'F', fearLabel: 'Fusión', fearQ: '¿Con qué pensamiento te estás enganchando?', dareKey: 'D', dareLabel: 'Defusión', dareQ: '¿Cómo podés tomar distancia de ese pensamiento?' },
+        { fearKey: 'A', fearLabel: 'Evitación del malestar', fearQ: '¿Qué malestar estás evitando?', dareKey: 'A', dareLabel: 'Aceptación', dareQ: '¿A qué estás dispuesto/a a hacer espacio?' },
+        { fearKey: 'E', fearLabel: 'Expectativas / metas rígidas', fearQ: '¿Qué expectativa o meta rígida se interpone?', dareKey: 'R', dareLabel: 'Dirección realista', dareQ: '¿Qué paso pequeño y posible aparece?' },
+        { fearKey: 'R', fearLabel: 'Alejamiento de los valores', fearQ: '¿De qué valor te aleja esto?', dareKey: 'E', dareLabel: 'Encarnar los valores', dareQ: '¿Qué valor querés llevar a la acción?' }
     ];
 
-    const dareItems = [
-        { key: 'D', label: 'D · Defusión', placeholder: '¿Cómo podés tomar distancia del pensamiento?' },
-        { key: 'A', label: 'A · Aceptación del malestar', placeholder: '¿A qué estás dispuesto/a a hacer espacio?' },
-        { key: 'R', label: 'R · Dirección realista', placeholder: '¿Qué paso pequeño y posible aparece?' },
-        { key: 'E', label: 'E · Encarnar los valores', placeholder: '¿Qué valor querés llevar a la acción?' }
-    ];
+    let current = 0;
+    const revealed = pivots.map(() => false);
 
-    container.innerHTML = `
-        <div class="tool-content">
-            <div class="intro" style="text-align: center; margin-bottom: 1.5rem;">
-                <p class="clinical-note">Nota las barreras (FEAR) y, frente a cada una, la dirección que elegís (DARE). No es para corregir: es para ver el contraste.</p>
-            </div>
+    const guide = renderGuideBadge({
+        trigger: 'El paciente está trabado frente a una acción valiosa y aparecen barreras (fusión, evitación, exigencia, desconexión de valores). Útil para pasar de la barrera a la dirección, una por una.',
+        intro: 'No vamos a corregir nada. Frente a cada barrera que aparece, vamos a girar hacia la dirección que elegís. Una barrera, un giro.',
+        questions: [
+            '¿Qué barrera está más viva ahora mismo?',
+            'Si girás hacia la dirección, ¿qué aparece?',
+            '¿Notás la diferencia entre la barrera y el movimiento que elegís?'
+        ],
+        abort: 'El giro se vuelve un "debería" o autoexigencia. Volver a que es una dirección elegida, no una obligación.'
+    });
 
-            <div style="display: grid; gap: 1.5rem;">
+    const internalRender = () => {
+        const p = pivots[current];
+        const isRevealed = revealed[current];
+        const isLast = current === pivots.length - 1;
+
+        container.innerHTML = `
+            <div class="tool-content">
+                ${guide}
+                <div class="intro" style="text-align: center; margin-bottom: 1rem;">
+                    <p class="clinical-note">De la barrera a la dirección. Un giro cada vez.</p>
+                </div>
+
+                <div style="display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 1.25rem;">
+                    ${pivots.map((_, i) => `<span style="width: 24px; height: 4px; border-radius: 2px; background: ${i === current ? 'var(--color-primary)' : (revealed[i] ? '#10b981' : 'var(--glass-border)')};"></span>`).join('')}
+                </div>
+
                 <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); border-left: 3px solid #ef4444;">
-                    <h4 style="font-size: 0.85rem; color: #ef4444; margin-bottom: 0.75rem;">FEAR · Lo que aleja</h4>
-                    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-                        ${fearItems.map(item => `
-                            <div>
-                                <label style="font-size: 0.72rem; color: var(--color-text-secondary);">${item.label}</label>
-                                <input type="text" data-fear="${item.key}" value="${state.persistence.fear[item.key] || ''}" placeholder="${item.placeholder}" class="input-underline">
-                            </div>
-                        `).join('')}
-                    </div>
+                    <h4 style="font-size: 0.8rem; color: #ef4444; margin-bottom: 0.6rem;">↩ Barrera · ${p.fearLabel}</h4>
+                    <input type="text" id="pivot-fear" value="${(state.persistence.fear[p.fearKey] || '').replace(/"/g, '&quot;')}" placeholder="${p.fearQ}" class="input-underline">
                 </div>
 
-                <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); border-left: 3px solid #10b981;">
-                    <h4 style="font-size: 0.85rem; color: #10b981; margin-bottom: 0.75rem;">DARE · La dirección que elegís</h4>
-                    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-                        ${dareItems.map(item => `
-                            <div>
-                                <label style="font-size: 0.72rem; color: var(--color-text-secondary);">${item.label}</label>
-                                <input type="text" data-dare="${item.key}" value="${state.persistence.dare[item.key] || ''}" placeholder="${item.placeholder}" class="input-underline">
-                            </div>
-                        `).join('')}
-                    </div>
+                ${isRevealed ? `
+                <div style="text-align: center; color: var(--color-primary); font-size: 1.4rem; margin: 0.5rem 0;">↓</div>
+                <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); border-left: 3px solid #10b981; animation: slideUp 0.3s ease;">
+                    <h4 style="font-size: 0.8rem; color: #10b981; margin-bottom: 0.6rem;">→ Dirección · ${p.dareLabel}</h4>
+                    <input type="text" id="pivot-dare" value="${(state.persistence.dare[p.dareKey] || '').replace(/"/g, '&quot;')}" placeholder="${p.dareQ}" class="input-underline">
+                </div>
+                ` : `
+                <div style="text-align: center; margin-top: 1.25rem;">
+                    <button class="btn-primary" id="btn-pivot-turn">Girar hacia la dirección →</button>
+                </div>
+                `}
+
+                <div style="margin-top: 1.75rem; display: flex; justify-content: center; gap: 1rem;">
+                    <button class="btn-ghost" id="btn-pivot-prev" ${current === 0 ? 'disabled' : ''}>Anterior</button>
+                    <button class="btn-primary" id="btn-pivot-next">${isLast ? 'Terminar' : 'Siguiente giro'}</button>
                 </div>
             </div>
-        </div>
-    `;
+        `;
 
-    container.querySelectorAll('[data-fear]').forEach(input => {
-        input.addEventListener('input', (e) => {
-            state.persistence.fear[e.target.dataset.fear] = e.target.value;
+        attachGuideBadgeEvents();
+
+        document.getElementById('pivot-fear')?.addEventListener('input', (e) => {
+            state.persistence.fear[p.fearKey] = e.target.value;
             saveState();
         });
-    });
-
-    container.querySelectorAll('[data-dare]').forEach(input => {
-        input.addEventListener('input', (e) => {
-            state.persistence.dare[e.target.dataset.dare] = e.target.value;
+        document.getElementById('pivot-dare')?.addEventListener('input', (e) => {
+            state.persistence.dare[p.dareKey] = e.target.value;
             saveState();
         });
-    });
+
+        document.getElementById('btn-pivot-turn')?.addEventListener('click', () => {
+            revealed[current] = true;
+            internalRender();
+            document.getElementById('pivot-dare')?.focus();
+        });
+        document.getElementById('btn-pivot-next')?.addEventListener('click', () => {
+            current = (current + 1) % pivots.length;
+            internalRender();
+        });
+        document.getElementById('btn-pivot-prev')?.addEventListener('click', () => {
+            if (current > 0) current--;
+            internalRender();
+        });
+    };
+    internalRender();
 }

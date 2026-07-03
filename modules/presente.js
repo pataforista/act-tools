@@ -165,29 +165,69 @@ function renderSTOPTool(container) {
 }
 
 export function render5SentidosTool(container) {
+    // Experiential grounding: the patient actively *names* what they perceive
+    // (anchoring by doing) instead of reading a count. Answers are ephemeral —
+    // this is in-the-moment anchoring, used in session and in crisis (SOS).
     const senses = [
-        { count: 5, item: 'cosas que puedes ver', color: '#f59e0b' },
-        { count: 4, item: 'cosas que puedes tocar', color: '#10b981' },
-        { count: 3, item: 'sonidos que puedes oír', color: '#3b82f6' },
-        { count: 2, item: 'olores que puedes notar', color: '#8b5cf6' },
-        { count: 1, item: 'sabor o sensación en la boca', color: '#ef4444' }
+        { count: 5, item: 'cosas que puedes ver', verb: 'Nombra', color: '#f59e0b' },
+        { count: 4, item: 'cosas que puedes tocar', verb: 'Nombra', color: '#10b981' },
+        { count: 3, item: 'sonidos que puedes oír', verb: 'Nombra', color: '#3b82f6' },
+        { count: 2, item: 'olores que puedes notar', verb: 'Nombra', color: '#8b5cf6' },
+        { count: 1, item: 'sabor o sensación en la boca', verb: 'Nota', color: '#ef4444' }
     ];
     let currentSense = 0;
+    const answers = senses.map(() => []);
 
     const internalRender = () => {
         const s = senses[currentSense];
+        const named = answers[currentSense];
+        const remaining = Math.max(0, s.count - named.length);
+        const done = remaining === 0;
+        const isLast = currentSense === senses.length - 1;
+
         container.innerHTML = `
             <div class="tool-content" style="text-align: center;">
-                <div class="sense-display glass" style="padding: 3rem 2rem; border-radius: var(--radius-lg); border: 2px solid ${s.color};">
-                    <div style="font-size: 4rem; color: ${s.color};">${s.count}</div>
-                    <div style="font-size: 1.25rem;">${s.item}</div>
+                <div class="sense-display glass" style="padding: 2rem 1.5rem; border-radius: var(--radius-lg); border: 2px solid ${s.color};">
+                    <div style="font-size: 3rem; color: ${s.color}; line-height: 1;">${remaining}</div>
+                    <div style="font-size: 1.05rem; margin-top: 0.35rem;">${s.verb} ${s.count} ${s.item}</div>
+                    <p style="font-size: 0.72rem; color: var(--color-text-secondary); margin-top: 0.4rem;">${done ? 'Listo. Notá que estás aquí.' : `Faltan ${remaining}`}</p>
+
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1.25rem;">
+                        <input type="text" id="sense-input" class="input-field" placeholder="Escribe lo que notás..." style="flex: 1; border-color: ${s.color}55;" ${done ? 'disabled' : ''}>
+                        <button class="btn-primary" id="btn-add-sense" style="background: ${s.color};" ${done ? 'disabled' : ''}>+</button>
+                    </div>
+
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-top: 1rem;">
+                        ${named.map((t, i) => `
+                            <span class="sense-chip" style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; border-radius: 16px; background: ${s.color}1f; border: 1px solid ${s.color}55; font-size: 0.78rem;">
+                                ${t}<button class="btn-del-sense" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
+                            </span>
+                        `).join('')}
+                    </div>
                 </div>
-                <div style="margin-top: 2.5rem; display: flex; justify-content: center; gap: 1rem;">
+                <div style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
                     <button class="btn-ghost" id="btn-prev-5" ${currentSense === 0 ? 'disabled' : ''}>Anterior</button>
-                    <button class="btn-primary" id="btn-next-5">${currentSense === senses.length - 1 ? 'Finalizar' : 'Siguiente'}</button>
+                    <button class="btn-primary" id="btn-next-5">${isLast ? 'Finalizar' : 'Siguiente'}</button>
                 </div>
             </div>
         `;
+
+        const input = document.getElementById('sense-input');
+        input?.focus();
+
+        const addItem = () => {
+            const v = input.value.trim();
+            if (!v) return;
+            named.push(v);
+            internalRender();
+        };
+        document.getElementById('btn-add-sense')?.addEventListener('click', addItem);
+        input?.addEventListener('keypress', e => { if (e.key === 'Enter') addItem(); });
+
+        container.querySelectorAll('.btn-del-sense').forEach(btn => {
+            btn.addEventListener('click', () => { named.splice(parseInt(btn.dataset.idx), 1); internalRender(); });
+        });
+
         document.getElementById('btn-next-5').addEventListener('click', () => {
             currentSense = (currentSense + 1) % senses.length;
             internalRender();

@@ -701,7 +701,13 @@ function renderRadioDoomGloomTool(container) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function renderInterruptorLuchaTool(container) {
+    // The struggle switch is a real ACT metaphor, but pressing a button doesn't evoke
+    // the *cost* of struggling. While the switch is on LUCHA, a tension bar climbs on its
+    // own (mounting cost, pure CSS — no timer to clean up); on release we reflect back how
+    // many seconds the struggle was held. The cost becomes something the patient watches.
     let isStruggling = true;
+    let struggleStart = Date.now();
+    let lastCost = null;
 
     const guide = renderGuideBadge({
         trigger: 'El paciente describe resistencia activa a sentir, tensión corporal, o verbaliza que "no quiere sentir esto". Útil para hacer visible la lucha que ya está ocurriendo.',
@@ -728,7 +734,7 @@ function renderInterruptorLuchaTool(container) {
                     </div>
 
                     <div id="struggle-toggle" style="width: 70px; height: 120px; background: #1e293b; border-radius: 35px; padding: 5px; cursor: pointer; position: relative; border: 3px solid ${isStruggling ? '#ef4444' : '#3b82f6'}; transition: 0.3s; z-index: 2;">
-                        <div style="width: 60px; height: 60px; background: white; border-radius: 50%; position: absolute; left: 2px; transition: 0.4s; top: ${isStruggling ? '5px' : '55px'}; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                        <div style="width: 60px; height: 60px; background: white; border-radius: 50%; position: absolute; left: 2px; transition: 0.4s; top: ${isStruggling ? '5px' : '55px'}; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); ${isStruggling ? 'animation: luchaShake 0.35s ease-in-out infinite;' : ''}">
                             ${isStruggling ? '⚡' : '🌊'}
                         </div>
                     </div>
@@ -739,17 +745,30 @@ function renderInterruptorLuchaTool(container) {
                         </h4>
                         <p class="clinical-note" style="max-width: 220px; font-size: 0.8rem;">
                             ${isStruggling
-                ? 'Estás peleando con tu experiencia. Eso tiene un costo.'
+                ? 'Estás peleando con tu experiencia. Mirá lo que cuesta sostenerlo.'
                 : 'Has elegido no pelear por un momento. ¿Qué notás ahora?'}
                         </p>
                     </div>
 
+                    ${isStruggling ? `
+                    <!-- Coste creciente de la lucha (animación CSS, sin timers) -->
+                    <div style="width: 100%; max-width: 240px; z-index: 2;">
+                        <div style="height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; background: linear-gradient(90deg, #f59e0b, #ef4444); animation: luchaTension 25s linear forwards;"></div>
+                        </div>
+                        <p style="font-size: 0.7rem; color: #ef4444; text-align: center; margin-top: 0.35rem;">El coste sube cuanto más peleás.</p>
+                    </div>
+                    ` : `
                     <!-- Fase 2: invitación a observar después del toggle -->
-                    ${!isStruggling ? `
+                    ${lastCost !== null ? `
+                    <p style="font-size: 0.78rem; color: #3b82f6; z-index: 2; max-width: 240px; text-align: center;">
+                        Sostuviste la lucha ~${lastCost}s. Eso costó energía. ¿La sentís al soltarla?
+                    </p>
+                    ` : ''}
                     <p style="font-size: 0.78rem; color: var(--color-text-secondary); z-index: 2; max-width: 240px; text-align: center;">
                         ¿Qué notás en tu cuerpo o en la experiencia ahora? Registralo abajo, en el aterrizaje.
                     </p>
-                    ` : ''}
+                    `}
 
                     <p style="font-size: 0.7rem; color: var(--color-text-secondary); z-index: 2; font-style: italic; max-width: 220px; text-align: center;">
                         El objetivo no es apagar la lucha, sino notarla.
@@ -765,12 +784,27 @@ function renderInterruptorLuchaTool(container) {
                     </div>
                 </div>
             </div>
+            <style>
+                @keyframes luchaTension { from { width: 0%; } to { width: 100%; } }
+                @keyframes luchaShake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-2px); }
+                    75% { transform: translateX(2px); }
+                }
+            </style>
         `;
 
         attachGuideBadgeEvents();
 
         document.getElementById('struggle-toggle').addEventListener('click', () => {
-            isStruggling = !isStruggling;
+            if (isStruggling) {
+                lastCost = Math.round((Date.now() - struggleStart) / 1000);
+                isStruggling = false;
+            } else {
+                struggleStart = Date.now();
+                lastCost = null;
+                isStruggling = true;
+            }
             internalRender();
         });
 
