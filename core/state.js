@@ -23,7 +23,8 @@ export const getDefaultSession = () => ({
     paso: { area: '', accion: '', disposicion: '', cuando: '' },
     fear: { F: '', E: '', A: '', R: '' },
     dare: { D: '', A: '', R: '', E: '' },
-    evitacion: []
+    evitacion: [],
+    estres: { cupSize: 'medium', load: [], responses: [] }
 });
 
 export const state = {
