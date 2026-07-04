@@ -10,8 +10,22 @@
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Vendored locally so the app works offline and never depends on a CDN being reachable -->
+    <script src="vendor/anime.min.js"></script>
+    <script src="vendor/lucide.min.js"></script>
+    <script>
+        // Safety net: if a library failed to load (offline, blocked, corrupt),
+        // provide no-op fallbacks so a missing icon/animation never aborts init.
+        window.lucide = window.lucide || { createIcons() {} };
+        if (typeof window.anime === 'undefined') {
+            const noop = () => ({ pause() {}, restart() {}, play() {} });
+            noop.timeline = () => { const tl = { add() { return tl; }, pause() {}, play() {} }; return tl; };
+            noop.random = (min = 0) => min;
+            noop.stagger = () => 0;
+            noop.set = () => {};
+            window.anime = noop;
+        }
+    </script>
     <link rel="manifest" href="manifest.json">
 
     <!-- Fonts -->
