@@ -182,6 +182,23 @@ function renderSummarySections(p) {
         sections.push(listSection('🔁 Análisis · DOTS (evitación)', dotsItems));
     }
 
+    const estres = p.estres || {};
+    const estresLoad = Array.isArray(estres.load) ? estres.load : [];
+    const estresResponses = Array.isArray(estres.responses) ? estres.responses : [];
+    if (estresLoad.length || estresResponses.length) {
+        const loadItems = estresLoad.map(s => `<strong>${(s.label || '').trim() || 'Carga'}</strong>${s.pct ? ` <span style="opacity: 0.6;">(${s.pct}%)</span>` : ''}`);
+        const toward = estresResponses.filter(r => r.dir === 'toward').map(r => r.text).filter(Boolean);
+        const away = estresResponses.filter(r => r.dir === 'away').map(r => r.text).filter(Boolean);
+        sections.push(`
+            <section class="glass-card">
+                <h3>🥤 Vaso de Estrés</h3>
+                ${loadItems.length ? `<p style="font-size: 0.75rem; color: var(--color-text-secondary); margin: 0.5rem 0 0.2rem;">Carga que lleva</p><ul style="font-size: 0.82rem; padding-left: 1.1rem;">${loadItems.map(i => `<li>${i}</li>`).join('')}</ul>` : ''}
+                ${toward.length ? `<p style="font-size: 0.75rem; color: #10b981; margin: 0.5rem 0 0.2rem;">Respuestas que acercan</p><ul style="font-size: 0.82rem; padding-left: 1.1rem;">${toward.map(i => `<li>${i}</li>`).join('')}</ul>` : ''}
+                ${away.length ? `<p style="font-size: 0.75rem; color: #ef4444; margin: 0.5rem 0 0.2rem;">Respuestas que alejan (evitación)</p><ul style="font-size: 0.82rem; padding-left: 1.1rem;">${away.map(i => `<li>${i}</li>`).join('')}</ul>` : ''}
+            </section>
+        `);
+    }
+
     const rendered = sections.filter(Boolean);
     if (!rendered.length) {
         return '<section class="glass-card"><p style="font-size: 0.85rem; color: var(--color-text-secondary);">Sin registros en esta sesión.</p></section>';
@@ -250,6 +267,22 @@ function buildSummaryText(p, patientName) {
     } else if (p.dots) {
         const items = Object.entries(p.dots).filter(([, v]) => (v || '').trim());
         if (items.length) { lines.push('ANÁLISIS · DOTS', ...items.map(([k, v]) => `  - ${DOTS_LABELS[k] || k}: ${v}`), ''); }
+    }
+
+    const estres = p.estres || {};
+    const estresLoad = Array.isArray(estres.load) ? estres.load : [];
+    const estresResponses = Array.isArray(estres.responses) ? estres.responses : [];
+    if (estresLoad.length || estresResponses.length) {
+        lines.push('VASO DE ESTRÉS');
+        if (estresLoad.length) {
+            lines.push('  Carga que lleva:');
+            estresLoad.forEach(s => lines.push(`    - ${(s.label || '').trim() || 'Carga'}${s.pct ? ` (${s.pct}%)` : ''}`));
+        }
+        const toward = estresResponses.filter(r => r.dir === 'toward').map(r => r.text).filter(Boolean);
+        const away = estresResponses.filter(r => r.dir === 'away').map(r => r.text).filter(Boolean);
+        if (toward.length) { lines.push('  Respuestas que acercan:'); toward.forEach(t => lines.push(`    - ${t}`)); }
+        if (away.length) { lines.push('  Respuestas que alejan (evitación):'); away.forEach(t => lines.push(`    - ${t}`)); }
+        lines.push('');
     }
 
     return lines.join('\n').trim();

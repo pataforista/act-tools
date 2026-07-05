@@ -34,7 +34,7 @@ export function renderHexaflexModule(container, { modules, loadModule, renderHom
             <header>
                 <div class="brand">ACT In-Session</div>
                 <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn-ghost" id="btn-pause" aria-label="Pausar sesión">⏸</button>
+                    <button class="btn-ghost btn-icon" id="btn-pause" aria-label="Pausar sesión"><i data-lucide="pause" style="width: 1.1rem; height: 1.1rem;"></i></button>
                     <button class="btn-ghost" id="btn-back">Finalizar</button>
                 </div>
             </header>
@@ -120,7 +120,10 @@ export function renderHexaflexModule(container, { modules, loadModule, renderHom
                 </svg>
             </div>
 
-            <div style="display: flex; justify-content: center; margin-top: 1rem;">
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-top: 1rem;">
+                <button class="btn-primary" id="btn-open-estres" style="background: var(--glass-bg); color: #f59e0b; border: 1px solid #f59e0b; box-shadow: none;">
+                    🥤 Vaso de Estrés
+                </button>
                 <button class="btn-primary" id="btn-session-summary" style="background: var(--glass-bg); color: var(--color-primary); border: 1px solid var(--color-primary); box-shadow: none;">
                     📋 Ver Resumen de Sesión
                 </button>
@@ -135,6 +138,7 @@ export function renderHexaflexModule(container, { modules, loadModule, renderHom
     document.getElementById('btn-back')?.addEventListener('click', renderHome);
     document.getElementById('btn-pause')?.addEventListener('click', togglePause);
     document.getElementById('btn-session-summary')?.addEventListener('click', () => loadModule('resumen'));
+    document.getElementById('btn-open-estres')?.addEventListener('click', () => loadModule('estres'));
 
     lucide.createIcons();
     animateHexaflexEntrance('.animate-entrance');

@@ -10,8 +10,22 @@
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Vendored locally so the app works offline and never depends on a CDN being reachable -->
+    <script src="vendor/anime.min.js"></script>
+    <script src="vendor/lucide.min.js"></script>
+    <script>
+        // Safety net: if a library failed to load (offline, blocked, corrupt),
+        // provide no-op fallbacks so a missing icon/animation never aborts init.
+        window.lucide = window.lucide || { createIcons() {} };
+        if (typeof window.anime === 'undefined') {
+            const noop = () => ({ pause() {}, restart() {}, play() {} });
+            noop.timeline = () => { const tl = { add() { return tl; }, pause() {}, play() {} }; return tl; };
+            noop.random = (min = 0) => min;
+            noop.stagger = () => 0;
+            noop.set = () => {};
+            window.anime = noop;
+        }
+    </script>
     <link rel="manifest" href="manifest.json">
 
     <!-- Fonts -->
@@ -26,9 +40,8 @@
 <body data-theme="dark">
     <div id="app">
         <!-- Application Content will be injected here -->
-        <header>
-            <div class="brand">ACT In-Session</div>
-            <button id="theme-toggle" class="btn-ghost" aria-label="Cambiar tema">🌓</button>
+        <header style="justify-content: flex-end; margin-bottom: 1rem;">
+            <button id="theme-toggle" class="btn-ghost btn-icon" aria-label="Cambiar tema">🌓</button>
         </header>
 
         <main id="main-content" class="screen">
@@ -39,6 +52,8 @@
         <footer class="disclaimer">
             “Esta herramienta apoya el trabajo clínico, no lo sustituye.”
         </footer>
+
+        <button id="btn-sos" class="btn-primary" aria-label="Abrir módulo SOS de crisis" title="SOS · Regulación en crisis">🆘</button>
     </div>
 
     <!-- Scripts -->
