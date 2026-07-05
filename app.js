@@ -21,11 +21,20 @@ const mainContent = document.getElementById('main-content');
  * Global Routing
  */
 
+// The SOS crisis button is a floating global control; it belongs to an active
+// session, not the patient-management dashboard, where it would overlap the CTAs.
+function setSosVisible(visible) {
+    const btn = document.getElementById('btn-sos');
+    if (btn) btn.style.display = visible ? 'flex' : 'none';
+}
+
 function navigateToHome() {
+    setSosVisible(true);
     renderHexaflexModule(mainContent, { modules, loadModule, renderHome: navigateToHome, togglePause });
 }
 
 function navigateToDashboard() {
+    setSosVisible(false);
     renderDashboard(mainContent, navigateToHome, navigateToHistory);
 }
 

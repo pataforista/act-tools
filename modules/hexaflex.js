@@ -34,7 +34,7 @@ export function renderHexaflexModule(container, { modules, loadModule, renderHom
             <header>
                 <div class="brand">ACT In-Session</div>
                 <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn-ghost" id="btn-pause" aria-label="Pausar sesión">⏸</button>
+                    <button class="btn-ghost btn-icon" id="btn-pause" aria-label="Pausar sesión"><i data-lucide="pause" style="width: 1.1rem; height: 1.1rem;"></i></button>
                     <button class="btn-ghost" id="btn-back">Finalizar</button>
                 </div>
             </header>

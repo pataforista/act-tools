@@ -20,14 +20,14 @@ export function renderModuleHeader(module, options = {}) {
     return `
         <header class="tool-header">
             <div class="title-group">
-                <button class="btn-ghost" id="btn-back">←</button>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <i data-lucide="${module.icon}" style="width: 1.5rem; height: 1.5rem;"></i>
-                    <h2 style="font-size: 1.2rem; font-weight: 700;">${module.title}</h2>
+                <button class="btn-ghost btn-icon" id="btn-back" aria-label="Volver">←</button>
+                <div class="title-text">
+                    <i data-lucide="${module.icon}" style="width: 1.4rem; height: 1.4rem; flex-shrink: 0;"></i>
+                    <h2 class="tool-title">${module.title}</h2>
                 </div>
             </div>
-            <div style="display: flex; gap: 0.5rem;">
-                ${showSave ? '<button class="btn-ghost" id="btn-global-save" style="font-size: 0.75rem; color: var(--color-primary);">💾 Guardar Ahora</button>' : ''}
+            <div class="tool-header__actions">
+                ${showSave ? '<button class="btn-ghost btn-icon" id="btn-global-save" aria-label="Guardar ahora" title="Guardar ahora">💾</button>' : ''}
                 <button class="btn-ghost" id="btn-close-module">Finalizar</button>
             </div>
         </header>
