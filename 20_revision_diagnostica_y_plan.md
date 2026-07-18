@@ -114,6 +114,35 @@ Orden por riesgo clínico y dependencias. Cada fase es un PR pequeño y verifica
 
 ---
 
-## 4. Qué NO propone este plan
+## 4. Anexo — Fidelidad de las metáforas: ¿metáfora o interpretación literal?
+
+Criterio de evaluación (Marco Canónico): §10 *"si una función puede utilizarse para evitar sentir, está mal diseñada"*, §6.3 *sin promesa de alivio*, y el principio de que la herramienta debe cambiar la **relación** con la experiencia, no su **contenido**. Una metáfora se "literaliza" cuando la interfaz permite actuar mecánicamente sobre el pensamiento/emoción (bajarlo, borrarlo, alejarlo) en lugar de cambiar la perspectiva desde la que se observa.
+
+### Herramientas que funcionan como metáfora experiencial ✔
+
+| Herramienta | Evaluación |
+|---|---|
+| **Interruptor de la Lucha** | Fiel. La barra de tensión hace visible el *coste de luchar*, y al soltar se refleja el tiempo sostenido — la emoción no desaparece, solo la lucha se nota. Cumple la regla "emoción no desaparece" de `07_herramientas_definicion.md`. |
+| **Vaso de Estrés** | El mejor ejemplo del repo: rediseñado explícitamente contra el modelo literal de "vaciar el vaso". Nada vacía el vaso; la capacidad representa disposición; las respuestas se clasifican por funcionalidad. La metáfora enseña haciendo: *se puede llevar el vaso lleno y moverse igual*. |
+| **Cielo y Clima** | Fiel. Las nubes permanecen y derivan; el cielo no cambia; no existe botón para borrar nubes (coherente: el clima no se elimina). La toma de perspectiva vive en las preguntas del clínico, como exige el marco (§2: sin interpretaciones sin mediación). |
+| **STOP / 5 Sentidos** | No son metáforas sino prácticas estructuradas, y están bien resueltas como *hacer* (nombrar, respirar) en lugar de leer tarjetas. |
+| **Diana, Matrix, Paso Mínimo, FEAR→DARE, Coste de evitación** | No son metáforas: son instrumentos de discriminación funcional y clarificación (Lundgren, Polk, desesperanza creativa). Su literalidad es correcta por naturaleza; además ya fueron des-formularizados (pivotes, una barrera por vez). |
+
+### Puntos donde la metáfora se literaliza ⚠
+
+| # | Hallazgo | Ubicación |
+|---|---|---|
+| M-1 | **Radio Doom & Gloom — el volumen literaliza la supresión.** La metáfora ACT de la radio es: *la emisora sigue transmitiendo; no hace falta obedecerla ni discutirle*. Pero la mecánica actual premia **bajarle el volumen al pensamiento**: al reducir el slider, el texto se desenfoca (`blur`) y se desvanece (`opacity`) — la interfaz ejecuta la agenda de control (§10). El detalle de que la estática *aumenta* al bajar el volumen (no se puede silenciar la mente) es conceptualmente bueno pero tan sutil que se lee como fallo, no como mensaje. Los prefijos de defusión lingüística de la misma herramienta, en cambio, son defusión pura y correcta. **Corrección propuesta:** el volumen debe representar *cuánta atención se le da* (tamaño/centralidad), no la existencia del mensaje: el texto nunca debe volverse ilegible ni desaparecer, y la estática al bajar debe ser perceptible y explícita ("la emisora sigue ahí"). | `modules/abrirse.js:494-499,615-619` |
+| M-2 | **Visualizador — "Distancia" y "Peso" permiten borrar el pensamiento.** Externalizar pensamientos como objetos es defusión legítima, y los controles de forma (rotación, espaciado/stretching, tipografía, distorsión) cambian la *perspectiva*: correcto. Pero los sliders "Distancia" (blur hasta 8px) y "Peso percibido" (opacidad hasta 0.1) permiten dejar el pensamiento **casi invisible** — una función usable para evitar sentir (§10). El badge de guía advierte el riesgo verbalmente, pero la mecánica lo habilita. **Corrección propuesta:** acotar los rangos para que el pensamiento siga siempre claramente presente (p. ej. opacidad mínima ~0.45, blur máximo ~3px) o replantear ambos controles como cambios de perspectiva (profundidad/plano) en lugar de intensidad. | `modules/abrirse.js:177-181,273-282` |
+| M-3 | **Hojas en Agua — las hojas desaparecen en vez de pasar.** La metáfora es *ver pasar* los pensamientos, no que se vayan. Hoy cada hoja cruza una vez y se elimina del DOM (`complete: () => leafEl.remove()`): en pantalla el pensamiento literalmente **desaparece**, lo que puede enseñar "lo escribo y se va" (eliminación encubierta — el propio badge de guía la nombra como señal de aborto). Además, al re-renderizar, las hojas previas quedan congeladas fuera de pantalla (`left:-100px`, sin animación): la continuidad del arroyo está rota también técnicamente. **Corrección propuesta:** las hojas recirculan — vuelven a entrar río arriba con intervalo variable (los pensamientos vuelven; lo que cambia es cómo se los mira), y el re-render restaura las animaciones activas. | `modules/abrirse.js:344-348,403-410` |
+| M-4 | **Vaso de Estrés — el % como número controlable (menor).** El badge numérico y el botón "Amplio" bajan mecánicamente la cifra: un uso posible es "elijo amplio para que baje el nivel" (la cláusula de aborto del badge ya lo nombra). Riesgo menor porque nada vacía el vaso, pero considerar mostrar el nivel solo de forma visual (sin %) o mantener el % estable y que la capacidad cambie el *vaso* dibujado, no el número. | `modules/estres.js:17,141-146` |
+
+### Incorporación al plan
+
+Estos cuatro puntos se añaden como **Fase 4-bis (fidelidad de metáforas)**, entre la Fase 4 y la Fase 5: son cambios de mecánica de interacción que *refuerzan* el propósito clínico congelado, no lo alteran (corrigen desviaciones respecto del §10 del Marco Canónico, que tiene precedencia sobre la implementación técnica según la regla de autoridad de `01_gobernanza_y_reglas.md` §5). Aun así, por tocar el comportamiento de herramientas clínicas, **requieren visto bueno del clínico propietario antes de implementarse**, herramienta por herramienta.
+
+---
+
+## 5. Qué NO propone este plan
 
 Conforme al Acta de Congelación v1.0 y a `01_gobernanza_y_reglas.md`, este plan **no** propone: nuevos módulos, métricas o puntuaciones clínicas, feedback automático, modo paciente, gamificación ni recomendaciones. Toda corrección listada es técnica y preserva el principio de no-control.
