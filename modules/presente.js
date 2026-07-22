@@ -242,7 +242,7 @@ export function render5SentidosTool(container) {
             internalRender();
         };
         document.getElementById('btn-add-sense')?.addEventListener('click', addItem);
-        input?.addEventListener('keypress', e => { if (e.key === 'Enter') addItem(); });
+        input?.addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
 
         container.querySelectorAll('.btn-del-sense').forEach(btn => {
             btn.addEventListener('click', () => { named.splice(parseInt(btn.dataset.idx), 1); internalRender(); });
@@ -342,7 +342,7 @@ function renderCieloYClimaTool(container) {
             });
         });
 
-        document.getElementById('weather-input').addEventListener('keypress', (e) => {
+        document.getElementById('weather-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const text = e.target.value.trim();
                 if (text) {

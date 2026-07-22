@@ -1,6 +1,15 @@
 /**
  * ACT In-Session - Core State Management
+ *
+ * v1.x (Acta de Congelación §4-5): la app NO mantiene registro longitudinal,
+ * panel de consultantes ni comparación entre sesiones. Solo existe UNA sesión
+ * de trabajo en memoria. Un autoguardado volátil en sessionStorage la protege
+ * ante recargas accidentales dentro de la misma pestaña; se borra al cerrarla
+ * o al iniciar/cargar una sesión nueva. El respaldo duradero es el JSON que el
+ * clínico exporta a su expediente.
  */
+
+const SESSION_KEY = 'act_session';
 
 export const getDefaultSession = () => ({
     date: new Date().toISOString(),
@@ -27,25 +36,6 @@ export const getDefaultSession = () => ({
     estres: { cupSize: 'medium', load: [], responses: [] }
 });
 
-let savedPatients = [];
-try {
-    const raw = localStorage.getItem('act_patients');
-    if (raw) savedPatients = JSON.parse(raw);
-} catch (e) {
-    console.error('Error parsing act_patients', e);
-    alert('Aviso: Los datos de pacientes estaban corruptos. Se ha iniciado con una lista vacía.');
-}
-
-export const state = {
-    currentModule: 'dashboard', // dashboard, idle, active, sos
-    activeModuleId: null,
-    theme: localStorage.getItem('act_theme') || 'dark',
-    viewMode: 'hexaflex',
-    currentPatientId: localStorage.getItem('act_current_patient_id') || null,
-    patients: savedPatients,
-    persistence: getDefaultSession()
-};
-
 export function normalizeSession(session) {
     if (!session) return session;
     const def = getDefaultSession();
@@ -63,30 +53,45 @@ export function normalizeSession(session) {
     };
 }
 
-// Initialize session if patient exists
-if (state.currentPatientId) {
-    const patient = state.patients.find(p => p.id === state.currentPatientId);
-    if (patient && patient.currentSession) {
-        state.persistence = normalizeSession(patient.currentSession);
-        state.currentModule = 'idle';
+// Recupera el buffer volátil de la pestaña si existe (solo protección ante
+// recarga accidental); si no, arranca una sesión nueva y vacía.
+function loadBufferedSession() {
+    try {
+        const raw = sessionStorage.getItem(SESSION_KEY);
+        if (raw) return normalizeSession(JSON.parse(raw));
+    } catch (e) {
+        console.error('Error al leer la sesión en curso', e);
     }
+    return getDefaultSession();
 }
 
+export const state = {
+    currentModule: 'active',
+    activeModuleId: null,
+    theme: localStorage.getItem('act_theme') || 'dark',
+    viewMode: 'hexaflex',
+    persistence: loadBufferedSession()
+};
+
+// Autoguardado volátil: solo sobrevive a una recarga dentro de la misma
+// pestaña. No es persistencia longitudinal ni permite comparar sesiones.
 export function saveState() {
-    if (!state.currentPatientId) return;
-
-    const patientIndex = state.patients.findIndex(p => p.id === state.currentPatientId);
-    if (patientIndex !== -1) {
-        state.patients[patientIndex].currentSession = state.persistence;
-        localStorage.setItem('act_patients', JSON.stringify(state.patients));
+    try {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(state.persistence));
+    } catch (e) {
+        console.error('No se pudo autoguardar la sesión en curso', e);
     }
 }
 
-export function archiveCurrentSession() {
-    const patient = state.patients.find(p => p.id === state.currentPatientId);
-    if (patient && patient.currentSession) {
-        patient.history.push(patient.currentSession);
-        patient.currentSession = null;
-        localStorage.setItem('act_patients', JSON.stringify(state.patients));
-    }
+// Limpia la pantalla y comienza una sesión nueva y vacía.
+export function resetSession() {
+    state.persistence = getDefaultSession();
+    saveState();
+}
+
+// Carga una sesión (p. ej. desde un JSON exportado) para retomar el trabajo.
+export function loadSessionData(data) {
+    const raw = data && data.session ? data.session : data;
+    state.persistence = normalizeSession(raw);
+    saveState();
 }

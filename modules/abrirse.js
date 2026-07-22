@@ -262,7 +262,7 @@ function renderVisualizadorPensamientosTool(container) {
         };
 
         btnAdd?.addEventListener('click', addThought);
-        input?.addEventListener('keypress', (e) => { if (e.key === 'Enter') addThought(); });
+        input?.addEventListener('keydown', (e) => { if (e.key === 'Enter') addThought(); });
 
         document.getElementById('btn-delete-thought')?.addEventListener('click', () => {
             state.persistence.thoughts.splice(selectedThoughtIndex, 1);
@@ -272,25 +272,28 @@ function renderVisualizadorPensamientosTool(container) {
         });
 
         document.getElementById('prop-blur')?.addEventListener('input', (e) => {
-            state.persistence.thoughts[selectedThoughtIndex].blur = e.target.value;
+            const blur = parseFloat(e.target.value);
+            state.persistence.thoughts[selectedThoughtIndex].blur = blur;
             saveState();
             const el = document.querySelector(`.thought-item[data-index="${selectedThoughtIndex}"]`);
-            if (el) el.style.filter = `blur(${e.target.value}px)`;
+            if (el) el.style.filter = `blur(${blur}px)`;
         });
         document.getElementById('prop-opacity')?.addEventListener('input', (e) => {
-            state.persistence.thoughts[selectedThoughtIndex].opacity = e.target.value;
+            const opacity = parseFloat(e.target.value);
+            state.persistence.thoughts[selectedThoughtIndex].opacity = opacity;
             saveState();
             const el = document.querySelector(`.thought-item[data-index="${selectedThoughtIndex}"]`);
-            if (el) el.style.opacity = e.target.value;
+            if (el) el.style.opacity = opacity;
         });
         document.getElementById('prop-spacing')?.addEventListener('input', (e) => {
-            state.persistence.thoughts[selectedThoughtIndex].spacing = e.target.value;
+            const spacing = parseFloat(e.target.value);
+            state.persistence.thoughts[selectedThoughtIndex].spacing = spacing;
             saveState();
             const el = document.querySelector(`.thought-item[data-index="${selectedThoughtIndex}"]`);
-            if (el) el.style.letterSpacing = `${e.target.value}px`;
+            if (el) el.style.letterSpacing = `${spacing}px`;
         });
         document.getElementById('prop-rotateX')?.addEventListener('input', (e) => {
-            const rx = e.target.value;
+            const rx = parseFloat(e.target.value);
             const ry = rx / 2;
             state.persistence.thoughts[selectedThoughtIndex].rotateX = rx;
             state.persistence.thoughts[selectedThoughtIndex].rotateY = ry;
@@ -394,7 +397,7 @@ function renderHojasAguaTool(container) {
             });
         });
 
-        input.addEventListener('keypress', (e) => {
+        input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && input.value.trim()) {
                 const text = input.value.trim();
                 const newLeaf = { text, y: 15 + Math.random() * 70 };
@@ -404,7 +407,7 @@ function renderHojasAguaTool(container) {
                 const leafEl = document.createElement('div');
                 leafEl.className = 'leaf-item';
                 leafEl.style.cssText = `position: absolute; left: -150px; top: ${newLeaf.y}%; padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b98144; border-radius: 12px; color: #10b981; font-weight: bold; backdrop-filter: blur(4px); white-space: nowrap;`;
-                leafEl.innerHTML = \`🍃 \${esc(text)}\`;
+                leafEl.innerHTML = `🍃 ${esc(text)}`;
                 document.getElementById('leaves-container').appendChild(leafEl);
 
                 anime({
