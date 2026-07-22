@@ -407,7 +407,7 @@ function renderHojasAguaTool(container) {
                 const leafEl = document.createElement('div');
                 leafEl.className = 'leaf-item';
                 leafEl.style.cssText = `position: absolute; left: -150px; top: ${newLeaf.y}%; padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b98144; border-radius: 12px; color: #10b981; font-weight: bold; backdrop-filter: blur(4px); white-space: nowrap;`;
-                leafEl.innerHTML = \`🍃 \${esc(text)}\`;
+                leafEl.innerHTML = `🍃 ${esc(text)}`;
                 document.getElementById('leaves-container').appendChild(leafEl);
 
                 anime({

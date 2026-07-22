@@ -5,7 +5,7 @@
 import { state, saveState } from '../core/state.js';
 import { animateHexaflexEntrance } from '../core/animations.js';
 
-export function renderHexaflexModule(container, { modules, loadModule, renderHome, navigateToDashboard, togglePause }) {
+export function renderHexaflexModule(container, { modules, loadModule, renderHome, togglePause, sessionMenu }) {
     const points = [
         { id: 'abrirse', title: 'Abrirse', icon: 'lock-open', color: 'var(--hex-abrirse)', angle: -90, pillar: 'open' },
         { id: 'presente', title: 'Presente', icon: 'wind', color: 'var(--hex-presente)', angle: -30, pillar: 'centered' },
@@ -33,9 +33,11 @@ export function renderHexaflexModule(container, { modules, loadModule, renderHom
         <div class="module-view" role="main" aria-labelledby="main-heading">
             <header>
                 <div class="brand">ACT In-Session</div>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn-ghost btn-icon" id="btn-pause" aria-label="Pausar sesión"><i data-lucide="pause" style="width: 1.1rem; height: 1.1rem;"></i></button>
-                    <button class="btn-ghost" id="btn-back">Finalizar</button>
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                    <button class="btn-ghost btn-icon" id="btn-pause" aria-label="Pausar sesión" title="Pausar sesión"><i data-lucide="pause" style="width: 1.1rem; height: 1.1rem;"></i></button>
+                    <button class="btn-ghost btn-icon" id="btn-import-session" aria-label="Cargar sesión desde archivo" title="Cargar sesión (.json)">📂</button>
+                    <button class="btn-ghost btn-icon" id="btn-export-session" aria-label="Exportar sesión a archivo" title="Exportar sesión (.json)">⬇️</button>
+                    <button class="btn-ghost btn-icon" id="btn-new-session" aria-label="Nueva sesión" title="Nueva sesión">🆕</button>
                 </div>
             </header>
 
@@ -132,14 +134,13 @@ export function renderHexaflexModule(container, { modules, loadModule, renderHom
     `;
 
     // Event Listeners
-    document.getElementById('toggle-hex')?.addEventListener('click', () => { state.viewMode = 'hexaflex'; renderHexaflexModule(container, { modules, loadModule, renderHome, navigateToDashboard, togglePause }); });
-    document.getElementById('toggle-tri')?.addEventListener('click', () => { state.viewMode = 'triflex'; renderHexaflexModule(container, { modules, loadModule, renderHome, navigateToDashboard, togglePause }); });
+    document.getElementById('toggle-hex')?.addEventListener('click', () => { state.viewMode = 'hexaflex'; renderHexaflexModule(container, { modules, loadModule, renderHome, togglePause, sessionMenu }); });
+    document.getElementById('toggle-tri')?.addEventListener('click', () => { state.viewMode = 'triflex'; renderHexaflexModule(container, { modules, loadModule, renderHome, togglePause, sessionMenu }); });
 
-    document.getElementById('btn-back')?.addEventListener('click', () => {
-        saveState();
-        if (navigateToDashboard) navigateToDashboard();
-    });
     document.getElementById('btn-pause')?.addEventListener('click', togglePause);
+    document.getElementById('btn-import-session')?.addEventListener('click', () => sessionMenu?.onImport?.());
+    document.getElementById('btn-export-session')?.addEventListener('click', () => { saveState(); sessionMenu?.onExport?.(); });
+    document.getElementById('btn-new-session')?.addEventListener('click', () => sessionMenu?.onNew?.());
     document.getElementById('btn-session-summary')?.addEventListener('click', () => loadModule('resumen'));
     document.getElementById('btn-open-estres')?.addEventListener('click', () => loadModule('estres'));
 

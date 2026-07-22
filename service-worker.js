@@ -1,4 +1,4 @@
-const CACHE_NAME = 'act-clinical-v3';
+const CACHE_NAME = 'act-clinical-v4';
 const ASSETS = [
     './',
     './index.html',
@@ -8,12 +8,12 @@ const ASSETS = [
     './vendor/anime.min.js',
     './vendor/lucide.min.js',
     './core/state.js',
+    './core/sessionio.js',
     './core/audio.js',
     './core/animations.js',
     './core/security.js',
     './data/config.js',
     './ui/utils.js',
-    './ui/dashboard.js',
     './modules/hexaflex.js',
     './modules/abrirse.js',
     './modules/presente.js',

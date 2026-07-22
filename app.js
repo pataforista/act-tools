@@ -1,19 +1,23 @@
 /**
- * ACT In-Session Instrument v1.0
+ * ACT In-Session Instrument v1.x
  * Modular Entry Point
+ *
+ * v1.x sin registro longitudinal: la app abre directamente en el Hexaflex de
+ * una sesión de trabajo. Exportar / Cargar / Nueva viven en la cabecera.
  */
 
-import { state, saveState, getDefaultSession } from './core/state.js';
+import { state, resetSession } from './core/state.js';
+import { exportSessionToFile, importSessionFromFile } from './core/sessionio.js';
 import { modules } from './data/config.js';
-import { renderDashboard } from './ui/dashboard.js';
 import { renderHexaflexModule } from './modules/hexaflex.js';
 import { renderAbrirseModule } from './modules/abrirse.js';
 import { renderPresenteModule } from './modules/presente.js';
 import { renderImportaModule } from './modules/importa.js';
 import { renderAnalisisModule } from './modules/analisis.js';
-import { renderResumenModule, renderHistoryView, renderHomeworkScreen } from './modules/resumen.js';
+import { renderResumenModule, renderHomeworkScreen } from './modules/resumen.js';
 import { renderSOSModule } from './modules/sos.js';
 import { renderEstresModule } from './modules/estres.js';
+import { showToast } from './ui/utils.js';
 
 const mainContent = document.getElementById('main-content');
 
@@ -21,43 +25,62 @@ const mainContent = document.getElementById('main-content');
  * Global Routing
  */
 
-// The SOS crisis button is a floating global control; it belongs to an active
-// session, not the patient-management dashboard, where it would overlap the CTAs.
+// The SOS crisis button is a floating global control.
 function setSosVisible(visible) {
     const btn = document.getElementById('btn-sos');
     if (btn) btn.style.display = visible ? 'flex' : 'none';
 }
 
+// Acciones de sesión disponibles en la cabecera del Hexaflex.
+const sessionMenu = {
+    onNew: () => {
+        if (confirm('¿Iniciar una nueva sesión? Se limpiará el trabajo en pantalla. Exportá antes si querés conservarlo.')) {
+            resetSession();
+            navigateToHome();
+            showToast('Nueva sesión iniciada');
+        }
+    },
+    onExport: () => {
+        exportSessionToFile();
+        showToast('✓ Sesión exportada (.json)');
+    },
+    onImport: () => triggerImport()
+};
+
+function triggerImport() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json,.json';
+    input.addEventListener('change', () => {
+        const file = input.files?.[0];
+        if (!file) return;
+        importSessionFromFile(file)
+            .then(() => {
+                navigateToHome();
+                showToast('✓ Sesión cargada');
+            })
+            .catch((err) => {
+                console.error(err);
+                showToast(err?.message || 'No se pudo cargar el archivo');
+            });
+    });
+    input.click();
+}
+
 function navigateToHome() {
     setSosVisible(true);
-    renderHexaflexModule(mainContent, { modules, loadModule, renderHome: navigateToHome, navigateToDashboard, togglePause });
+    renderHexaflexModule(mainContent, { modules, loadModule, renderHome: navigateToHome, togglePause, sessionMenu });
 }
 
-function navigateToDashboard() {
-    setSosVisible(false);
-    renderDashboard(mainContent, navigateToHome, navigateToHistory);
-}
-
-function navigateToHistory() {
-    renderHistoryView(mainContent, { navigateToDashboard, renderSessionDetail: (s) => renderResumenModule(mainContent, { sessionData: s, navigateToDashboard, navigateToHome, renderHistoryView: navigateToHistory, renderHomeworkView }) });
-}
-
-function renderHomeworkView(session) {
-    const isHistorical = session !== state.persistence;
-    renderHomeworkScreen(mainContent, session, () => {
-        renderResumenModule(mainContent, {
-            sessionData: isHistorical ? session : null,
-            navigateToDashboard,
-            navigateToHome,
-            renderHistoryView: navigateToHistory,
-            renderHomeworkView
-        });
+function renderHomeworkView() {
+    renderHomeworkScreen(mainContent, state.persistence, () => {
+        renderResumenModule(mainContent, { navigateToHome, renderHomeworkView });
     });
 }
 
 function loadModule(id) {
     if (id === 'resumen') {
-        renderResumenModule(mainContent, { navigateToDashboard, navigateToHome, renderHistoryView: navigateToHistory, renderHomeworkView });
+        renderResumenModule(mainContent, { navigateToHome, renderHomeworkView });
         return;
     }
 
@@ -94,11 +117,7 @@ function togglePause() {
 }
 
 function init() {
-    if (state.currentModule === 'dashboard' || !state.currentPatientId) {
-        navigateToDashboard();
-    } else {
-        navigateToHome();
-    }
+    navigateToHome();
 
     // Global Elements
     const sosBtn = document.getElementById('btn-sos');
@@ -113,11 +132,11 @@ function init() {
         }
         sosContainer.style.display = 'block';
 
-        renderSOSModule(sosContainer, { 
+        renderSOSModule(sosContainer, {
             navigateToHome: () => {
                 sosContainer.style.display = 'none';
                 mainContent.style.display = 'block';
-            } 
+            }
         });
     });
 
@@ -130,9 +149,7 @@ function init() {
 
     document.body.setAttribute('data-theme', state.theme);
     lucide.createIcons();
-
-    lucide.createIcons();
 }
 
-// Initial session check
+// Initial render
 init();

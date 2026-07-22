@@ -146,3 +146,21 @@ Estos cuatro puntos se añaden como **Fase 4-bis (fidelidad de metáforas)**, en
 ## 5. Qué NO propone este plan
 
 Conforme al Acta de Congelación v1.0 y a `01_gobernanza_y_reglas.md`, este plan **no** propone: nuevos módulos, métricas o puntuaciones clínicas, feedback automático, modo paciente, gamificación ni recomendaciones. Toda corrección listada es técnica y preserva el principio de no-control.
+
+---
+
+## 6. Resolución de D-3 (decisión del propietario)
+
+**Fecha:** 2026-07-22 · **Decisión:** cumplir el Acta de Congelación v1.0 **eliminando** la persistencia longitudinal.
+
+Se retira todo lo que el Acta declara imposible en v1.x (§4-5): panel de consultantes, registro por paciente, historial de sesiones y comparación entre sesiones. La app pasa a operar con **una única sesión de trabajo en memoria**, abriendo directamente en el Hexaflex.
+
+Para no perder el material clínico sin reintroducir persistencia dentro de la app, se añade un mecanismo **externo, controlado por el clínico**:
+
+- **Exportar sesión a `.json`** — el clínico descarga la sesión para compartirla con el paciente o adjuntarla a su expediente. El registro duradero vive fuera de la app, en el expediente, no en la herramienta.
+- **Cargar sesión desde `.json`** — permite retomar el mismo tema en otro momento, sin que la app mantenga registro ni compare sesiones automáticamente.
+- **Autoguardado volátil** (`sessionStorage`) solo como red de seguridad ante una recarga accidental dentro de la misma pestaña; se borra al cerrarla o al iniciar/cargar una sesión nueva.
+
+Esto es coherente con el marco: la app sigue siendo un instrumento de mediación **en sesión**, sin registro longitudinal, sin métricas y sin comparación; el expediente clínico y su custodia siguen siendo responsabilidad del profesional. No se toca el propósito clínico ni el principio de no-control, por lo que la corrección permanece dentro de la serie v1.x.
+
+> Nota técnica: durante esta corrección se detectó y arregló un error de sintaxis preexistente en `modules/abrirse.js` (backticks escapados) que abortaba la carga de módulos ES y, con ella, el arranque completo de la app en el navegador.

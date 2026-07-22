@@ -2,7 +2,8 @@
  * ACT In-Session - Resumen & History Module
  */
 
-import { state, archiveCurrentSession, saveState } from '../core/state.js';
+import { state, resetSession } from '../core/state.js';
+import { exportSessionToFile } from '../core/sessionio.js';
 import { showToast } from '../ui/utils.js';
 import { escapeHTML as esc } from '../core/security.js';
 
@@ -207,10 +208,10 @@ function renderSummarySections(p) {
     return rendered.join('');
 }
 
-function buildSummaryText(p, patientName) {
+function buildSummaryText(p) {
     const lines = [];
     const dateStr = new Date(p.date).toLocaleDateString();
-    lines.push(`Resumen de sesión — ${patientName}`, `Fecha: ${dateStr}`, '');
+    lines.push('Resumen de sesión ACT', `Fecha: ${dateStr}`, '');
 
     const g = p.grounding || {};
     const grounded = GROUNDING_TOOLS.filter(t => groundingFilledCount(g[t.key]) > 0);
@@ -309,11 +310,8 @@ async function copyToClipboard(text) {
     }
 }
 
-export function renderResumenModule(container, { sessionData = null, navigateToDashboard, navigateToHome, renderHistoryView, renderHomeworkView }) {
-    const p = sessionData || state.persistence;
-    const isHistorical = !!sessionData;
-    const patient = state.patients.find(pat => pat.id === state.currentPatientId);
-    const patientName = esc(patient?.name || 'Consultante');
+export function renderResumenModule(container, { navigateToHome, renderHomeworkView }) {
+    const p = state.persistence;
     const scores = computeRadarScores(p);
 
     container.innerHTML = `
@@ -321,11 +319,11 @@ export function renderResumenModule(container, { sessionData = null, navigateToD
                 <div class="title-group">
                     <i data-lucide="clipboard-check" style="width: 1.5rem; height: 1.5rem; color: var(--color-primary);"></i>
                     <div>
-                        <h2 style="font-size: 1.2rem; font-weight: 700;">${isHistorical ? 'Registro Histórico' : 'Resumen de Sesión'}</h2>
-                        <p style="font-size: 0.7rem; color: var(--color-text-secondary);">${patientName} • ${new Date(p.date).toLocaleDateString()}</p>
+                        <h2 style="font-size: 1.2rem; font-weight: 700;">Resumen de Sesión</h2>
+                        <p style="font-size: 0.7rem; color: var(--color-text-secondary);">${new Date(p.date).toLocaleDateString()}</p>
                     </div>
                 </div>
-                <button class="btn-ghost" id="btn-back-resumen">${isHistorical ? 'Volver' : 'Cerrar'}</button>
+                <button class="btn-ghost" id="btn-back-resumen">Cerrar</button>
             </header>
 
             <div class="resumen-content" style="display: flex; flex-direction: column; gap: 1.5rem; padding-bottom: 3rem;">
@@ -357,27 +355,33 @@ export function renderResumenModule(container, { sessionData = null, navigateToD
                 ${renderSummarySections(p)}
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
-                    <button class="btn-primary" id="btn-copy-summary">Copiar Texto</button>
+                    <button class="btn-primary" id="btn-export-json" style="grid-column: 1 / -1;">⬇️ Exportar sesión (.json)</button>
+                    <button class="btn-ghost" id="btn-copy-summary">Copiar Texto</button>
                     <button class="btn-ghost" id="btn-homework-view">Ver Tarea Paciente</button>
-                    ${!isHistorical ? `<button class="btn-ghost" id="btn-finalize-session" style="grid-column: 1 / -1; background: var(--color-success); color: white;">Finalizar Sesión</button>` : ''}
+                    <button class="btn-ghost" id="btn-new-session" style="grid-column: 1 / -1;">🆕 Nueva sesión</button>
                 </div>
+                <p style="font-size: 0.68rem; color: var(--color-text-secondary); text-align: center; margin-top: 0.5rem;">
+                    La app no guarda sesiones. Exportá el .json para compartirlo con el paciente o adjuntarlo al expediente; podés volver a cargarlo para retomar el tema.
+                </p>
             </div>
     `;
 
     if (window.lucide) lucide.createIcons();
 
-    document.getElementById('btn-back-resumen').addEventListener('click', isHistorical ? renderHistoryView : navigateToHome);
+    document.getElementById('btn-back-resumen').addEventListener('click', navigateToHome);
     document.getElementById('btn-homework-view').addEventListener('click', () => renderHomeworkView(p));
-    document.getElementById('btn-copy-summary').addEventListener('click', () => copyToClipboard(buildSummaryText(p, patientName)));
-
-    if (!isHistorical) {
-        document.getElementById('btn-finalize-session').addEventListener('click', () => {
-            if (confirm('¿Finalizar sesión?')) {
-                archiveCurrentSession();
-                navigateToDashboard();
-            }
-        });
-    }
+    document.getElementById('btn-copy-summary').addEventListener('click', () => copyToClipboard(buildSummaryText(p)));
+    document.getElementById('btn-export-json').addEventListener('click', () => {
+        exportSessionToFile();
+        showToast('✓ Sesión exportada (.json)');
+    });
+    document.getElementById('btn-new-session').addEventListener('click', () => {
+        if (confirm('¿Iniciar una nueva sesión? Se limpiará el trabajo en pantalla. Exportá antes si querés conservarlo.')) {
+            resetSession();
+            navigateToHome();
+            showToast('Nueva sesión iniciada');
+        }
+    });
 
     // Radar animation from real session data
     setTimeout(() => {
@@ -395,8 +399,6 @@ export function renderResumenModule(container, { sessionData = null, navigateToD
 
 export function renderHomeworkScreen(container, session, onBack) {
     const p = session || state.persistence;
-    const patient = state.patients.find(pat => pat.id === state.currentPatientId);
-    const patientName = esc(patient?.name || 'Consultante');
     const g = p.grounding || {};
 
     const acciones = GROUNDING_TOOLS
@@ -420,7 +422,7 @@ export function renderHomeworkScreen(container, session, onBack) {
             <header class="tool-header">
                 <button class="btn-ghost" id="btn-back-homework">←</button>
                 <div>
-                    <h2 style="font-size: 1.2rem; font-weight: 700;">Tarea para ${patientName}</h2>
+                    <h2 style="font-size: 1.2rem; font-weight: 700;">Tarea para el consultante</h2>
                     <p style="font-size: 0.7rem; color: var(--color-text-secondary);">${new Date(p.date).toLocaleDateString()}</p>
                 </div>
             </header>
@@ -450,34 +452,4 @@ export function renderHomeworkScreen(container, session, onBack) {
 
     if (window.lucide) lucide.createIcons();
     document.getElementById('btn-back-homework').addEventListener('click', onBack);
-}
-
-export function renderHistoryView(container, { navigateToDashboard, renderSessionDetail }) {
-    const patient = state.patients.find(p => p.id === state.currentPatientId);
-    if (!patient) return navigateToDashboard();
-    
-    container.innerHTML = `
-        <div class="module-view animate-slide-up">
-            <header class="tool-header">
-                <button class="btn-ghost" id="btn-back-dashboard">←</button>
-                <h2 style="font-size: 1.2rem; font-weight: 700;">Historial: ${esc(patient.name)}</h2>
-            </header>
-            <div class="history-list" style="display: flex; flex-direction: column; gap: 1rem;">
-                ${patient.history.length === 0 ? '<p>No hay sesiones registradas.</p>' :
-            patient.history.map((s, idx) => `
-                    <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem;">
-                        <div>
-                            <div style="font-weight: 600;">Sesión ${idx + 1}</div>
-                            <div style="font-size: 0.8rem;">${new Date(s.date).toLocaleDateString()}</div>
-                        </div>
-                        <button class="btn-ghost btn-view-old-summary" data-idx="${idx}">Ver Detalles</button>
-                    </div>
-                `).reverse().join('')}
-            </div>
-        </div>
-    `;
-    document.getElementById('btn-back-dashboard').addEventListener('click', navigateToDashboard);
-    document.querySelectorAll('.btn-view-old-summary').forEach(btn => {
-        btn.addEventListener('click', () => renderSessionDetail(patient.history[parseInt(btn.dataset.idx)]));
-    });
 }
