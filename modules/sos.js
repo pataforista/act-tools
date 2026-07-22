@@ -72,6 +72,7 @@ export function renderSOSModule(container, { navigateToHome }) {
                         <div class="breathing-circle-container" style="position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center;">
                             <div class="switch-aura active" style="inset: -40px; background: radial-gradient(circle, var(--hex-sos) 0%, transparent 70%); opacity: 0.2;"></div>
                             <div class="breathing-circle" id="sos-breathing-circle" style="width: 80px; height: 80px; background: var(--hex-sos); border-radius: 50%; box-shadow: 0 0 50px var(--hex-sos); opacity: 0.8; transition: all 1s ease;"></div>
+                            <div id="phase-text" style="position: absolute; color: white; font-weight: bold; font-size: 1.2rem; pointer-events: none; z-index: 10;">Inhala</div>
                         </div>
 
                         <div class="pattern-selector" style="display: flex; gap: 0.5rem; width: 100%;">
@@ -105,7 +106,8 @@ export function renderSOSModule(container, { navigateToHome }) {
                         targets: '#sos-breathing-circle',
                         scale: [0.6, 1.4],
                         duration: steps[0],
-                        easing: 'easeInOutSine'
+                        easing: 'easeInOutSine',
+                        begin: () => { const el = document.getElementById('phase-text'); if(el) el.textContent = 'Inhala'; }
                     });
 
                     // Hold (if applicable)
@@ -114,7 +116,8 @@ export function renderSOSModule(container, { navigateToHome }) {
                             targets: '#sos-breathing-circle',
                             scale: 1.4,
                             duration: steps[1],
-                            easing: 'linear'
+                            easing: 'linear',
+                            begin: () => { const el = document.getElementById('phase-text'); if(el) el.textContent = 'Mantén'; }
                         });
                     }
 
@@ -123,7 +126,8 @@ export function renderSOSModule(container, { navigateToHome }) {
                         targets: '#sos-breathing-circle',
                         scale: [1.4, 0.6],
                         duration: steps[2],
-                        easing: 'easeInOutSine'
+                        easing: 'easeInOutSine',
+                        begin: () => { const el = document.getElementById('phase-text'); if(el) el.textContent = 'Exhala'; }
                     });
 
                     // Hold (if applicable)
@@ -132,7 +136,8 @@ export function renderSOSModule(container, { navigateToHome }) {
                             targets: '#sos-breathing-circle',
                             scale: 0.6,
                             duration: steps[3],
-                            easing: 'linear'
+                            easing: 'linear',
+                            begin: () => { const el = document.getElementById('phase-text'); if(el) el.textContent = 'Mantén'; }
                         });
                     }
                     animation = tl;

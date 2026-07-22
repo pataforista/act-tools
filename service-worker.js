@@ -1,4 +1,4 @@
-const CACHE_NAME = 'act-clinical-v2';
+const CACHE_NAME = 'act-clinical-v3';
 const ASSETS = [
     './',
     './index.html',
@@ -21,7 +21,9 @@ const ASSETS = [
     './modules/analisis.js',
     './modules/resumen.js',
     './modules/sos.js',
-    './modules/estres.js'
+    './modules/estres.js',
+    './icons/icon-192.png',
+    './icons/icon-512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -62,7 +64,21 @@ self.addEventListener('fetch', event => {
     }
 
     event.respondWith(
-        caches.match(event.request)
-            .then(response => response || fetch(event.request))
+        caches.match(event.request).then(cachedResponse => {
+            const fetchPromise = fetch(event.request).then(networkResponse => {
+                // Check if we received a valid response
+                if (networkResponse && networkResponse.ok && event.request.method === 'GET' && !url.protocol.startsWith('chrome-extension')) {
+                    caches.open(CACHE_NAME).then(cache => {
+                        cache.put(event.request, networkResponse.clone());
+                    });
+                }
+                return networkResponse;
+            }).catch(() => {
+                // Offline fallback logic could go here if needed
+            });
+            
+            // Return cached response immediately if available, while fetching in background
+            return cachedResponse || fetchPromise;
+        })
     );
 });

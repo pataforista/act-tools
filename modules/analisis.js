@@ -4,6 +4,7 @@
 
 import { state, saveState } from '../core/state.js';
 import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
+import { escapeHTML as esc } from '../core/security.js';
 
 export function renderAnalisisModule(container, module, { renderHome }) {
     let activeToolId = 'matrix';
@@ -66,7 +67,7 @@ function renderMatrixTool(container) {
                                 <header style="font-size: 0.5rem; color: ${cat.color}; border-color: ${cat.color}44;">${cat.label}</header>
                                 <div class="items" style="display: flex; flex-direction: column; gap: 0.4rem;">
                                     ${state.persistence.matrix[id].length ?
-                state.persistence.matrix[id].map(item => `<div class="glass" style="padding: 0.5rem; font-size: 0.75rem; border-left: 2px solid ${cat.color}; background: rgba(0,0,0,0.1); border-radius: 4px;">${item}</div>`).join('') :
+                state.persistence.matrix[id].map(item => `<div class="glass" style="padding: 0.5rem; font-size: 0.75rem; border-left: 2px solid ${cat.color}; background: rgba(0,0,0,0.1); border-radius: 4px;">${esc(item)}</div>`).join('') :
                 `<div style="font-size: 0.6rem; opacity: 0.3; font-style: italic; text-align: center; margin-top: 1rem;">${cat.sub}</div>`
             }
                                 </div>
@@ -155,10 +156,10 @@ function renderEvitacionTool(container) {
                             <button class="btn-toggle btn-evit-prompt" data-hint="${p.hint.replace(/"/g, '&quot;')}" style="font-size: 0.72rem; padding: 0.35rem 0.7rem; height: auto;">${p.label}</button>
                         `).join('')}
                     </div>
-                    <input type="text" id="evit-tipo" class="input-field" placeholder="¿Qué hacés para no sentir?" value="${draft.tipo.replace(/"/g, '&quot;')}">
+                    <input type="text" id="evit-tipo" class="input-field" placeholder="¿Qué hacés para no sentir?" value="${esc(draft.tipo).replace(/"/g, '&quot;')}">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                        <input type="text" id="evit-alivio" class="input-field" placeholder="Alivio a corto plazo" value="${draft.alivio.replace(/"/g, '&quot;')}" style="border-color: #10b98144;">
-                        <input type="text" id="evit-costo" class="input-field" placeholder="Coste a largo plazo" value="${draft.costo.replace(/"/g, '&quot;')}" style="border-color: #ef444444;">
+                        <input type="text" id="evit-alivio" class="input-field" placeholder="Alivio a corto plazo" value="${esc(draft.alivio).replace(/"/g, '&quot;')}" style="border-color: #10b98144;">
+                        <input type="text" id="evit-costo" class="input-field" placeholder="Coste a largo plazo" value="${esc(draft.costo).replace(/"/g, '&quot;')}" style="border-color: #ef444444;">
                     </div>
                     <button id="btn-add-evit" class="btn-primary" style="font-size: 0.8rem;">Añadir a la balanza</button>
                 </div>
@@ -169,17 +170,17 @@ function renderEvitacionTool(container) {
                 : list.map((e, i) => `
                             <div class="glass" style="padding: 0.85rem; border-radius: var(--radius-md);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                    <strong style="font-size: 0.85rem;">${e.tipo || 'Evitación'}</strong>
+                                    <strong style="font-size: 0.85rem;">${esc(e.tipo) || 'Evitación'}</strong>
                                     <button class="btn-ghost btn-del-evit" data-idx="${i}" style="color: #ef4444; font-size: 0.72rem;">Quitar ×</button>
                                 </div>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
                                     <div style="padding: 0.5rem; border-radius: var(--radius-sm); background: rgba(16,185,129,0.08); border-left: 2px solid #10b981;">
                                         <span style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; color: #10b981;">Corto plazo</span>
-                                        <p style="font-size: 0.78rem; margin: 0.2rem 0 0;">${e.alivio || '—'}</p>
+                                        <p style="font-size: 0.78rem; margin: 0.2rem 0 0;">${esc(e.alivio) || '—'}</p>
                                     </div>
                                     <div style="padding: 0.5rem; border-radius: var(--radius-sm); background: rgba(239,68,68,0.08); border-left: 2px solid #ef4444;">
                                         <span style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; color: #ef4444;">Largo plazo</span>
-                                        <p style="font-size: 0.78rem; margin: 0.2rem 0 0;">${e.costo || '—'}</p>
+                                        <p style="font-size: 0.78rem; margin: 0.2rem 0 0;">${esc(e.costo) || '—'}</p>
                                     </div>
                                 </div>
                             </div>

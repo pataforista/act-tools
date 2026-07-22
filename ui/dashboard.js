@@ -2,7 +2,8 @@
  * ACT In-Session - Dashboard & Patient Management
  */
 
-import { state, saveState, getDefaultSession, archiveCurrentSession } from '../core/state.js';
+import { state, saveState, getDefaultSession, archiveCurrentSession, normalizeSession } from '../core/state.js';
+import { escapeHTML as esc } from '../core/security.js';
 
 const dashboardUiState = {
     searchTerm: '',
@@ -117,27 +118,7 @@ export function renderDashboard(container, navigateToHome, navigateToHistory) {
                 </div>
 
                 <div id="patient-list" class="patient-list">
-                    ${visiblePatients.length === 0 ? `
-                        <div class="dashboard-empty-state">
-                            ${state.patients.length === 0
-            ? 'No hay consultantes registrados. Usa el botón “Nuevo consultante” para comenzar.'
-            : 'No encontramos resultados para tu búsqueda actual.'}
-                        </div>
-                    ` : visiblePatients.map(patient => `
-                        <article class="patient-item glass ${state.currentPatientId === patient.id ? 'active' : ''}" data-id="${patient.id}">
-                            <div class="patient-item__main">
-                                <h3>${patient.name}</h3>
-                                <p>${patient.history.length} sesiones previas ${patient.currentSession ? '• sesión en curso' : ''}</p>
-                            </div>
-                            <div class="patient-item__actions">
-                                <button class="btn-ghost btn-select-patient" data-action="select" data-id="${patient.id}">
-                                    ${state.currentPatientId === patient.id ? 'Seleccionado' : 'Seleccionar'}
-                                </button>
-                                <button class="btn-ghost btn-rename-patient" data-action="rename" data-id="${patient.id}">Renombrar</button>
-                                <button class="btn-ghost btn-delete-patient" data-action="delete" data-id="${patient.id}">Eliminar</button>
-                            </div>
-                        </article>
-                    `).join('')}
+                    <!-- populated by renderPatientList -->
                 </div>
             </section>
 
@@ -181,57 +162,82 @@ export function renderDashboard(container, navigateToHome, navigateToHistory) {
 
     document.getElementById('patient-search').addEventListener('input', event => {
         dashboardUiState.searchTerm = event.target.value;
-        renderDashboard(container, navigateToHome, navigateToHistory);
+        renderPatientList();
     });
 
     document.getElementById('patient-sort').addEventListener('change', event => {
         dashboardUiState.sortBy = event.target.value;
-        renderDashboard(container, navigateToHome, navigateToHistory);
+        renderPatientList();
     });
 
-    document.querySelectorAll('[data-action="select"]').forEach(button => {
-        button.addEventListener('click', event => {
-            const patientId = event.currentTarget.dataset.id;
-            state.currentPatientId = patientId;
-            localStorage.setItem('act_current_patient_id', patientId);
-            renderDashboard(container, navigateToHome, navigateToHistory);
+    const renderPatientList = () => {
+        const visible = getVisiblePatients();
+        const listEl = document.getElementById('patient-list');
+        if (!listEl) return;
+
+        listEl.innerHTML = visible.length === 0 ? `
+            <div class="dashboard-empty-state">
+                ${state.patients.length === 0
+                    ? 'No hay consultantes registrados. Usa el botón “Nuevo consultante” para comenzar.'
+                    : 'No encontramos resultados para tu búsqueda actual.'}
+            </div>
+        ` : visible.map(patient => `
+            <article class="patient-item glass ${state.currentPatientId === patient.id ? 'active' : ''}" data-id="${patient.id}">
+                <div class="patient-item__main">
+                    <h3>${esc(patient.name)}</h3>
+                    <p>${patient.history.length} sesiones previas ${patient.currentSession ? '• sesión en curso' : ''}</p>
+                </div>
+                <div class="patient-item__actions">
+                    <button class="btn-ghost btn-select-patient" data-action="select" data-id="${patient.id}">
+                        ${state.currentPatientId === patient.id ? 'Seleccionado' : 'Seleccionar'}
+                    </button>
+                    <button class="btn-ghost btn-rename-patient" data-action="rename" data-id="${patient.id}">Renombrar</button>
+                    <button class="btn-ghost btn-delete-patient" data-action="delete" data-id="${patient.id}">Eliminar</button>
+                </div>
+            </article>
+        `).join('');
+
+        listEl.querySelectorAll('[data-action="select"]').forEach(button => {
+            button.addEventListener('click', event => {
+                const patientId = event.currentTarget.dataset.id;
+                state.currentPatientId = patientId;
+                localStorage.setItem('act_current_patient_id', patientId);
+                renderDashboard(container, navigateToHome, navigateToHistory);
+            });
         });
-    });
 
-    document.querySelectorAll('[data-action="rename"]').forEach(button => {
-        button.addEventListener('click', event => {
-            const patientId = event.currentTarget.dataset.id;
-            const patient = state.patients.find(item => item.id === patientId);
-            if (!patient) return;
-
-            const updatedName = prompt('Nuevo nombre del consultante:', patient.name)?.trim();
-            if (!updatedName) return;
-
-            patient.name = updatedName;
-            persistPatients();
-            renderDashboard(container, navigateToHome, navigateToHistory);
+        listEl.querySelectorAll('[data-action="rename"]').forEach(button => {
+            button.addEventListener('click', event => {
+                const patientId = event.currentTarget.dataset.id;
+                const patient = state.patients.find(item => item.id === patientId);
+                if (!patient) return;
+                const updatedName = prompt('Nuevo nombre del consultante:', patient.name)?.trim();
+                if (!updatedName) return;
+                patient.name = updatedName;
+                persistPatients();
+                renderDashboard(container, navigateToHome, navigateToHistory);
+            });
         });
-    });
 
-    document.querySelectorAll('[data-action="delete"]').forEach(button => {
-        button.addEventListener('click', event => {
-            const patientId = event.currentTarget.dataset.id;
-            const patient = state.patients.find(item => item.id === patientId);
-            if (!patient) return;
-
-            const confirmed = confirm(`¿Eliminar definitivamente a ${patient.name} y su historial?`);
-            if (!confirmed) return;
-
-            state.patients = state.patients.filter(item => item.id !== patientId);
-            if (state.currentPatientId === patientId) {
-                state.currentPatientId = null;
-                localStorage.removeItem('act_current_patient_id');
-            }
-
-            persistPatients();
-            renderDashboard(container, navigateToHome, navigateToHistory);
+        listEl.querySelectorAll('[data-action="delete"]').forEach(button => {
+            button.addEventListener('click', event => {
+                const patientId = event.currentTarget.dataset.id;
+                const patient = state.patients.find(item => item.id === patientId);
+                if (!patient) return;
+                const confirmed = confirm(`¿Eliminar definitivamente a ${patient.name} y su historial?`);
+                if (!confirmed) return;
+                state.patients = state.patients.filter(item => item.id !== patientId);
+                if (state.currentPatientId === patientId) {
+                    state.currentPatientId = null;
+                    localStorage.removeItem('act_current_patient_id');
+                }
+                persistPatients();
+                renderDashboard(container, navigateToHome, navigateToHistory);
+            });
         });
-    });
+    };
+
+    renderPatientList();
 
     if (!state.currentPatientId) return;
 
@@ -239,8 +245,12 @@ export function renderDashboard(container, navigateToHome, navigateToHistory) {
         const patient = getCurrentPatient();
         if (!patient) return;
 
-        if (patient.currentSession && confirm('Hay una sesión en curso. ¿Deseas guardarla en el historial e iniciar una nueva?')) {
-            archiveCurrentSession();
+        if (patient.currentSession) {
+            if (confirm('Hay una sesión en curso. ¿Deseas guardarla en el historial e iniciar una nueva?')) {
+                archiveCurrentSession();
+            } else {
+                return;
+            }
         }
 
         state.persistence = getDefaultSession();
@@ -253,7 +263,7 @@ export function renderDashboard(container, navigateToHome, navigateToHistory) {
         resumeButton.addEventListener('click', () => {
             const patient = getCurrentPatient();
             if (!patient?.currentSession) return;
-            state.persistence = patient.currentSession;
+            state.persistence = normalizeSession(patient.currentSession);
             navigateToHome();
         });
     }

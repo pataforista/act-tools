@@ -2,10 +2,10 @@
  * ACT In-Session - Hexaflex Module
  */
 
-import { state } from '../core/state.js';
+import { state, saveState } from '../core/state.js';
 import { animateHexaflexEntrance } from '../core/animations.js';
 
-export function renderHexaflexModule(container, { modules, loadModule, renderHome, togglePause }) {
+export function renderHexaflexModule(container, { modules, loadModule, renderHome, navigateToDashboard, togglePause }) {
     const points = [
         { id: 'abrirse', title: 'Abrirse', icon: 'lock-open', color: 'var(--hex-abrirse)', angle: -90, pillar: 'open' },
         { id: 'presente', title: 'Presente', icon: 'wind', color: 'var(--hex-presente)', angle: -30, pillar: 'centered' },
@@ -132,10 +132,13 @@ export function renderHexaflexModule(container, { modules, loadModule, renderHom
     `;
 
     // Event Listeners
-    document.getElementById('toggle-hex')?.addEventListener('click', () => { state.viewMode = 'hexaflex'; renderHexaflexModule(container, { modules, loadModule, renderHome, togglePause }); });
-    document.getElementById('toggle-tri')?.addEventListener('click', () => { state.viewMode = 'triflex'; renderHexaflexModule(container, { modules, loadModule, renderHome, togglePause }); });
+    document.getElementById('toggle-hex')?.addEventListener('click', () => { state.viewMode = 'hexaflex'; renderHexaflexModule(container, { modules, loadModule, renderHome, navigateToDashboard, togglePause }); });
+    document.getElementById('toggle-tri')?.addEventListener('click', () => { state.viewMode = 'triflex'; renderHexaflexModule(container, { modules, loadModule, renderHome, navigateToDashboard, togglePause }); });
 
-    document.getElementById('btn-back')?.addEventListener('click', renderHome);
+    document.getElementById('btn-back')?.addEventListener('click', () => {
+        saveState();
+        if (navigateToDashboard) navigateToDashboard();
+    });
     document.getElementById('btn-pause')?.addEventListener('click', togglePause);
     document.getElementById('btn-session-summary')?.addEventListener('click', () => loadModule('resumen'));
     document.getElementById('btn-open-estres')?.addEventListener('click', () => loadModule('estres'));

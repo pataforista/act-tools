@@ -27,21 +27,47 @@ export const getDefaultSession = () => ({
     estres: { cupSize: 'medium', load: [], responses: [] }
 });
 
+let savedPatients = [];
+try {
+    const raw = localStorage.getItem('act_patients');
+    if (raw) savedPatients = JSON.parse(raw);
+} catch (e) {
+    console.error('Error parsing act_patients', e);
+    alert('Aviso: Los datos de pacientes estaban corruptos. Se ha iniciado con una lista vacía.');
+}
+
 export const state = {
     currentModule: 'dashboard', // dashboard, idle, active, sos
     activeModuleId: null,
-    theme: 'dark',
+    theme: localStorage.getItem('act_theme') || 'dark',
     viewMode: 'hexaflex',
     currentPatientId: localStorage.getItem('act_current_patient_id') || null,
-    patients: JSON.parse(localStorage.getItem('act_patients')) || [],
+    patients: savedPatients,
     persistence: getDefaultSession()
 };
+
+export function normalizeSession(session) {
+    if (!session) return session;
+    const def = getDefaultSession();
+    return {
+        ...def,
+        ...session,
+        diana: session.diana || def.diana,
+        matrix: { ...def.matrix, ...(session.matrix || {}) },
+        grounding: { ...def.grounding, ...(session.grounding || {}) },
+        paso: { ...def.paso, ...(session.paso || {}) },
+        fear: { ...def.fear, ...(session.fear || {}) },
+        dare: { ...def.dare, ...(session.dare || {}) },
+        evitacion: session.evitacion || def.evitacion,
+        estres: { ...def.estres, ...(session.estres || {}) }
+    };
+}
 
 // Initialize session if patient exists
 if (state.currentPatientId) {
     const patient = state.patients.find(p => p.id === state.currentPatientId);
     if (patient && patient.currentSession) {
-        state.persistence = patient.currentSession;
+        state.persistence = normalizeSession(patient.currentSession);
         state.currentModule = 'idle';
     }
 }

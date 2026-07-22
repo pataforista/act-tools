@@ -4,6 +4,7 @@
 
 import { state, archiveCurrentSession, saveState } from '../core/state.js';
 import { showToast } from '../ui/utils.js';
+import { escapeHTML as esc } from '../core/security.js';
 
 const GROUNDING_TOOLS = [
     { key: 'visualizador', label: 'Visualizador de Pensamientos' },
@@ -100,7 +101,7 @@ function renderGroundingSection(p) {
             const entry = g[t.key];
             const rows = ['contexto', 'aprendizaje', 'accion']
                 .filter(k => (entry[k] || '').trim())
-                .map(k => `<p style="margin: 0; font-size: 0.8rem;"><strong style="color: var(--color-primary);">${GROUNDING_FIELD_LABELS[k]}:</strong> ${entry[k]}</p>`)
+                .map(k => `<p style="margin: 0; font-size: 0.8rem;"><strong style="color: var(--color-primary);">${GROUNDING_FIELD_LABELS[k]}:</strong> ${esc(entry[k])}</p>`)
                 .join('');
             return `
                 <div class="glass" style="padding: 0.85rem; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 0.35rem;">
@@ -127,29 +128,29 @@ function renderSummarySections(p) {
     sections.push(renderGroundingSection(p));
 
     sections.push(listSection('🧠 Pensamientos Externalizados',
-        (p.thoughts || []).map(thoughtText).filter(Boolean)));
+        (p.thoughts || []).map(thoughtText).map(esc).filter(Boolean)));
 
     sections.push(listSection('🌤️ Clima Observado',
-        (p.weather || []).map(w => w.text || w).filter(Boolean)));
+        (p.weather || []).map(w => esc(w.text || w)).filter(Boolean)));
 
-    const dianaSet = (p.diana || []).filter(d => d.x !== 0 || d.y !== 0).map(d => d.label);
+    const dianaSet = (p.diana || []).filter(d => d.x !== 0 || d.y !== 0).map(d => esc(d.label));
     sections.push(listSection('🎯 Valores · Áreas situadas en la Diana', dianaSet));
 
     if (p.paso && Object.values(p.paso).some(v => (v || '').trim())) {
         const pasoItems = ['area', 'accion', 'disposicion', 'cuando']
             .filter(k => (p.paso[k] || '').trim())
-            .map(k => `<strong>${PASO_LABELS[k]}:</strong> ${p.paso[k]}`);
+            .map(k => `<strong>${PASO_LABELS[k]}:</strong> ${esc(p.paso[k])}`);
         sections.push(listSection('✅ Acción · Paso mínimo', pasoItems));
     } else if (p.smart) {
-        const smartItems = Object.entries(p.smart).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${SMART_LABELS[k] || k}:</strong> ${v}`);
+        const smartItems = Object.entries(p.smart).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${SMART_LABELS[k] || k}:</strong> ${esc(v)}`);
         sections.push(listSection('✅ Acción · SMART-ACT', smartItems));
     }
 
     const fearItems = p.fear
-        ? Object.entries(p.fear).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${FEAR_LABELS[k] || k}:</strong> ${v}`)
+        ? Object.entries(p.fear).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${FEAR_LABELS[k] || k}:</strong> ${esc(v)}`)
         : [];
     const dareItems = p.dare
-        ? Object.entries(p.dare).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${DARE_LABELS[k] || k}:</strong> ${v}`)
+        ? Object.entries(p.dare).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${DARE_LABELS[k] || k}:</strong> ${esc(v)}`)
         : [];
     if (fearItems.length || dareItems.length) {
         sections.push(`
@@ -164,7 +165,7 @@ function renderSummarySections(p) {
     const matrixItems = [];
     if (p.matrix) {
         Object.entries(p.matrix).forEach(([id, arr]) => {
-            (arr || []).forEach(item => matrixItems.push(`<strong>${MATRIX_LABELS[id] || id}:</strong> ${item}`));
+            (arr || []).forEach(item => matrixItems.push(`<strong>${MATRIX_LABELS[id] || id}:</strong> ${esc(item)}`));
         });
     }
     sections.push(listSection('🧩 Análisis · Matrix', matrixItems));
@@ -172,13 +173,13 @@ function renderSummarySections(p) {
     if (Array.isArray(p.evitacion) && p.evitacion.length) {
         const evitItems = p.evitacion.map(e => {
             const detail = [];
-            if ((e.alivio || '').trim()) detail.push(`alivio: ${e.alivio}`);
-            if ((e.costo || '').trim()) detail.push(`coste: ${e.costo}`);
-            return `<strong>${(e.tipo || '').trim() || 'Evitación'}</strong>${detail.length ? ' — ' + detail.join(' · ') : ''}`;
+            if ((e.alivio || '').trim()) detail.push(`alivio: ${esc(e.alivio)}`);
+            if ((e.costo || '').trim()) detail.push(`coste: ${esc(e.costo)}`);
+            return `<strong>${esc((e.tipo || '').trim() || 'Evitación')}</strong>${detail.length ? ' — ' + detail.join(' · ') : ''}`;
         });
         sections.push(listSection('🔁 Análisis · Coste de la evitación', evitItems));
     } else if (p.dots) {
-        const dotsItems = Object.entries(p.dots).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${DOTS_LABELS[k] || k}:</strong> ${v}`);
+        const dotsItems = Object.entries(p.dots).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${DOTS_LABELS[k] || k}:</strong> ${esc(v)}`);
         sections.push(listSection('🔁 Análisis · DOTS (evitación)', dotsItems));
     }
 
@@ -186,9 +187,9 @@ function renderSummarySections(p) {
     const estresLoad = Array.isArray(estres.load) ? estres.load : [];
     const estresResponses = Array.isArray(estres.responses) ? estres.responses : [];
     if (estresLoad.length || estresResponses.length) {
-        const loadItems = estresLoad.map(s => `<strong>${(s.label || '').trim() || 'Carga'}</strong>${s.pct ? ` <span style="opacity: 0.6;">(${s.pct}%)</span>` : ''}`);
-        const toward = estresResponses.filter(r => r.dir === 'toward').map(r => r.text).filter(Boolean);
-        const away = estresResponses.filter(r => r.dir === 'away').map(r => r.text).filter(Boolean);
+        const loadItems = estresLoad.map(s => `<strong>${esc((s.label || '').trim() || 'Carga')}</strong>${s.pct ? ` <span style="opacity: 0.6;">(${s.pct}%)</span>` : ''}`);
+        const toward = estresResponses.filter(r => r.dir === 'toward').map(r => esc(r.text)).filter(Boolean);
+        const away = estresResponses.filter(r => r.dir === 'away').map(r => esc(r.text)).filter(Boolean);
         sections.push(`
             <section class="glass-card">
                 <h3>🥤 Vaso de Estrés</h3>
@@ -312,7 +313,7 @@ export function renderResumenModule(container, { sessionData = null, navigateToD
     const p = sessionData || state.persistence;
     const isHistorical = !!sessionData;
     const patient = state.patients.find(pat => pat.id === state.currentPatientId);
-    const patientName = patient?.name || 'Consultante';
+    const patientName = esc(patient?.name || 'Consultante');
     const scores = computeRadarScores(p);
 
     container.innerHTML = `
@@ -395,17 +396,17 @@ export function renderResumenModule(container, { sessionData = null, navigateToD
 export function renderHomeworkScreen(container, session, onBack) {
     const p = session || state.persistence;
     const patient = state.patients.find(pat => pat.id === state.currentPatientId);
-    const patientName = patient?.name || 'Consultante';
+    const patientName = esc(patient?.name || 'Consultante');
     const g = p.grounding || {};
 
     const acciones = GROUNDING_TOOLS
         .filter(t => (g[t.key]?.accion || '').trim())
-        .map(t => ({ label: t.label, text: g[t.key].accion }));
+        .map(t => ({ label: t.label, text: esc(g[t.key].accion) }));
 
-    const dianaSet = (p.diana || []).filter(d => d.x !== 0 || d.y !== 0).map(d => d.label);
-    const embrace = (p.dare?.E || '').trim();
-    const pasoAccion = (p.paso?.accion || '').trim() || (p.smart?.S || '').trim();
-    const thoughts = (p.thoughts || []).map(thoughtText).filter(Boolean).slice(0, 5);
+    const dianaSet = (p.diana || []).filter(d => d.x !== 0 || d.y !== 0).map(d => esc(d.label));
+    const embrace = esc((p.dare?.E || '').trim());
+    const pasoAccion = esc((p.paso?.accion || '').trim() || (p.smart?.S || '').trim());
+    const thoughts = (p.thoughts || []).map(thoughtText).map(esc).filter(Boolean).slice(0, 5);
 
     const block = (title, html) => html ? `
         <section class="glass-card">
@@ -453,18 +454,20 @@ export function renderHomeworkScreen(container, session, onBack) {
 
 export function renderHistoryView(container, { navigateToDashboard, renderSessionDetail }) {
     const patient = state.patients.find(p => p.id === state.currentPatientId);
+    if (!patient) return navigateToDashboard();
+    
     container.innerHTML = `
         <div class="module-view animate-slide-up">
             <header class="tool-header">
                 <button class="btn-ghost" id="btn-back-dashboard">←</button>
-                <h2 style="font-size: 1.2rem; font-weight: 700;">Historial: ${patient.name}</h2>
+                <h2 style="font-size: 1.2rem; font-weight: 700;">Historial: ${esc(patient.name)}</h2>
             </header>
             <div class="history-list" style="display: flex; flex-direction: column; gap: 1rem;">
                 ${patient.history.length === 0 ? '<p>No hay sesiones registradas.</p>' :
             patient.history.map((s, idx) => `
                     <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem;">
                         <div>
-                            <div style="font-weight: 600;">Sesión ${patient.history.length - idx}</div>
+                            <div style="font-weight: 600;">Sesión ${idx + 1}</div>
                             <div style="font-size: 0.8rem;">${new Date(s.date).toLocaleDateString()}</div>
                         </div>
                         <button class="btn-ghost btn-view-old-summary" data-idx="${idx}">Ver Detalles</button>

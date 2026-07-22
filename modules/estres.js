@@ -11,6 +11,7 @@
 
 import { state, saveState } from '../core/state.js';
 import { renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
+import { escapeHTML as esc } from '../core/security.js';
 
 // A bigger cup = more capacity/willingness → the same load fills it less.
 // This overturns the old agenda: the relationship changes, not the level.
@@ -138,12 +139,6 @@ function buildCupSVG(percent) {
         <!-- Rim ellipse -->
         <ellipse cx="100" cy="${TOP_Y}" rx="82" ry="9" fill="url(#rim-g)" stroke="#bbbbbb" stroke-width="1.5"/>
 
-        <!-- Level badge (descriptive, not evaluative) -->
-        <rect x="69" y="27" width="62" height="22" rx="11" fill="rgba(0,0,0,0.62)"/>
-        <text x="100" y="42" text-anchor="middle" fill="white"
-              font-size="12" font-weight="700" font-family="system-ui,sans-serif">
-          ${Math.round(percent)}%
-        </text>
       </svg>
     </div>`;
 }
@@ -160,6 +155,7 @@ export function renderEstresModule(container, config, { renderHome }) {
     // Animate the entrance only once; re-rendering on every interaction would
     // otherwise restart the fade-in and make the whole module flicker.
     let firstRender = true;
+    let scrollPos = 0;
 
     const factor = () => CAPACITY[est.cupSize];
     const rawLoad = () => est.load.reduce((a, s) => a + (s.pct || 0), 0);
@@ -204,6 +200,9 @@ export function renderEstresModule(container, config, { renderHome }) {
     }
 
     function renderInner() {
+        const scrollArea = container.querySelector('#estres-scroll-area');
+        if (scrollArea) scrollPos = scrollArea.scrollTop;
+
         const pct = percent();
         const toward = est.responses.filter(r => r.dir === 'toward');
         const away = est.responses.filter(r => r.dir === 'away');
@@ -278,7 +277,7 @@ export function renderEstresModule(container, config, { renderHome }) {
                             🧭 Tus respuestas
                         </button>
                     </div>
-                    <div style="padding: 1rem; max-height: 300px; overflow-y: auto;">
+                    <div id="estres-scroll-area" style="padding: 1rem; max-height: 300px; overflow-y: auto;">
                         ${activeTab === 'carga' ? renderCargaTab() : renderRespuestasTab(toward, away)}
                     </div>
                 </div>
@@ -294,6 +293,9 @@ export function renderEstresModule(container, config, { renderHome }) {
         if (window.lucide) lucide.createIcons();
         attachGuideBadgeEvents();
         attachEvents();
+
+        const newScrollArea = container.querySelector('#estres-scroll-area');
+        if (newScrollArea) newScrollArea.scrollTop = scrollPos;
     }
 
     function renderCargaTab() {
@@ -318,7 +320,7 @@ export function renderEstresModule(container, config, { renderHome }) {
                 ? '<p style="font-size: 0.78rem; opacity: 0.5;">El vaso está vacío.</p>'
                 : `<div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">${est.load.map((s, i) => `
                         <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.6rem; border-radius: 16px; background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.3); font-size: 0.76rem;">
-                            ${s.label} <span style="opacity: 0.6;">${s.pct}%</span>
+                            ${esc(s.label)} <span style="opacity: 0.6;">${s.pct}%</span>
                             <button class="btn-remove-load" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
                         </span>
                     `).join('')}</div>`
@@ -334,7 +336,7 @@ export function renderEstresModule(container, config, { renderHome }) {
                 return `
                     <div style="display: flex; align-items: center; gap: 0.4rem; background: ${color}14; border: 1px solid ${color}44; border-radius: var(--radius-sm); padding: 0.45rem 0.6rem; margin-bottom: 0.35rem;">
                         <div style="flex: 1;">
-                            <p style="margin: 0; font-size: 0.8rem;">${r.text}</p>
+                            <p style="margin: 0; font-size: 0.8rem;">${esc(r.text)}</p>
                             <p style="margin: 0.1rem 0 0; font-size: 0.65rem; color: var(--color-text-secondary);">${note}</p>
                         </div>
                         <button class="btn-remove-resp" data-idx="${globalIdx}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.9rem; line-height: 1;">×</button>
@@ -344,7 +346,7 @@ export function renderEstresModule(container, config, { renderHome }) {
 
         return `
             <p style="font-size: 0.78rem; color: var(--color-text-secondary); margin: 0 0 0.75rem;">Con el vaso así de lleno, cuando aparece la presión, ¿qué hacés? Clasificá cada respuesta. Ninguna vacía el vaso.</p>
-            <input id="estres-resp-input" type="text" placeholder="Cuando aparece la presión, yo…" value="${responseDraft.replace(/"/g, '&quot;')}"
+            <input id="estres-resp-input" type="text" placeholder="Cuando aparece la presión, yo…" value="${esc(responseDraft).replace(/"/g, '&quot;')}"
                 style="width: 100%; box-sizing: border-box; padding: 0.55rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: var(--color-text-primary); font-size: 0.82rem; margin-bottom: 0.5rem;">
             <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
                 <button class="btn-classify" data-dir="away" style="flex: 1; padding: 0.55rem; border-radius: var(--radius-sm); border: 1px solid rgba(239,68,68,0.5); background: rgba(239,68,68,0.1); color: #f87171; font-weight: 600; font-size: 0.76rem; cursor: pointer;">↩ Me aleja (evitación)</button>
@@ -373,6 +375,7 @@ export function renderEstresModule(container, config, { renderHome }) {
         container.querySelectorAll('.estres-tab').forEach(btn => {
             btn.addEventListener('click', () => {
                 activeTab = btn.dataset.tab;
+                scrollPos = 0;
                 renderInner();
             });
         });
@@ -421,6 +424,7 @@ export function renderEstresModule(container, config, { renderHome }) {
                 est.responses = [];
                 responseDraft = '';
                 activeTab = 'carga';
+                scrollPos = 0;
                 saveState();
                 renderInner();
             }

@@ -30,7 +30,7 @@ function setSosVisible(visible) {
 
 function navigateToHome() {
     setSosVisible(true);
-    renderHexaflexModule(mainContent, { modules, loadModule, renderHome: navigateToHome, togglePause });
+    renderHexaflexModule(mainContent, { modules, loadModule, renderHome: navigateToHome, navigateToDashboard, togglePause });
 }
 
 function navigateToDashboard() {
@@ -102,14 +102,34 @@ function init() {
 
     // Global Elements
     const sosBtn = document.getElementById('btn-sos');
-    sosBtn?.addEventListener('click', () => renderSOSModule(mainContent, { navigateToHome }));
+    sosBtn?.addEventListener('click', () => {
+        mainContent.style.display = 'none';
+        let sosContainer = document.getElementById('sos-content');
+        if (!sosContainer) {
+            sosContainer = document.createElement('div');
+            sosContainer.id = 'sos-content';
+            sosContainer.className = 'screen';
+            mainContent.parentNode.insertBefore(sosContainer, mainContent.nextSibling);
+        }
+        sosContainer.style.display = 'block';
+
+        renderSOSModule(sosContainer, { 
+            navigateToHome: () => {
+                sosContainer.style.display = 'none';
+                mainContent.style.display = 'block';
+            } 
+        });
+    });
 
     const themeBtn = document.getElementById('theme-toggle');
     themeBtn?.addEventListener('click', () => {
         state.theme = state.theme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('act_theme', state.theme);
         document.body.setAttribute('data-theme', state.theme);
-        lucide.createIcons();
     });
+
+    document.body.setAttribute('data-theme', state.theme);
+    lucide.createIcons();
 
     lucide.createIcons();
 }

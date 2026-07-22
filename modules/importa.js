@@ -4,6 +4,7 @@
 
 import { state, saveState } from '../core/state.js';
 import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
+import { escapeHTML as esc } from '../core/security.js';
 
 export function renderImportaModule(container, module, { renderHome, initialTool } = {}) {
     const tools = [
@@ -70,7 +71,7 @@ function renderDianaTool(container) {
                     ${areas.map((area, i) => `
                         <button class="btn-toggle ${selectedAreaIndex === i ? 'active' : ''}" data-idx="${i}" style="text-align: left; padding: 0.75rem; height: auto; display: flex; flex-direction: column; gap: 0.25rem;">
                             <span style="font-size: 0.6rem; opacity: 0.7; text-transform: uppercase;">Área ${i + 1}</span>
-                            <span style="font-size: 0.85rem; font-weight: bold;">${area.label}</span>
+                            <span style="font-size: 0.85rem; font-weight: bold;">${esc(area.label)}</span>
                         </button>
                     `).join('')}
                 </div>
@@ -141,8 +142,8 @@ function renderPasoTool(container) {
                     <label style="font-size: 0.72rem; color: var(--color-text-secondary);">¿Hacia qué área querés moverte?</label>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
                         ${areas.map(a => `
-                            <button class="btn-toggle ${paso.area === a.label ? 'active' : ''}" data-area="${a.label.replace(/"/g, '&quot;')}" style="font-size: 0.78rem; padding: 0.6rem; height: auto;">
-                                ${a.label}
+                            <button class="btn-toggle ${paso.area === a.label ? 'active' : ''}" data-area="${esc(a.label).replace(/"/g, '&quot;')}" style="font-size: 0.78rem; padding: 0.6rem; height: auto;">
+                                ${esc(a.label)}
                             </button>
                         `).join('')}
                     </div>
@@ -151,11 +152,11 @@ function renderPasoTool(container) {
                 <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); display: grid; gap: 0.95rem;">
                     <div>
                         <label style="font-size: 0.72rem; color: var(--color-text-secondary);">El paso más pequeño posible (próximas 24 h)</label>
-                        <input type="text" id="paso-accion" class="input-underline" value="${paso.accion || ''}" placeholder="Hoy voy a...">
+                        <input type="text" id="paso-accion" class="input-underline" value="${esc(paso.accion || '').replace(/"/g, '&quot;')}" placeholder="Hoy voy a...">
                     </div>
                     <div>
                         <label style="font-size: 0.72rem; color: var(--color-text-secondary);">¿Qué malestar estás dispuesto/a a llevar contigo para darlo?</label>
-                        <input type="text" id="paso-disposicion" class="input-underline" value="${paso.disposicion || ''}" placeholder="Hago espacio a...">
+                        <input type="text" id="paso-disposicion" class="input-underline" value="${esc(paso.disposicion || '').replace(/"/g, '&quot;')}" placeholder="Hago espacio a...">
                     </div>
                     <div>
                         <label style="font-size: 0.72rem; color: var(--color-text-secondary);">¿Cuándo?</label>
@@ -229,14 +230,14 @@ function renderDARETool(container) {
 
                 <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); border-left: 3px solid #ef4444;">
                     <h4 style="font-size: 0.8rem; color: #ef4444; margin-bottom: 0.6rem;">↩ Barrera · ${p.fearLabel}</h4>
-                    <input type="text" id="pivot-fear" value="${(state.persistence.fear[p.fearKey] || '').replace(/"/g, '&quot;')}" placeholder="${p.fearQ}" class="input-underline">
+                    <input type="text" id="pivot-fear" value="${esc(state.persistence.fear[p.fearKey] || '').replace(/"/g, '&quot;')}" placeholder="${p.fearQ}" class="input-underline">
                 </div>
 
                 ${isRevealed ? `
                 <div style="text-align: center; color: var(--color-primary); font-size: 1.4rem; margin: 0.5rem 0;">↓</div>
                 <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); border-left: 3px solid #10b981; animation: slideUp 0.3s ease;">
                     <h4 style="font-size: 0.8rem; color: #10b981; margin-bottom: 0.6rem;">→ Dirección · ${p.dareLabel}</h4>
-                    <input type="text" id="pivot-dare" value="${(state.persistence.dare[p.dareKey] || '').replace(/"/g, '&quot;')}" placeholder="${p.dareQ}" class="input-underline">
+                    <input type="text" id="pivot-dare" value="${esc(state.persistence.dare[p.dareKey] || '').replace(/"/g, '&quot;')}" placeholder="${p.dareQ}" class="input-underline">
                 </div>
                 ` : `
                 <div style="text-align: center; margin-top: 1.25rem;">

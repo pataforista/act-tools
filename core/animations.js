@@ -3,6 +3,7 @@
  */
 
 export function animateBreathing(selector) {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     return anime({
         targets: selector,
         scale: [0.6, 1.2],
@@ -14,6 +15,7 @@ export function animateBreathing(selector) {
 }
 
 export function animateDefusion(selector) {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     return anime({
         targets: selector,
         translateX: () => anime.random(-15, 15),
@@ -27,6 +29,7 @@ export function animateDefusion(selector) {
 }
 
 export function animateLeaves(selector) {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     return anime({
         targets: selector,
         translateX: ['-10%', '110%'],
@@ -40,6 +43,7 @@ export function animateLeaves(selector) {
 }
 
 export function animateWeather(selector) {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     return anime({
         targets: selector,
         translateX: ['-100%', '100%'],
@@ -50,6 +54,7 @@ export function animateWeather(selector) {
 }
 
 export function animatePulse(selector) {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     return anime({
         targets: selector,
         opacity: [0.4, 0.8],
@@ -62,6 +67,14 @@ export function animatePulse(selector) {
 }
 
 export function animateHexaflexEntrance(selector) {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return anime({
+            targets: selector,
+            scale: [1, 1],
+            opacity: [1, 1],
+            duration: 0
+        });
+    }
     return anime({
         targets: selector,
         scale: [0, 1],

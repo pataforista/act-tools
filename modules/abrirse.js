@@ -6,6 +6,7 @@ import { state, saveState } from '../core/state.js';
 import { radioAudio } from '../core/audio.js';
 import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
 import { animateDefusion } from '../core/animations.js';
+import { escapeHTML as esc } from '../core/security.js';
 
 export function renderAbrirseModule(container, module, { renderHome }) {
     let activeToolId = 'visualizador';
@@ -148,10 +149,10 @@ function renderVisualizadorPensamientosTool(container) {
                              style="position: absolute; left: ${t.x ?? (20 + (i % 3) * 30)}%; top: ${t.y ?? (20 + Math.floor(i / 3) * 20)}%; 
                                     padding: 0.75rem 1.25rem; border-radius: 20px; font-size: ${t.size || '0.9rem'}; color: ${t.color || 'white'}; 
                                     border: 2px solid ${selectedThoughtIndex === i ? 'var(--color-primary)' : (t.color || 'var(--glass-border)') + '22'}; 
-                                    opacity: ${t.opacity ?? 1}; filter: blur(${t.blur ?? 0}px); cursor: move; user-select: none; 
+                                    opacity: ${t.opacity ?? 1}; filter: blur(${t.blur ?? 0}px); cursor: pointer; user-select: none; 
                                     z-index: ${selectedThoughtIndex === i ? 100 : 10}; transition: border 0.3s, box-shadow 0.3s, transform 0.3s;
                                     transform: ${rotationStyle}; ${spacingStyle} ${fontStyle}">
-                            ${t.text || t}
+                            ${esc(t.text || t)}
                         </div>
                     `;
         }).join('')}
@@ -160,9 +161,9 @@ function renderVisualizadorPensamientosTool(container) {
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
                     <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
                     <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="visualizador-contexto" class="input-field" placeholder="¿Dónde te enganchaste con este pensamiento hoy?" value="${state.persistence.grounding?.visualizador?.contexto || ''}">
-                        <input type="text" id="visualizador-aprendizaje" class="input-field" placeholder="¿Qué cambió al verlo como pensamiento y no como hecho?" value="${state.persistence.grounding?.visualizador?.aprendizaje || ''}">
-                        <input type="text" id="visualizador-accion" class="input-field" placeholder="Con este pensamiento presente, ¿qué acción útil podés hacer?" value="${state.persistence.grounding?.visualizador?.accion || ''}">
+                        <input type="text" id="visualizador-contexto" class="input-field" placeholder="¿Dónde te enganchaste con este pensamiento hoy?" value="${esc(state.persistence.grounding?.visualizador?.contexto || '')}">
+                        <input type="text" id="visualizador-aprendizaje" class="input-field" placeholder="¿Qué cambió al verlo como pensamiento y no como hecho?" value="${esc(state.persistence.grounding?.visualizador?.aprendizaje || '')}">
+                        <input type="text" id="visualizador-accion" class="input-field" placeholder="Con este pensamiento presente, ¿qué acción útil podés hacer?" value="${esc(state.persistence.grounding?.visualizador?.accion || '')}">
                     </div>
                 </div>
 
@@ -174,11 +175,11 @@ function renderVisualizadorPensamientosTool(container) {
                     
                     <div class="property-group">
                         <label>Distancia del pensamiento</label>
-                        <input type="range" id="prop-blur" min="0" max="8" step="0.5" value="${state.persistence.thoughts[selectedThoughtIndex]?.blur || 0}" class="slider-act">
+                        <input type="range" id="prop-blur" min="0" max="3" step="0.5" value="${state.persistence.thoughts[selectedThoughtIndex]?.blur || 0}" class="slider-act">
                     </div>
                     <div class="property-group">
                         <label>Peso percibido</label>
-                        <input type="range" id="prop-opacity" min="0.1" max="1" step="0.1" value="${state.persistence.thoughts[selectedThoughtIndex]?.opacity || 1}" class="slider-act">
+                        <input type="range" id="prop-opacity" min="0.45" max="1" step="0.05" value="${state.persistence.thoughts[selectedThoughtIndex]?.opacity || 1}" class="slider-act">
                     </div>
                     <div class="property-group">
                         <label>Espaciado (Stretching)</label>
@@ -273,23 +274,29 @@ function renderVisualizadorPensamientosTool(container) {
         document.getElementById('prop-blur')?.addEventListener('input', (e) => {
             state.persistence.thoughts[selectedThoughtIndex].blur = e.target.value;
             saveState();
-            internalRender();
+            const el = document.querySelector(`.thought-item[data-index="${selectedThoughtIndex}"]`);
+            if (el) el.style.filter = `blur(${e.target.value}px)`;
         });
         document.getElementById('prop-opacity')?.addEventListener('input', (e) => {
             state.persistence.thoughts[selectedThoughtIndex].opacity = e.target.value;
             saveState();
-            internalRender();
+            const el = document.querySelector(`.thought-item[data-index="${selectedThoughtIndex}"]`);
+            if (el) el.style.opacity = e.target.value;
         });
         document.getElementById('prop-spacing')?.addEventListener('input', (e) => {
             state.persistence.thoughts[selectedThoughtIndex].spacing = e.target.value;
             saveState();
-            internalRender();
+            const el = document.querySelector(`.thought-item[data-index="${selectedThoughtIndex}"]`);
+            if (el) el.style.letterSpacing = `${e.target.value}px`;
         });
         document.getElementById('prop-rotateX')?.addEventListener('input', (e) => {
-            state.persistence.thoughts[selectedThoughtIndex].rotateX = e.target.value;
-            state.persistence.thoughts[selectedThoughtIndex].rotateY = e.target.value / 2;
+            const rx = e.target.value;
+            const ry = rx / 2;
+            state.persistence.thoughts[selectedThoughtIndex].rotateX = rx;
+            state.persistence.thoughts[selectedThoughtIndex].rotateY = ry;
             saveState();
-            internalRender();
+            const el = document.querySelector(`.thought-item[data-index="${selectedThoughtIndex}"]`);
+            if (el) el.style.transform = `perspective(500px) rotateX(${rx}deg) rotateY(${ry}deg)`;
         });
         document.querySelectorAll('[data-mode]').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -343,7 +350,7 @@ function renderHojasAguaTool(container) {
                     <div id="leaves-container">
                         ${leaves.map((l, i) => `
                             <div class="leaf-item" style="position: absolute; left: -100px; top: ${l.y}%; padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b98144; border-radius: 12px; color: #10b981; font-weight: bold; backdrop-filter: blur(4px);">
-                                🍃 ${l.text}
+                                🍃 ${esc(l.text)}
                             </div>
                         `).join('')}
                     </div>
@@ -359,9 +366,9 @@ function renderHojasAguaTool(container) {
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
                     <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
                     <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="hojas-contexto" class="input-field" placeholder="¿En qué situación apareció este pensamiento?" value="${state.persistence.grounding?.hojas?.contexto || ''}">
-                        <input type="text" id="hojas-aprendizaje" class="input-field" placeholder="¿Qué notaste al observarlo en lugar de discutir con él?" value="${state.persistence.grounding?.hojas?.aprendizaje || ''}">
-                        <input type="text" id="hojas-accion" class="input-field" placeholder="Aunque ese pensamiento esté ahí, ¿qué podés hacer?" value="${state.persistence.grounding?.hojas?.accion || ''}">
+                        <input type="text" id="hojas-contexto" class="input-field" placeholder="¿En qué situación apareció este pensamiento?" value="${esc(state.persistence.grounding?.hojas?.contexto || '')}">
+                        <input type="text" id="hojas-aprendizaje" class="input-field" placeholder="¿Qué notaste al observarlo en lugar de discutir con él?" value="${esc(state.persistence.grounding?.hojas?.aprendizaje || '')}">
+                        <input type="text" id="hojas-accion" class="input-field" placeholder="Aunque ese pensamiento esté ahí, ¿qué podés hacer?" value="${esc(state.persistence.grounding?.hojas?.accion || '')}">
                     </div>
                 </div>
             </div>
@@ -397,7 +404,7 @@ function renderHojasAguaTool(container) {
                 const leafEl = document.createElement('div');
                 leafEl.className = 'leaf-item';
                 leafEl.style.cssText = `position: absolute; left: -150px; top: ${newLeaf.y}%; padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b98144; border-radius: 12px; color: #10b981; font-weight: bold; backdrop-filter: blur(4px); white-space: nowrap;`;
-                leafEl.innerHTML = `🍃 ${text}`;
+                leafEl.innerHTML = \`🍃 \${esc(text)}\`;
                 document.getElementById('leaves-container').appendChild(leafEl);
 
                 anime({
@@ -406,9 +413,21 @@ function renderHojasAguaTool(container) {
                     rotate: () => anime.random(-15, 15),
                     duration: 15000,
                     easing: 'linear',
-                    complete: () => leafEl.remove()
+                    loop: true
                 });
             }
+        });
+
+        document.querySelectorAll('#leaves-container .leaf-item').forEach((leafEl, idx) => {
+            anime({
+                targets: leafEl,
+                translateX: ['0vw', '120vw'],
+                rotate: () => anime.random(-15, 15),
+                duration: 15000,
+                delay: idx * 2000,
+                easing: 'linear',
+                loop: true
+            });
         });
     };
 
@@ -491,15 +510,15 @@ function renderRadioDoomGloomTool(container) {
 
                 <div class="radio-interface glass" style="padding: 1.5rem; border-radius: var(--radius-lg); border: 2px solid ${currentStation.color}88; background: rgba(0,0,0,0.2);">
                     <div class="radio-screen" style="background: #050a05; padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-family: 'Courier New', monospace; color: ${currentStation.color}; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
-                        <div class="noise-overlay" style="opacity: ${(100 - volume) / 200 + 0.05};"></div>
+                        <div class="noise-overlay" style="opacity: ${(100 - volume) / 100 + 0.1};"></div>
                         <div style="font-size: 0.6rem; margin-bottom: 0.5rem; opacity: 0.7; letter-spacing: 2px;">${currentStation.label}</div>
-                        <div id="broadcast-text" style="font-size: ${customFontSize}px; text-align: center; font-weight: bold; transition: all 0.2s ease; filter: blur(${(100 - volume) / 20}px); opacity: ${volume / 100}; color: ${customColor}; ${shapeStyleMap[textShape]}">
-                            ${broadcast ? `"${broadcast}"` : 'BUSCANDO SEÑAL...'}
+                        <div id="broadcast-text" style="font-size: ${customFontSize}px; text-align: center; font-weight: bold; transition: all 0.2s ease; transform: scale(${0.5 + (volume / 200)}) translateY(${(100 - volume) / 2}px); color: ${customColor}; ${shapeStyleMap[textShape]}">
+                            ${broadcast ? `"${esc(broadcast)}"` : 'BUSCANDO SEÑAL...'}
                         </div>
                     </div>
 
                     <div class="radio-controls" style="display: flex; flex-direction: column; gap: 1rem;">
-                        <input type="text" id="radio-input" class="input-field" value="${broadcast}" placeholder="¿Qué dice la voz ahora mismo?" style="background: rgba(255,255,255,0.05); border-color: ${currentStation.color}44;">
+                        <input type="text" id="radio-input" class="input-field" value="${esc(broadcast)}" placeholder="¿Qué dice la voz ahora mismo?" style="background: rgba(255,255,255,0.05); border-color: ${currentStation.color}44;">
 
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
                             <span style="font-size: 0.7rem; color: var(--color-text-secondary); min-width: 60px;">Volumen</span>
@@ -539,7 +558,7 @@ function renderRadioDoomGloomTool(container) {
                         </div>
 
                         <div style="display: flex; gap: 0.5rem;">
-                            <input type="text" id="snippet-input" class="input-field" placeholder="Escribí una frase para reutilizar" value="${snippetDraft}" style="font-size: 0.8rem;">
+                            <input type="text" id="snippet-input" class="input-field" placeholder="Escribí una frase para reutilizar" value="${esc(snippetDraft)}" style="font-size: 0.8rem;">
                             <button id="btn-add-snippet" class="btn-primary" style="padding: 0.45rem 0.8rem; font-size: 0.75rem;">Agregar</button>
                         </div>
 
@@ -547,7 +566,7 @@ function renderRadioDoomGloomTool(container) {
                             ${snippets.length
                 ? snippets.map((snippet, index) => `
                                       <div style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 0.4rem 0.5rem;">
-                                        <button class="btn-use-snippet" data-index="${index}" style="flex: 1; text-align: left; font-size: 0.76rem; color: var(--color-text-secondary); background: transparent; border: none; cursor: pointer;">${snippet}</button>
+                                        <button class="btn-use-snippet" data-index="${index}" style="flex: 1; text-align: left; font-size: 0.76rem; color: var(--color-text-secondary); background: transparent; border: none; cursor: pointer;">${esc(snippet)}</button>
                                         <button class="btn-delete-snippet" data-index="${index}" style="font-size: 0.72rem; color: #ef4444; background: transparent; border: 1px solid #ef444466; border-radius: 6px; padding: 0.2rem 0.45rem; cursor: pointer;">Borrar</button>
                                       </div>
                                   `).join('')
@@ -572,16 +591,16 @@ function renderRadioDoomGloomTool(container) {
                         `).join('')}
                     </div>
                     <div id="defused-result" style="margin-top: 0.75rem; min-height: 2.5rem; padding: 0.75rem; background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); font-size: 0.85rem; font-style: italic; color: var(--color-primary); display: ${defusedText ? 'block' : 'none'};">
-                        ${defusedText}
+                        ${esc(defusedText)}
                     </div>
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
                     <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
                     <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="radio-contexto" class="input-field" placeholder="¿En qué situación apareció esta emisora?" value="${state.persistence.grounding?.radio?.contexto || ''}">
-                        <input type="text" id="radio-aprendizaje" class="input-field" placeholder="¿Qué notaste al escucharla como voz de la mente?" value="${state.persistence.grounding?.radio?.aprendizaje || ''}">
-                        <input type="text" id="radio-accion" class="input-field" placeholder="Aunque suene fuerte, ¿qué acción elegís sostener?" value="${state.persistence.grounding?.radio?.accion || ''}">
+                        <input type="text" id="radio-contexto" class="input-field" placeholder="¿En qué situación apareció esta emisora?" value="${esc(state.persistence.grounding?.radio?.contexto || '')}">
+                        <input type="text" id="radio-aprendizaje" class="input-field" placeholder="¿Qué notaste al escucharla como voz de la mente?" value="${esc(state.persistence.grounding?.radio?.aprendizaje || '')}">
+                        <input type="text" id="radio-accion" class="input-field" placeholder="Aunque suene fuerte, ¿qué acción elegís sostener?" value="${esc(state.persistence.grounding?.radio?.accion || '')}">
                     </div>
                 </div>
             </div>
@@ -608,32 +627,51 @@ function renderRadioDoomGloomTool(container) {
         document.getElementById('radio-input').addEventListener('input', (e) => {
             broadcast = e.target.value;
             const text = document.getElementById('broadcast-text');
-            text.innerText = broadcast ? `"${broadcast}"` : 'BUSCANDO SEÑAL...';
+            text.innerHTML = broadcast ? `"${esc(broadcast)}"` : 'BUSCANDO SEÑAL...';
             persistRadioState();
         });
 
         document.getElementById('radio-volume').addEventListener('input', (e) => {
             volume = e.target.value;
             radioAudio.setVolume((100 - volume) / 100);
-            internalRender();
+            const overlay = container.querySelector('.noise-overlay');
+            if (overlay) overlay.style.opacity = (100 - volume) / 100 + 0.1;
+            const broadcastText = document.getElementById('broadcast-text');
+            if (broadcastText) {
+                const scale = 0.5 + (volume / 200);
+                const translateY = (100 - volume) / 2;
+                broadcastText.style.transform = `scale(${scale}) translateY(${translateY}px)`;
+            }
+            const volLabel = e.target.nextElementSibling;
+            if (volLabel) volLabel.textContent = `${volume}%`;
         });
 
         document.getElementById('radio-tuning').addEventListener('input', (e) => {
             tuning = e.target.value;
             radioAudio.init();
-            internalRender();
+            const currentStation = stations[Math.floor((tuning / 101) * stations.length)];
+            const interfaceEl = container.querySelector('.radio-interface');
+            if (interfaceEl) interfaceEl.style.borderColor = currentStation.color + '88';
+            const screenEl = container.querySelector('.radio-screen');
+            if (screenEl) screenEl.style.color = currentStation.color;
+            const labelEl = container.querySelector('.radio-screen > div:nth-child(2)');
+            if (labelEl) labelEl.textContent = currentStation.label;
         });
 
         document.getElementById('radio-color')?.addEventListener('input', (e) => {
             customColor = e.target.value;
             persistRadioState();
-            internalRender();
+            const text = document.getElementById('broadcast-text');
+            if (text) text.style.color = customColor;
         });
 
         document.getElementById('radio-font-size')?.addEventListener('input', (e) => {
             customFontSize = Number(e.target.value);
             persistRadioState();
-            internalRender();
+            const text = document.getElementById('broadcast-text');
+            if (text) text.style.fontSize = `${customFontSize}px`;
+            const lbl = e.target.parentElement;
+            if (lbl && lbl.childNodes[0]) lbl.childNodes[0].nodeValue = `Tamaño (${customFontSize}px) `;
         });
 
         document.getElementById('radio-shape')?.addEventListener('change', (e) => {
@@ -683,7 +721,7 @@ function renderRadioDoomGloomTool(container) {
 
                 const result = document.getElementById('defused-result');
                 result.style.display = 'block';
-                result.innerText = defusedText;
+                result.innerHTML = esc(defusedText);
 
                 document.querySelectorAll('.btn-defusion').forEach(b => b.style.borderColor = 'var(--glass-border)');
                 btn.style.borderColor = 'var(--color-primary)';
@@ -778,9 +816,9 @@ function renderInterruptorLuchaTool(container) {
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
                     <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
                     <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="lucha-contexto" class="input-field" placeholder="¿Cuándo se activa más esta lucha en tu semana?" value="${state.persistence.grounding?.lucha?.contexto || ''}">
-                        <input type="text" id="lucha-aprendizaje" class="input-field" placeholder="¿Qué notaste al dejar de pelear por unos segundos?" value="${state.persistence.grounding?.lucha?.aprendizaje || ''}">
-                        <input type="text" id="lucha-accion" class="input-field" placeholder="Con esta emoción presente, ¿qué acción valiosa podés sostener?" value="${state.persistence.grounding?.lucha?.accion || ''}">
+                        <input type="text" id="lucha-contexto" class="input-field" placeholder="¿Cuándo se activa más esta lucha en tu semana?" value="${esc(state.persistence.grounding?.lucha?.contexto || '')}">
+                        <input type="text" id="lucha-aprendizaje" class="input-field" placeholder="¿Qué notaste al dejar de pelear por unos segundos?" value="${esc(state.persistence.grounding?.lucha?.aprendizaje || '')}">
+                        <input type="text" id="lucha-accion" class="input-field" placeholder="Con esta emoción presente, ¿qué acción valiosa podés sostener?" value="${esc(state.persistence.grounding?.lucha?.accion || '')}">
                     </div>
                 </div>
             </div>

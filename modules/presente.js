@@ -4,6 +4,7 @@
 
 import { state, saveState } from '../core/state.js';
 import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
+import { escapeHTML as esc } from '../core/security.js';
 
 export function renderPresenteModule(container, module, { renderHome, initialTool } = {}) {
     const tools = [
@@ -177,8 +178,27 @@ export function render5SentidosTool(container) {
     ];
     let currentSense = 0;
     const answers = senses.map(() => []);
+    let finished = false;
 
     const internalRender = () => {
+        if (finished) {
+            container.innerHTML = `
+                <div class="tool-content animate-scale-in" style="text-align: center; padding: 3rem 1rem;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🌱</div>
+                    <h3 style="color: var(--color-primary); font-size: 1.5rem; margin-bottom: 1rem;">Ejercicio Completado</h3>
+                    <p style="color: var(--color-text-secondary); font-size: 1rem; margin-bottom: 2.5rem; max-width: 300px; margin-left: auto; margin-right: auto;">Notá cómo se siente estar aquí y ahora. El pasado es memoria, el futuro es imaginación.</p>
+                    <button class="btn-primary" id="btn-restart-5">Repetir ejercicio</button>
+                </div>
+            `;
+            document.getElementById('btn-restart-5').addEventListener('click', () => {
+                finished = false;
+                currentSense = 0;
+                for (let i = 0; i < answers.length; i++) answers[i] = [];
+                internalRender();
+            });
+            return;
+        }
+
         const s = senses[currentSense];
         const named = answers[currentSense];
         const remaining = Math.max(0, s.count - named.length);
@@ -200,7 +220,7 @@ export function render5SentidosTool(container) {
                     <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-top: 1rem;">
                         ${named.map((t, i) => `
                             <span class="sense-chip" style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; border-radius: 16px; background: ${s.color}1f; border: 1px solid ${s.color}55; font-size: 0.78rem;">
-                                ${t}<button class="btn-del-sense" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
+                                ${esc(t)}<button class="btn-del-sense" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
                             </span>
                         `).join('')}
                     </div>
@@ -229,7 +249,11 @@ export function render5SentidosTool(container) {
         });
 
         document.getElementById('btn-next-5').addEventListener('click', () => {
-            currentSense = (currentSense + 1) % senses.length;
+            if (isLast) {
+                finished = true;
+            } else {
+                currentSense = (currentSense + 1) % senses.length;
+            }
             internalRender();
         });
         document.getElementById('btn-prev-5')?.addEventListener('click', () => {
@@ -272,7 +296,7 @@ function renderCieloYClimaTool(container) {
                     <div id="clouds-container">
                         ${state.persistence.weather.map((item, i) => `
                             <div class="cloud-item glass animate-float" style="position: absolute; left: ${item.x}%; top: ${item.y}%; padding: 0.5rem 1rem; border-radius: 20px; background: rgba(255,255,255,0.1); backdrop-filter: blur(4px); font-size: 0.9rem;">
-                                ${item.text}
+                                ${esc(item.text)}
                             </div>
                         `).join('')}
                     </div>
@@ -288,9 +312,9 @@ function renderCieloYClimaTool(container) {
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
                     <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
                     <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="cielo-contexto" class="input-field" placeholder="¿Dónde aparece esto en tu vida cotidiana?" value="${state.persistence.grounding?.cielo?.contexto || ''}">
-                        <input type="text" id="cielo-aprendizaje" class="input-field" placeholder="¿Qué notaste al observar desde afuera?" value="${state.persistence.grounding?.cielo?.aprendizaje || ''}">
-                        <input type="text" id="cielo-accion" class="input-field" placeholder="Aunque esté el clima, ¿qué elegís hacer?" value="${state.persistence.grounding?.cielo?.accion || ''}">
+                        <input type="text" id="cielo-contexto" class="input-field" placeholder="¿Dónde aparece esto en tu vida cotidiana?" value="${esc(state.persistence.grounding?.cielo?.contexto || '')}">
+                        <input type="text" id="cielo-aprendizaje" class="input-field" placeholder="¿Qué notaste al observar desde afuera?" value="${esc(state.persistence.grounding?.cielo?.aprendizaje || '')}">
+                        <input type="text" id="cielo-accion" class="input-field" placeholder="Aunque esté el clima, ¿qué elegís hacer?" value="${esc(state.persistence.grounding?.cielo?.accion || '')}">
                     </div>
                 </div>
             </div>
