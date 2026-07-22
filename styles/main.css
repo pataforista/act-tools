@@ -1040,6 +1040,40 @@ button {
     animation: pulse-glow 3s infinite alternate;
 }
 
+/* Diana marks (importa.js) — la posición, escala y color se fijan inline */
+.diana-mark {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    transition: scale 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+}
+
+/* Texto de carga inicial (index.html) */
+.loader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40vh;
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    text-align: center;
+    animation: loader-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes loader-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.9; }
+}
+
 /* Reduced Motion (A11y) */
 @media (prefers-reduced-motion: reduce) {
     * {
