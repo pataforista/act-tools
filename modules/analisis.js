@@ -95,6 +95,7 @@ function renderMatrixTool(container) {
         `;
 
         const input = document.getElementById('matrix-item-input');
+        input?.focus();
         container.querySelectorAll('[data-quadrant]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const text = input.value.trim();

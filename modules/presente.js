@@ -113,6 +113,19 @@ function renderSTOPTool(container) {
         const circle = document.getElementById('stop-breath-circle');
         const label = document.getElementById('stop-breath-label');
         if (!circle) return;
+
+        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+            // No pulsing circle, but the Inhala/Exhala pacing itself still matters here.
+            let reversed = false;
+            if (label) label.innerText = 'Inhala';
+            const intervalId = setInterval(() => {
+                reversed = !reversed;
+                if (label) label.innerText = reversed ? 'Exhala' : 'Inhala';
+            }, 5000);
+            breathAnim = { pause: () => clearInterval(intervalId) };
+            return;
+        }
+
         breathAnim = anime({
             targets: circle,
             scale: [0.7, 1.5],
@@ -324,17 +337,20 @@ function renderCieloYClimaTool(container) {
         `;
 
         attachGuideBadgeEvents();
+        document.getElementById('weather-input')?.focus();
 
         // Slower cloud animation for mobile/clinical use
-        anime({
-            targets: '.cloud-item',
-            translateX: () => [0, anime.random(-20, 20)],
-            translateY: () => [0, anime.random(-10, 10)],
-            duration: 10000,
-            direction: 'alternate',
-            loop: true,
-            easing: 'easeInOutSine'
-        });
+        if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+            anime({
+                targets: '.cloud-item',
+                translateX: () => [0, anime.random(-20, 20)],
+                translateY: () => [0, anime.random(-10, 10)],
+                duration: 10000,
+                direction: 'alternate',
+                loop: true,
+                easing: 'easeInOutSine'
+            });
+        }
 
         ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
             const el = document.getElementById(`cielo-${key}`);

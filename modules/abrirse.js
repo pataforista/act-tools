@@ -210,6 +210,7 @@ function renderVisualizadorPensamientosTool(container) {
         `;
 
         attachGuideBadgeEvents();
+        document.getElementById('thought-input')?.focus();
 
         ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
             const el = document.getElementById(`visualizador-${key}`);
@@ -645,6 +646,7 @@ function renderRadioDoomGloomTool(container) {
         `;
 
         attachGuideBadgeEvents();
+        document.getElementById('radio-input')?.focus();
 
         ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
             const el = document.getElementById(`radio-${key}`);
