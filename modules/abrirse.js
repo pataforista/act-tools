@@ -124,7 +124,7 @@ function renderVisualizadorPensamientosTool(container) {
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div class="color-picker" style="display: flex; gap: 0.5rem;">
                             ${['#ffffff', '#ef4444', '#3b82f6', '#f59e0b', '#10b981'].map(c => `
-                                <div class="color-swatch ${activeColor === c ? 'active' : ''}" data-color="${c}" style="width: 24px; height: 24px; border-radius: 50%; background: ${c}; cursor: pointer; border: 2px solid ${activeColor === c ? 'white' : 'transparent'};"></div>
+                                <div class="color-swatch ${activeColor === c ? 'active' : ''}" data-color="${c}" style="width: 32px; height: 32px; border-radius: 50%; background: ${c}; cursor: pointer; border: 2px solid ${activeColor === c ? 'white' : 'transparent'};"></div>
                             `).join('')}
                         </div>
                         <div class="size-picker" style="display: flex; gap: 0.25rem;">

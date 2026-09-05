@@ -234,7 +234,7 @@ export function render5SentidosTool(container) {
                     <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-top: 1rem;">
                         ${named.map((t, i) => `
                             <span class="sense-chip" style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; border-radius: 16px; background: ${s.color}1f; border: 1px solid ${s.color}55; font-size: 0.78rem;">
-                                ${esc(t)}<button class="btn-del-sense" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
+                                ${esc(t)}<button class="item-remove-btn btn-del-sense" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
                             </span>
                         `).join('')}
                     </div>

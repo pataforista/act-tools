@@ -181,6 +181,10 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     min-height: 100vh;
+    min-height: 100dvh;
+    /* dvh accounts for the iOS/Android browser chrome that comes and goes; a
+       plain 100vh can leave content padding stuck behind it or the page
+       needing an extra scroll just to reach the actual bottom. */
     transition: background-color 0.5s ease;
     font-size: 16px;
     /* A11y default */
@@ -206,6 +210,7 @@ body {
     margin: 0 auto;
     padding: calc(24px + env(safe-area-inset-top)) 24px calc(48px + env(safe-area-inset-bottom));
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
@@ -793,6 +798,43 @@ button {
         height: 52px;
     }
 }
+
+/* Mobile touch fixes. Most text fields in this app are styled well under
+   16px (0.7–0.9rem) for density; iOS Safari reads that as "the user needs
+   help reading this" and auto-zooms the whole page on focus, which is
+   disruptive mid-session and doesn't auto-revert cleanly. 16px is the
+   documented threshold below which that kicks in, so every text field gets
+   bumped to it here rather than hunting down each inline font-size. */
+@media (max-width: 640px) {
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* touch-action:none: this app's own gesture (drag-to-reposition a thought
+   on the visualizer board) needs to own the touch instead of the browser
+   starting a page-scroll/pinch-zoom underneath it. */
+.thought-item {
+    touch-action: none;
+}
+
+/* touch-action:manipulation everywhere else: removes the double-tap-to-zoom
+   window on tappable controls, so a fast second tap (adding several items
+   in a row) never accidentally zooms the page instead of registering. */
+button, .hex-vertex, .color-swatch, .diana-target, [role="button"] {
+    touch-action: manipulation;
+}
+
+/* Touch targets: a few "×" remove controls were sized for the eye, not the
+   finger. Bumping the hit area doesn't require growing the "×" itself. */
+.item-remove-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    min-height: 32px;
+}
+
 /* Toasts (ui/utils.js) */
 .toast {
     position: fixed;

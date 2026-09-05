@@ -321,7 +321,7 @@ export function renderEstresModule(container, config, { renderHome }) {
                 : `<div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">${est.load.map((s, i) => `
                         <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.6rem; border-radius: 16px; background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.3); font-size: 0.76rem;">
                             ${esc(s.label)} <span style="opacity: 0.6;">${s.pct}%</span>
-                            <button class="btn-remove-load" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
+                            <button class="item-remove-btn btn-remove-load" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
                         </span>
                     `).join('')}</div>`
             }
@@ -339,7 +339,7 @@ export function renderEstresModule(container, config, { renderHome }) {
                             <p style="margin: 0; font-size: 0.8rem;">${esc(r.text)}</p>
                             <p style="margin: 0.1rem 0 0; font-size: 0.65rem; color: var(--color-text-secondary);">${note}</p>
                         </div>
-                        <button class="btn-remove-resp" data-idx="${globalIdx}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.9rem; line-height: 1;">×</button>
+                        <button class="item-remove-btn btn-remove-resp" data-idx="${globalIdx}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.9rem; line-height: 1;">×</button>
                     </div>`;
             }).join('')
             : '<p style="font-size: 0.75rem; opacity: 0.5; margin: 0 0 0.5rem;">—</p>';
