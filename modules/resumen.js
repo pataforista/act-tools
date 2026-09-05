@@ -354,7 +354,7 @@ export function renderResumenModule(container, { navigateToHome, renderHomeworkV
 
                 ${renderSummarySections(p)}
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+                <div class="fab-safe" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
                     <button class="btn-primary" id="btn-export-json" style="grid-column: 1 / -1;">⬇️ Exportar sesión (.json)</button>
                     <button class="btn-ghost" id="btn-copy-summary">Copiar Texto</button>
                     <button class="btn-ghost" id="btn-homework-view">Ver Tarea Paciente</button>

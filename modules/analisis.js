@@ -3,7 +3,7 @@
  */
 
 import { state, saveState } from '../core/state.js';
-import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
+import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents, showToast } from '../ui/utils.js';
 import { escapeHTML as esc } from '../core/security.js';
 
 export function renderAnalisisModule(container, module, { renderHome }) {
@@ -67,7 +67,12 @@ function renderMatrixTool(container) {
                                 <header style="font-size: 0.5rem; color: ${cat.color}; border-color: ${cat.color}44;">${cat.label}</header>
                                 <div class="items" style="display: flex; flex-direction: column; gap: 0.4rem;">
                                     ${state.persistence.matrix[id].length ?
-                state.persistence.matrix[id].map(item => `<div class="glass" style="padding: 0.5rem; font-size: 0.75rem; border-left: 2px solid ${cat.color}; background: rgba(0,0,0,0.1); border-radius: 4px;">${esc(item)}</div>`).join('') :
+                state.persistence.matrix[id].map((item, i) => `
+                                        <div class="glass" style="padding: 0.5rem; font-size: 0.75rem; border-left: 2px solid ${cat.color}; background: rgba(0,0,0,0.1); border-radius: 4px; display: flex; align-items: center; gap: 0.4rem;">
+                                            <span style="flex: 1;">${esc(item)}</span>
+                                            <button class="item-remove-btn btn-del-matrix" data-qid="${id}" data-idx="${i}" aria-label="Quitar">×</button>
+                                        </div>
+                                    `).join('') :
                 `<div style="font-size: 0.6rem; opacity: 0.3; font-style: italic; text-align: center; margin-top: 1rem;">${cat.sub}</div>`
             }
                                 </div>
@@ -110,6 +115,24 @@ function renderMatrixTool(container) {
                 } else {
                     input.focus();
                 }
+            });
+        });
+
+        container.querySelectorAll('.btn-del-matrix').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const qid = btn.dataset.qid;
+                const idx = parseInt(btn.dataset.idx);
+                const [removed] = state.persistence.matrix[qid].splice(idx, 1);
+                saveState();
+                internalRender();
+                showToast('Ítem quitado del cuadrante', {
+                    actionLabel: 'Deshacer',
+                    onAction: () => {
+                        state.persistence.matrix[qid].splice(idx, 0, removed);
+                        saveState();
+                        internalRender();
+                    }
+                });
             });
         });
     };
@@ -218,9 +241,18 @@ function renderEvitacionTool(container) {
 
         container.querySelectorAll('.btn-del-evit').forEach(btn => {
             btn.addEventListener('click', () => {
-                state.persistence.evitacion.splice(parseInt(btn.dataset.idx), 1);
+                const idx = parseInt(btn.dataset.idx);
+                const [removed] = state.persistence.evitacion.splice(idx, 1);
                 saveState();
                 internalRender();
+                showToast('Quitado de la balanza', {
+                    actionLabel: 'Deshacer',
+                    onAction: () => {
+                        state.persistence.evitacion.splice(idx, 0, removed);
+                        saveState();
+                        internalRender();
+                    }
+                });
             });
         });
     };

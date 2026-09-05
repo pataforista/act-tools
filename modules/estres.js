@@ -10,7 +10,7 @@
  */
 
 import { state, saveState } from '../core/state.js';
-import { renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
+import { renderGuideBadge, attachGuideBadgeEvents, showToast } from '../ui/utils.js';
 import { escapeHTML as esc } from '../core/security.js';
 
 // A bigger cup = more capacity/willingness → the same load fills it less.
@@ -267,7 +267,7 @@ export function renderEstresModule(container, config, { renderHome }) {
 
                 <!-- Tabs: Carga / Respuestas -->
                 <div class="glass-card" style="padding: 0; overflow: hidden;">
-                    <div style="display: flex; border-bottom: 1px solid var(--glass-border);">
+                    <div class="fab-safe" style="display: flex; border-bottom: 1px solid var(--glass-border);">
                         <button class="estres-tab ${activeTab === 'carga' ? 'active' : ''}" data-tab="carga"
                             style="flex: 1; padding: 0.75rem; border: none; background: ${activeTab === 'carga' ? 'rgba(56,189,248,0.15)' : 'transparent'}; color: ${activeTab === 'carga' ? '#7dd3fc' : 'var(--color-text-secondary)'}; font-weight: 700; font-size: 0.85rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'carga' ? '#7dd3fc' : 'transparent'}; transition: var(--transition-base);">
                             💧 La carga
@@ -391,9 +391,18 @@ export function renderEstresModule(container, config, { renderHome }) {
         });
         container.querySelectorAll('.btn-remove-load').forEach(btn => {
             btn.addEventListener('click', () => {
-                est.load.splice(parseInt(btn.dataset.idx), 1);
+                const idx = parseInt(btn.dataset.idx);
+                const [removed] = est.load.splice(idx, 1);
                 saveState();
                 renderInner();
+                showToast(`Quitaste "${removed.label}"`, {
+                    actionLabel: 'Deshacer',
+                    onAction: () => {
+                        est.load.splice(idx, 0, removed);
+                        saveState();
+                        renderInner();
+                    }
+                });
             });
         });
 
@@ -412,9 +421,18 @@ export function renderEstresModule(container, config, { renderHome }) {
         });
         container.querySelectorAll('.btn-remove-resp').forEach(btn => {
             btn.addEventListener('click', () => {
-                est.responses.splice(parseInt(btn.dataset.idx), 1);
+                const idx = parseInt(btn.dataset.idx);
+                const [removed] = est.responses.splice(idx, 1);
                 saveState();
                 renderInner();
+                showToast('Respuesta quitada', {
+                    actionLabel: 'Deshacer',
+                    onAction: () => {
+                        est.responses.splice(idx, 0, removed);
+                        saveState();
+                        renderInner();
+                    }
+                });
             });
         });
 

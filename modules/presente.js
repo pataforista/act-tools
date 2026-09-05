@@ -3,7 +3,7 @@
  */
 
 import { state, saveState } from '../core/state.js';
-import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
+import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents, attachEdgeFade, groundingField } from '../ui/utils.js';
 import { escapeHTML as esc } from '../core/security.js';
 
 export function renderPresenteModule(container, module, { renderHome, initialTool } = {}) {
@@ -34,6 +34,7 @@ export function renderPresenteModule(container, module, { renderHome, initialToo
         `;
 
         attachHeaderEvents(renderHome, saveState);
+        attachEdgeFade(container.querySelector('.tool-selector'));
 
         document.querySelectorAll('.btn-tool').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -310,11 +311,12 @@ function renderCieloYClimaTool(container) {
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
-                    <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="cielo-contexto" class="input-field" placeholder="¿Dónde aparece esto en tu vida cotidiana?" value="${esc(state.persistence.grounding?.cielo?.contexto || '')}">
-                        <input type="text" id="cielo-aprendizaje" class="input-field" placeholder="¿Qué notaste al observar desde afuera?" value="${esc(state.persistence.grounding?.cielo?.aprendizaje || '')}">
-                        <input type="text" id="cielo-accion" class="input-field" placeholder="Aunque esté el clima, ¿qué elegís hacer?" value="${esc(state.persistence.grounding?.cielo?.accion || '')}">
+                    <h4 style="margin-bottom: 0.25rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <p style="font-size: 0.7rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Tres pasos para cerrar el ejercicio: dónde apareció, qué cambió, qué acción sigue.</p>
+                    <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
+                        ${groundingField('cielo-contexto', '¿Dónde aparece esto en tu vida cotidiana?', esc(state.persistence.grounding?.cielo?.contexto || ''))}
+                        ${groundingField('cielo-aprendizaje', '¿Qué notaste al observar desde afuera?', esc(state.persistence.grounding?.cielo?.aprendizaje || ''))}
+                        ${groundingField('cielo-accion', 'Aunque esté el clima, ¿qué elegís hacer?', esc(state.persistence.grounding?.cielo?.accion || ''))}
                     </div>
                 </div>
             </div>

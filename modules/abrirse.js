@@ -4,7 +4,7 @@
 
 import { state, saveState } from '../core/state.js';
 import { radioAudio } from '../core/audio.js';
-import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
+import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents, attachEdgeFade, groundingField, showToast } from '../ui/utils.js';
 import { animateDefusion } from '../core/animations.js';
 import { escapeHTML as esc } from '../core/security.js';
 
@@ -37,6 +37,7 @@ export function renderAbrirseModule(container, module, { renderHome }) {
         `;
 
         attachHeaderEvents(renderHome, saveState);
+        attachEdgeFade(container.querySelector('.tool-selector'));
 
         // Cleanup audio on exit
         const cleanup = () => radioAudio.stop();
@@ -159,11 +160,12 @@ function renderVisualizadorPensamientosTool(container) {
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
-                    <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="visualizador-contexto" class="input-field" placeholder="¿Dónde te enganchaste con este pensamiento hoy?" value="${esc(state.persistence.grounding?.visualizador?.contexto || '')}">
-                        <input type="text" id="visualizador-aprendizaje" class="input-field" placeholder="¿Qué cambió al verlo como pensamiento y no como hecho?" value="${esc(state.persistence.grounding?.visualizador?.aprendizaje || '')}">
-                        <input type="text" id="visualizador-accion" class="input-field" placeholder="Con este pensamiento presente, ¿qué acción útil podés hacer?" value="${esc(state.persistence.grounding?.visualizador?.accion || '')}">
+                    <h4 style="margin-bottom: 0.25rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <p style="font-size: 0.7rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Tres pasos para cerrar el ejercicio: dónde apareció, qué cambió, qué acción sigue.</p>
+                    <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
+                        ${groundingField('visualizador-contexto', '¿Dónde te enganchaste con este pensamiento hoy?', esc(state.persistence.grounding?.visualizador?.contexto || ''))}
+                        ${groundingField('visualizador-aprendizaje', '¿Qué cambió al verlo como pensamiento y no como hecho?', esc(state.persistence.grounding?.visualizador?.aprendizaje || ''))}
+                        ${groundingField('visualizador-accion', 'Con este pensamiento presente, ¿qué acción útil podés hacer?', esc(state.persistence.grounding?.visualizador?.accion || ''))}
                     </div>
                 </div>
 
@@ -265,10 +267,19 @@ function renderVisualizadorPensamientosTool(container) {
         input?.addEventListener('keydown', (e) => { if (e.key === 'Enter') addThought(); });
 
         document.getElementById('btn-delete-thought')?.addEventListener('click', () => {
-            state.persistence.thoughts.splice(selectedThoughtIndex, 1);
+            const idx = selectedThoughtIndex;
+            const [removed] = state.persistence.thoughts.splice(idx, 1);
             selectedThoughtIndex = null;
             saveState();
             internalRender();
+            showToast('Pensamiento eliminado', {
+                actionLabel: 'Deshacer',
+                onAction: () => {
+                    state.persistence.thoughts.splice(idx, 0, removed);
+                    saveState();
+                    internalRender();
+                }
+            });
         });
 
         document.getElementById('prop-blur')?.addEventListener('input', (e) => {
@@ -367,11 +378,12 @@ function renderHojasAguaTool(container) {
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
-                    <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="hojas-contexto" class="input-field" placeholder="¿En qué situación apareció este pensamiento?" value="${esc(state.persistence.grounding?.hojas?.contexto || '')}">
-                        <input type="text" id="hojas-aprendizaje" class="input-field" placeholder="¿Qué notaste al observarlo en lugar de discutir con él?" value="${esc(state.persistence.grounding?.hojas?.aprendizaje || '')}">
-                        <input type="text" id="hojas-accion" class="input-field" placeholder="Aunque ese pensamiento esté ahí, ¿qué podés hacer?" value="${esc(state.persistence.grounding?.hojas?.accion || '')}">
+                    <h4 style="margin-bottom: 0.25rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <p style="font-size: 0.7rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Tres pasos para cerrar el ejercicio: dónde apareció, qué cambió, qué acción sigue.</p>
+                    <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
+                        ${groundingField('hojas-contexto', '¿En qué situación apareció este pensamiento?', esc(state.persistence.grounding?.hojas?.contexto || ''))}
+                        ${groundingField('hojas-aprendizaje', '¿Qué notaste al observarlo en lugar de discutir con él?', esc(state.persistence.grounding?.hojas?.aprendizaje || ''))}
+                        ${groundingField('hojas-accion', 'Aunque ese pensamiento esté ahí, ¿qué podés hacer?', esc(state.persistence.grounding?.hojas?.accion || ''))}
                     </div>
                 </div>
             </div>
@@ -599,11 +611,12 @@ function renderRadioDoomGloomTool(container) {
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
-                    <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="radio-contexto" class="input-field" placeholder="¿En qué situación apareció esta emisora?" value="${esc(state.persistence.grounding?.radio?.contexto || '')}">
-                        <input type="text" id="radio-aprendizaje" class="input-field" placeholder="¿Qué notaste al escucharla como voz de la mente?" value="${esc(state.persistence.grounding?.radio?.aprendizaje || '')}">
-                        <input type="text" id="radio-accion" class="input-field" placeholder="Aunque suene fuerte, ¿qué acción elegís sostener?" value="${esc(state.persistence.grounding?.radio?.accion || '')}">
+                    <h4 style="margin-bottom: 0.25rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <p style="font-size: 0.7rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Tres pasos para cerrar el ejercicio: dónde apareció, qué cambió, qué acción sigue.</p>
+                    <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
+                        ${groundingField('radio-contexto', '¿En qué situación apareció esta emisora?', esc(state.persistence.grounding?.radio?.contexto || ''))}
+                        ${groundingField('radio-aprendizaje', '¿Qué notaste al escucharla como voz de la mente?', esc(state.persistence.grounding?.radio?.aprendizaje || ''))}
+                        ${groundingField('radio-accion', 'Aunque suene fuerte, ¿qué acción elegís sostener?', esc(state.persistence.grounding?.radio?.accion || ''))}
                     </div>
                 </div>
             </div>
@@ -708,10 +721,19 @@ function renderRadioDoomGloomTool(container) {
         document.querySelectorAll('.btn-delete-snippet').forEach((btn) => {
             btn.addEventListener('click', () => {
                 const index = Number(btn.dataset.index);
-                snippets.splice(index, 1);
+                const [removed] = snippets.splice(index, 1);
                 snippets = [...snippets];
                 persistRadioState();
                 internalRender();
+                showToast('Frase borrada', {
+                    actionLabel: 'Deshacer',
+                    onAction: () => {
+                        snippets.splice(index, 0, removed);
+                        snippets = [...snippets];
+                        persistRadioState();
+                        internalRender();
+                    }
+                });
             });
         });
 
@@ -817,11 +839,12 @@ function renderInterruptorLuchaTool(container) {
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
-                    <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="lucha-contexto" class="input-field" placeholder="¿Cuándo se activa más esta lucha en tu semana?" value="${esc(state.persistence.grounding?.lucha?.contexto || '')}">
-                        <input type="text" id="lucha-aprendizaje" class="input-field" placeholder="¿Qué notaste al dejar de pelear por unos segundos?" value="${esc(state.persistence.grounding?.lucha?.aprendizaje || '')}">
-                        <input type="text" id="lucha-accion" class="input-field" placeholder="Con esta emoción presente, ¿qué acción valiosa podés sostener?" value="${esc(state.persistence.grounding?.lucha?.accion || '')}">
+                    <h4 style="margin-bottom: 0.25rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <p style="font-size: 0.7rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Tres pasos para cerrar el ejercicio: dónde apareció, qué cambió, qué acción sigue.</p>
+                    <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
+                        ${groundingField('lucha-contexto', '¿Cuándo se activa más esta lucha en tu semana?', esc(state.persistence.grounding?.lucha?.contexto || ''))}
+                        ${groundingField('lucha-aprendizaje', '¿Qué notaste al dejar de pelear por unos segundos?', esc(state.persistence.grounding?.lucha?.aprendizaje || ''))}
+                        ${groundingField('lucha-accion', 'Con esta emoción presente, ¿qué acción valiosa podés sostener?', esc(state.persistence.grounding?.lucha?.accion || ''))}
                     </div>
                 </div>
             </div>

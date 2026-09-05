@@ -2,16 +2,75 @@
  * ACT In-Session - UI Utilities & Components
  */
 
-export function showToast(message) {
+let toastHideTimer = null;
+
+/**
+ * Shows a toast. Pass { actionLabel, onAction } to offer an inline undo —
+ * used wherever a single click removes something a person might want back
+ * (a load chip, a saved thought, a matrix item) without a confirm() dialog.
+ */
+export function showToast(message, { actionLabel, onAction, duration } = {}) {
     let toast = document.querySelector('.toast');
     if (!toast) {
         toast = document.createElement('div');
         toast.className = 'toast';
         document.body.appendChild(toast);
     }
-    toast.innerText = message;
+
+    toast.innerHTML = '';
+    const body = document.createElement('div');
+    body.className = 'toast-body';
+    const text = document.createElement('span');
+    text.innerText = message;
+    body.appendChild(text);
+
+    if (actionLabel && onAction) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'toast-undo';
+        btn.innerText = actionLabel;
+        btn.addEventListener('click', () => {
+            clearTimeout(toastHideTimer);
+            toast.classList.remove('show');
+            onAction();
+        });
+        body.appendChild(btn);
+    }
+
+    toast.appendChild(body);
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2000);
+    clearTimeout(toastHideTimer);
+    toastHideTimer = setTimeout(() => toast.classList.remove('show'), duration || (actionLabel ? 4500 : 2000));
+}
+
+/**
+ * Toggles has-more-left/has-more-right on a horizontally scrollable element
+ * so a fade only appears at an edge that actually hides more content —
+ * never a permanent decoration on a row that already fits.
+ */
+export function attachEdgeFade(el) {
+    if (!el) return;
+    const update = () => {
+        const scrollable = el.scrollWidth > el.clientWidth + 1;
+        el.classList.toggle('has-more-right', scrollable && el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
+        el.classList.toggle('has-more-left', scrollable && el.scrollLeft > 1);
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+}
+
+/**
+ * One "Aterrizaje clínico" question, numbered as a step (see .grounding-field
+ * in main.css). Keeps the markup identical across tools that all repeat the
+ * same contexto/aprendizaje/acción pattern.
+ */
+export function groundingField(id, placeholder, value) {
+    return `
+        <div class="grounding-field">
+            <input type="text" id="${id}" class="input-field" placeholder="${placeholder}" value="${value}">
+        </div>
+    `;
 }
 
 export function renderModuleHeader(module, options = {}) {
