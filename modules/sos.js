@@ -3,7 +3,6 @@
  */
 
 import { render5SentidosTool } from './presente.js';
-import { animateBreathing } from '../core/animations.js';
 
 export function renderSOSModule(container, { navigateToHome }) {
     let activeTool = 'breathing';
@@ -90,6 +89,25 @@ export function renderSOSModule(container, { navigateToHome }) {
                 // Advanced breathing logic with anime.js
                 const animateStep = () => {
                     const steps = patterns[pattern].times;
+
+                    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+                        // Keep the pacing (the point of the exercise) without the moving circle.
+                        const phaseLabels = ['Inhala', 'Mantén', 'Exhala', 'Mantén'];
+                        let stepIndex = 0;
+                        const runPhase = () => {
+                            while (steps[stepIndex] === 0) stepIndex = (stepIndex + 1) % steps.length;
+                            const phaseText = document.getElementById('phase-text');
+                            if (phaseText) phaseText.textContent = phaseLabels[stepIndex];
+                            const timeoutId = setTimeout(() => {
+                                stepIndex = (stepIndex + 1) % steps.length;
+                                runPhase();
+                            }, steps[stepIndex]);
+                            animation = { pause: () => clearTimeout(timeoutId) };
+                        };
+                        runPhase();
+                        return;
+                    }
+
                     const tl = anime.timeline({
                         loop: true,
                         update: (anim) => {

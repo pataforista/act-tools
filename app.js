@@ -123,6 +123,7 @@ function init() {
     const sosBtn = document.getElementById('btn-sos');
     sosBtn?.addEventListener('click', () => {
         mainContent.style.display = 'none';
+        setSosVisible(false); // the SOS screen has its own "Cerrar"; a second floating SOS button here is just clutter
         let sosContainer = document.getElementById('sos-content');
         if (!sosContainer) {
             sosContainer = document.createElement('div');
@@ -136,6 +137,7 @@ function init() {
             navigateToHome: () => {
                 sosContainer.style.display = 'none';
                 mainContent.style.display = 'block';
+                setSosVisible(true);
             }
         });
     });

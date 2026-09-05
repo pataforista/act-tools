@@ -4,7 +4,7 @@
 
 import { state, saveState } from '../core/state.js';
 import { radioAudio } from '../core/audio.js';
-import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
+import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents, attachEdgeFade, groundingField, showToast } from '../ui/utils.js';
 import { animateDefusion } from '../core/animations.js';
 import { escapeHTML as esc } from '../core/security.js';
 
@@ -37,6 +37,7 @@ export function renderAbrirseModule(container, module, { renderHome }) {
         `;
 
         attachHeaderEvents(renderHome, saveState);
+        attachEdgeFade(container.querySelector('.tool-selector'));
 
         // Cleanup audio on exit
         const cleanup = () => radioAudio.stop();
@@ -97,6 +98,15 @@ function renderVisualizadorPensamientosTool(container) {
     });
 
     const internalRender = () => {
+        // While a thought is selected, the style controls edit IT — otherwise
+        // they just set the defaults for the next new thought. This is the
+        // single biggest source of "no control": before, picking a color
+        // after a thought already existed on the board did nothing to it.
+        const selectedThought = selectedThoughtIndex !== null ? state.persistence.thoughts[selectedThoughtIndex] : null;
+        const activeColor = selectedThought?.color || selectedColor;
+        const activeSize = selectedThought?.size || selectedSize;
+        const activeFont = selectedThought?.fontFamily || selectedFont;
+
         container.innerHTML = `
             <div class="tool-content">
                 ${guide}
@@ -107,15 +117,19 @@ function renderVisualizadorPensamientosTool(container) {
                 </div>
 
                 <div class="style-config glass" style="padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                    ${selectedThought
+                ? `<p style="font-size: 0.68rem; color: var(--color-primary); margin: 0;">✏️ Editando el pensamiento seleccionado — tocá el tablero vacío para soltarlo.</p>`
+                : `<p style="font-size: 0.68rem; color: var(--color-text-secondary); margin: 0;">Estos van a ser el color/tamaño/letra del próximo pensamiento. Tocá uno ya puesto para editarlo en vez de crear otro.</p>`
+            }
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div class="color-picker" style="display: flex; gap: 0.5rem;">
                             ${['#ffffff', '#ef4444', '#3b82f6', '#f59e0b', '#10b981'].map(c => `
-                                <div class="color-swatch ${selectedColor === c ? 'active' : ''}" data-color="${c}" style="width: 24px; height: 24px; border-radius: 50%; background: ${c}; cursor: pointer; border: 2px solid ${selectedColor === c ? 'white' : 'transparent'};"></div>
+                                <div class="color-swatch ${activeColor === c ? 'active' : ''}" data-color="${c}" style="width: 32px; height: 32px; border-radius: 50%; background: ${c}; cursor: pointer; border: 2px solid ${activeColor === c ? 'white' : 'transparent'};"></div>
                             `).join('')}
                         </div>
                         <div class="size-picker" style="display: flex; gap: 0.25rem;">
                             ${['0.7rem', '0.9rem', '1.2rem'].map(s => `
-                                <button class="btn-toggle ${selectedSize === s ? 'active' : ''}" data-size="${s}" style="font-size: 0.7rem; padding: 0.3rem 0.6rem; min-height: auto;">
+                                <button class="btn-toggle ${activeSize === s ? 'active' : ''}" data-size="${s}" style="font-size: 0.7rem; padding: 0.3rem 0.6rem; min-height: auto;">
                                     ${s === '0.7rem' ? 'P' : s === '0.9rem' ? 'M' : 'G'}
                                 </button>
                             `).join('')}
@@ -129,12 +143,14 @@ function renderVisualizadorPensamientosTool(container) {
 
                     <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem;">
                         ${availableFonts.map(font => `
-                            <button class="btn-toggle ${selectedFont === font.id ? 'active' : ''}" data-font="${font.id.replace(/"/g, '&quot;')}" style="font-size: 0.72rem; min-height: auto; padding: 0.35rem 0.5rem; font-family: ${font.id};">
+                            <button class="btn-toggle ${activeFont === font.id ? 'active' : ''}" data-font="${font.id.replace(/"/g, '&quot;')}" style="font-size: 0.72rem; min-height: auto; padding: 0.35rem 0.5rem; font-family: ${font.id};">
                                 ${font.label}
                             </button>
                         `).join('')}
                     </div>
                 </div>
+
+                <p style="font-size: 0.7rem; color: var(--color-text-secondary); text-align: center; margin: -1rem 0 0.75rem;">Tocá un pensamiento para editarlo. Arrastralo para moverlo por el tablero.</p>
 
                 <div id="thoughts-list" style="height: 400px; padding: 1.5rem; border: 2px dashed var(--glass-border); border-radius: var(--radius-lg); position: relative; background: rgba(0,0,0,0.1); overflow: hidden; perspective: 1000px;">
                     ${state.persistence.thoughts.length === 0 ? '<p style="color: var(--color-text-secondary); font-size: 0.8rem; text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">Externaliza tus pensamientos aquí.</p>' : ''}
@@ -144,13 +160,13 @@ function renderVisualizadorPensamientosTool(container) {
             const spacingStyle = t.spacing ? `letter-spacing: ${t.spacing}px;` : '';
             const fontStyle = t.fontFamily ? `font-family: ${t.fontFamily};` : '';
             return `
-                        <div class="thought-item glass animate-scale-in ${selectedThoughtIndex === i ? 'selected' : ''} ${distortClass}" 
-                             data-index="${i}" 
-                             style="position: absolute; left: ${t.x ?? (20 + (i % 3) * 30)}%; top: ${t.y ?? (20 + Math.floor(i / 3) * 20)}%; 
-                                    padding: 0.75rem 1.25rem; border-radius: 20px; font-size: ${t.size || '0.9rem'}; color: ${t.color || 'white'}; 
-                                    border: 2px solid ${selectedThoughtIndex === i ? 'var(--color-primary)' : (t.color || 'var(--glass-border)') + '22'}; 
-                                    opacity: ${t.opacity ?? 1}; filter: blur(${t.blur ?? 0}px); cursor: pointer; user-select: none; 
-                                    z-index: ${selectedThoughtIndex === i ? 100 : 10}; transition: border 0.3s, box-shadow 0.3s, transform 0.3s;
+                        <div class="thought-item glass animate-scale-in ${selectedThoughtIndex === i ? 'selected' : ''} ${distortClass}"
+                             data-index="${i}"
+                             style="position: absolute; left: ${t.x ?? (20 + (i % 3) * 30)}%; top: ${t.y ?? (20 + Math.floor(i / 3) * 20)}%;
+                                    padding: 0.75rem 1.25rem; border-radius: 20px; font-size: ${t.size || '0.9rem'}; color: ${t.color || 'white'};
+                                    border: 2px solid ${selectedThoughtIndex === i ? 'var(--color-primary)' : (t.color || 'var(--glass-border)') + '22'};
+                                    opacity: ${t.opacity ?? 1}; filter: blur(${t.blur ?? 0}px); cursor: grab; user-select: none; touch-action: none;
+                                    z-index: ${selectedThoughtIndex === i ? 100 : 10}; transition: border 0.3s, box-shadow 0.3s;
                                     transform: ${rotationStyle}; ${spacingStyle} ${fontStyle}">
                             ${esc(t.text || t)}
                         </div>
@@ -159,11 +175,12 @@ function renderVisualizadorPensamientosTool(container) {
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
-                    <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="visualizador-contexto" class="input-field" placeholder="¿Dónde te enganchaste con este pensamiento hoy?" value="${esc(state.persistence.grounding?.visualizador?.contexto || '')}">
-                        <input type="text" id="visualizador-aprendizaje" class="input-field" placeholder="¿Qué cambió al verlo como pensamiento y no como hecho?" value="${esc(state.persistence.grounding?.visualizador?.aprendizaje || '')}">
-                        <input type="text" id="visualizador-accion" class="input-field" placeholder="Con este pensamiento presente, ¿qué acción útil podés hacer?" value="${esc(state.persistence.grounding?.visualizador?.accion || '')}">
+                    <h4 style="margin-bottom: 0.25rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <p style="font-size: 0.7rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Tres pasos para cerrar el ejercicio: dónde apareció, qué cambió, qué acción sigue.</p>
+                    <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
+                        ${groundingField('visualizador-contexto', '¿Dónde te enganchaste con este pensamiento hoy?', esc(state.persistence.grounding?.visualizador?.contexto || ''))}
+                        ${groundingField('visualizador-aprendizaje', '¿Qué cambió al verlo como pensamiento y no como hecho?', esc(state.persistence.grounding?.visualizador?.aprendizaje || ''))}
+                        ${groundingField('visualizador-accion', 'Con este pensamiento presente, ¿qué acción útil podés hacer?', esc(state.persistence.grounding?.visualizador?.accion || ''))}
                     </div>
                 </div>
 
@@ -172,7 +189,12 @@ function renderVisualizadorPensamientosTool(container) {
                         <h4 style="font-size: 0.85rem; font-weight: bold; color: var(--color-primary);">Propiedades del Pensamiento</h4>
                         <button class="btn-ghost" id="btn-delete-thought" style="color: #ef4444; font-size: 0.75rem;">Eliminar ×</button>
                     </div>
-                    
+
+                    <div class="property-group" style="grid-column: 1 / -1;">
+                        <label>Texto del pensamiento</label>
+                        <input type="text" id="prop-text" class="input-field" value="${esc((typeof selectedThought === 'string' ? selectedThought : selectedThought?.text) || '')}">
+                    </div>
+
                     <div class="property-group">
                         <label>Distancia del pensamiento</label>
                         <input type="range" id="prop-blur" min="0" max="3" step="0.5" value="${state.persistence.thoughts[selectedThoughtIndex]?.blur || 0}" class="slider-act">
@@ -208,6 +230,7 @@ function renderVisualizadorPensamientosTool(container) {
         `;
 
         attachGuideBadgeEvents();
+        document.getElementById('thought-input')?.focus();
 
         ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
             const el = document.getElementById(`visualizador-${key}`);
@@ -234,9 +257,58 @@ function renderVisualizadorPensamientosTool(container) {
         });
 
         document.querySelectorAll('.thought-item').forEach(el => {
-            el.addEventListener('mousedown', (e) => {
-                selectedThoughtIndex = parseInt(el.dataset.index);
-                internalRender();
+            // A tap selects it (full re-render, property panel opens). A drag
+            // moves it instead — re-rendering mid-drag would yank the element
+            // out from under the pointer, so a move only touches el.style and
+            // persists once released; no re-render needed since the DOM
+            // already reflects the final position.
+            let dragging = false;
+            let moved = false;
+            let startX = 0, startY = 0, originLeftPct = 0, originTopPct = 0;
+
+            const onPointerMove = (e) => {
+                if (!dragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                if (!moved && Math.hypot(dx, dy) < 4) return;
+                moved = true;
+                el.style.cursor = 'grabbing';
+                const boardRect = board.getBoundingClientRect();
+                const newLeft = Math.min(92, Math.max(0, originLeftPct + (dx / boardRect.width) * 100));
+                const newTop = Math.min(88, Math.max(0, originTopPct + (dy / boardRect.height) * 100));
+                el.style.left = `${newLeft}%`;
+                el.style.top = `${newTop}%`;
+                el.dataset.pendingX = newLeft;
+                el.dataset.pendingY = newTop;
+            };
+
+            const onPointerUp = () => {
+                dragging = false;
+                el.style.cursor = 'grab';
+                document.removeEventListener('pointermove', onPointerMove);
+                document.removeEventListener('pointerup', onPointerUp);
+                const idx = parseInt(el.dataset.index);
+                if (moved) {
+                    state.persistence.thoughts[idx].x = parseFloat(el.dataset.pendingX);
+                    state.persistence.thoughts[idx].y = parseFloat(el.dataset.pendingY);
+                    saveState();
+                } else {
+                    selectedThoughtIndex = idx;
+                    internalRender();
+                }
+            };
+
+            el.addEventListener('pointerdown', (e) => {
+                dragging = true;
+                moved = false;
+                startX = e.clientX;
+                startY = e.clientY;
+                const idx = parseInt(el.dataset.index);
+                const t = state.persistence.thoughts[idx];
+                originLeftPct = t.x ?? parseFloat(el.style.left) ?? 0;
+                originTopPct = t.y ?? parseFloat(el.style.top) ?? 0;
+                document.addEventListener('pointermove', onPointerMove);
+                document.addEventListener('pointerup', onPointerUp);
             });
         });
 
@@ -265,10 +337,26 @@ function renderVisualizadorPensamientosTool(container) {
         input?.addEventListener('keydown', (e) => { if (e.key === 'Enter') addThought(); });
 
         document.getElementById('btn-delete-thought')?.addEventListener('click', () => {
-            state.persistence.thoughts.splice(selectedThoughtIndex, 1);
+            const idx = selectedThoughtIndex;
+            const [removed] = state.persistence.thoughts.splice(idx, 1);
             selectedThoughtIndex = null;
             saveState();
             internalRender();
+            showToast('Pensamiento eliminado', {
+                actionLabel: 'Deshacer',
+                onAction: () => {
+                    state.persistence.thoughts.splice(idx, 0, removed);
+                    saveState();
+                    internalRender();
+                }
+            });
+        });
+
+        document.getElementById('prop-text')?.addEventListener('input', (e) => {
+            state.persistence.thoughts[selectedThoughtIndex].text = e.target.value;
+            saveState();
+            const el = document.querySelector(`.thought-item[data-index="${selectedThoughtIndex}"]`);
+            if (el) el.textContent = e.target.value;
         });
 
         document.getElementById('prop-blur')?.addEventListener('input', (e) => {
@@ -312,13 +400,34 @@ function renderVisualizadorPensamientosTool(container) {
         animateDefusion('.thought-item');
 
         document.querySelectorAll('.color-swatch').forEach(sw => {
-            sw.addEventListener('click', () => { selectedColor = sw.dataset.color; internalRender(); });
+            sw.addEventListener('click', () => {
+                selectedColor = sw.dataset.color;
+                if (selectedThoughtIndex !== null) {
+                    state.persistence.thoughts[selectedThoughtIndex].color = selectedColor;
+                    saveState();
+                }
+                internalRender();
+            });
         });
         document.querySelectorAll('.size-picker .btn-toggle').forEach(btn => {
-            btn.addEventListener('click', () => { selectedSize = btn.dataset.size; internalRender(); });
+            btn.addEventListener('click', () => {
+                selectedSize = btn.dataset.size;
+                if (selectedThoughtIndex !== null) {
+                    state.persistence.thoughts[selectedThoughtIndex].size = selectedSize;
+                    saveState();
+                }
+                internalRender();
+            });
         });
         document.querySelectorAll('[data-font]').forEach(btn => {
-            btn.addEventListener('click', () => { selectedFont = btn.dataset.font; internalRender(); });
+            btn.addEventListener('click', () => {
+                selectedFont = btn.dataset.font;
+                if (selectedThoughtIndex !== null) {
+                    state.persistence.thoughts[selectedThoughtIndex].fontFamily = selectedFont;
+                    saveState();
+                }
+                internalRender();
+            });
         });
     };
 
@@ -329,9 +438,20 @@ function renderVisualizadorPensamientosTool(container) {
 // HOJAS EN AGUA
 // ─────────────────────────────────────────────────────────────────────────────
 
-function renderHojasAguaTool(container) {
-    let leaves = [];
+// Each leaf gets its own emoji/color, crossing speed, bob rhythm and starting
+// tilt — a stream where every leaf moved identically read as mechanical
+// instead of like water. Two independent anime() calls per leaf (one for the
+// horizontal drift, one for vertical bob + rotation) let each rhythm run on
+// its own timer without the leaves ever falling into visible sync.
+const LEAF_VARIANTS = [
+    { emoji: '🍃', color: '#10b981' },
+    { emoji: '🍂', color: '#f59e0b' },
+    { emoji: '🍁', color: '#ef4444' },
+    { emoji: '🌿', color: '#22c55e' }
+];
+const MAX_LEAVES_ON_SCREEN = 12; // caps DOM growth over a long session
 
+function renderHojasAguaTool(container) {
     const guide = renderGuideBadge({
         trigger: 'El paciente se queda atrapado en un pensamiento repetitivo o discute con él. Útil cuando hay fusión activa y el paciente "cree" el pensamiento.',
         intro: 'Imagina que estás sentado junto a un arroyo. Cada vez que aparezca un pensamiento, lo ponemos en una hoja y lo dejamos flotar. No para que desaparezca, sino para verlo pasar.',
@@ -350,13 +470,7 @@ function renderHojasAguaTool(container) {
 
                 <div class="stream-canvas glass" style="height: 300px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: linear-gradient(to right, #0ea5e955, #38bdf855); border: 2px solid #38bdf844;">
                     <div id="stream-flow" style="position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.05) 40px, rgba(255,255,255,0.05) 80px); animation: moveStream 20s linear infinite;"></div>
-                    <div id="leaves-container">
-                        ${leaves.map((l, i) => `
-                            <div class="leaf-item" style="position: absolute; left: -100px; top: ${l.y}%; padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b98144; border-radius: 12px; color: #10b981; font-weight: bold; backdrop-filter: blur(4px);">
-                                🍃 ${esc(l.text)}
-                            </div>
-                        `).join('')}
-                    </div>
+                    <div id="leaves-container"></div>
                     <div style="position: absolute; bottom: 0.75rem; left: 0; right: 0; text-align: center;">
                         <p style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">Los pensamientos pasan. Vos seguís aquí.</p>
                     </div>
@@ -367,11 +481,12 @@ function renderHojasAguaTool(container) {
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
-                    <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="hojas-contexto" class="input-field" placeholder="¿En qué situación apareció este pensamiento?" value="${esc(state.persistence.grounding?.hojas?.contexto || '')}">
-                        <input type="text" id="hojas-aprendizaje" class="input-field" placeholder="¿Qué notaste al observarlo en lugar de discutir con él?" value="${esc(state.persistence.grounding?.hojas?.aprendizaje || '')}">
-                        <input type="text" id="hojas-accion" class="input-field" placeholder="Aunque ese pensamiento esté ahí, ¿qué podés hacer?" value="${esc(state.persistence.grounding?.hojas?.accion || '')}">
+                    <h4 style="margin-bottom: 0.25rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <p style="font-size: 0.7rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Tres pasos para cerrar el ejercicio: dónde apareció, qué cambió, qué acción sigue.</p>
+                    <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
+                        ${groundingField('hojas-contexto', '¿En qué situación apareció este pensamiento?', esc(state.persistence.grounding?.hojas?.contexto || ''))}
+                        ${groundingField('hojas-aprendizaje', '¿Qué notaste al observarlo en lugar de discutir con él?', esc(state.persistence.grounding?.hojas?.aprendizaje || ''))}
+                        ${groundingField('hojas-accion', 'Aunque ese pensamiento esté ahí, ¿qué podés hacer?', esc(state.persistence.grounding?.hojas?.accion || ''))}
                     </div>
                 </div>
             </div>
@@ -397,40 +512,57 @@ function renderHojasAguaTool(container) {
             });
         });
 
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && input.value.trim()) {
-                const text = input.value.trim();
-                const newLeaf = { text, y: 15 + Math.random() * 70 };
-                leaves.push(newLeaf);
-                input.value = '';
+        const leavesContainer = document.getElementById('leaves-container');
+        const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-                const leafEl = document.createElement('div');
-                leafEl.className = 'leaf-item';
-                leafEl.style.cssText = `position: absolute; left: -150px; top: ${newLeaf.y}%; padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b98144; border-radius: 12px; color: #10b981; font-weight: bold; backdrop-filter: blur(4px); white-space: nowrap;`;
-                leafEl.innerHTML = `🍃 ${esc(text)}`;
-                document.getElementById('leaves-container').appendChild(leafEl);
-
-                anime({
-                    targets: leafEl,
-                    translateX: ['0vw', '120vw'],
-                    rotate: () => anime.random(-15, 15),
-                    duration: 15000,
-                    easing: 'linear',
-                    loop: true
-                });
+        function launchLeaf(text) {
+            while (leavesContainer.children.length >= MAX_LEAVES_ON_SCREEN) {
+                leavesContainer.firstElementChild?.remove();
             }
-        });
 
-        document.querySelectorAll('#leaves-container .leaf-item').forEach((leafEl, idx) => {
+            const variant = LEAF_VARIANTS[Math.floor(Math.random() * LEAF_VARIANTS.length)];
+            const y = 12 + Math.random() * 72;
+            const scale = 0.85 + Math.random() * 0.3;
+            const startRotate = Math.random() * 360;
+
+            const leafEl = document.createElement('div');
+            leafEl.className = 'leaf-item';
+            leafEl.style.cssText = `position: absolute; left: -150px; top: ${y}%; padding: 0.5rem 1rem; background: ${variant.color}22; border: 1px solid ${variant.color}55; border-radius: 12px; color: ${variant.color}; font-weight: bold; backdrop-filter: blur(4px); white-space: nowrap; transform: scale(${scale});`;
+            leafEl.innerHTML = `${variant.emoji} ${esc(text)}`;
+            leavesContainer.appendChild(leafEl);
+
+            if (reducedMotion) return; // leaf stays put, out of respect for the user's motion setting
+
+            // Crossing speed varies leaf to leaf so they never travel in a pack.
+            const crossDuration = 11000 + Math.random() * 9000;
             anime({
                 targets: leafEl,
                 translateX: ['0vw', '120vw'],
-                rotate: () => anime.random(-15, 15),
-                duration: 15000,
-                delay: idx * 2000,
+                duration: crossDuration,
                 easing: 'linear',
                 loop: true
             });
+
+            // Independent bob + gentle twist, its own rhythm layered on top of
+            // the crossing above — this is what makes the water read as water.
+            const bobAmplitude = 6 + Math.random() * 14;
+            const bobDuration = 1400 + Math.random() * 1600;
+            anime({
+                targets: leafEl,
+                translateY: [`-${bobAmplitude}px`, `${bobAmplitude}px`],
+                rotate: [`${startRotate - 12}deg`, `${startRotate + 12}deg`],
+                duration: bobDuration,
+                easing: 'easeInOutSine',
+                direction: 'alternate',
+                loop: true
+            });
+        }
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && input.value.trim()) {
+                launchLeaf(input.value.trim());
+                input.value = '';
+            }
         });
     };
 
@@ -460,10 +592,38 @@ function renderRadioDoomGloomTool(container) {
         { id: 'past', label: '88.1 FM - Melancolía & Culpa', color: '#3b82f6' }
     ];
 
-    const defusionPrefixes = [
-        { label: '«Estoy teniendo el pensamiento de que...»', prefix: 'Estoy teniendo el pensamiento de que ' },
-        { label: '«Mi mente dice que...»', prefix: 'Mi mente dice que ' },
-        { label: '«Gracias, mente»', prefix: 'Gracias, mente. Sé que querés ayudar. ' }
+    const lowerFirst = (s) => s.charAt(0).toLowerCase() + s.slice(1);
+
+    // Five real, distinct ACT defusion moves — not five wordings of the same
+    // prefix trick. Each does something different to the thought: separates
+    // it from the person, hands the voice back to "the mind", labels it as a
+    // familiar story, or wears down its charge through repetition.
+    const defusionTechniques = [
+        {
+            label: '«Estoy teniendo el pensamiento de que...»',
+            hint: 'Separa el pensamiento de vos: no sos el pensamiento, lo estás teniendo.',
+            apply: (t) => `Estoy teniendo el pensamiento de que ${lowerFirst(t)}`
+        },
+        {
+            label: '«Mi mente me está diciendo que...»',
+            hint: 'Le devuelve la voz a la mente, no a un hecho.',
+            apply: (t) => `Mi mente me está diciendo que ${lowerFirst(t)}`
+        },
+        {
+            label: '«Gracias, mente»',
+            hint: 'Reconoce la intención de protegerte, sin obedecerla.',
+            apply: (t) => `Gracias, mente. Sé que querés ayudar. ${lowerFirst(t)}`
+        },
+        {
+            label: '«Ahí está esa historia otra vez...»',
+            hint: 'Lo nombra como un relato conocido, no como una novedad urgente.',
+            apply: (t) => `Ahí está esa historia otra vez: "${t}"`
+        },
+        {
+            label: 'Repetirlo hasta que pierda peso',
+            hint: 'El mismo sonido, una y otra vez, hasta que suene solo a sonido.',
+            apply: (t) => Array(6).fill(t).join(' · ')
+        }
     ];
 
     const guide = renderGuideBadge({
@@ -580,36 +740,45 @@ function renderRadioDoomGloomTool(container) {
 
                 <!-- Defusión lingüística -->
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="font-size: 0.8rem; color: var(--color-primary); margin-bottom: 0.75rem;">Defusión lingüística</h4>
-                    <p style="font-size: 0.75rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Reformula el pensamiento con uno de estos prefijos y nota qué cambia:</p>
+                    <h4 style="font-size: 0.8rem; color: var(--color-primary); margin-bottom: 0.25rem;">Defusión lingüística</h4>
+                    <p style="font-size: 0.75rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Cada técnica le hace algo distinto al pensamiento de arriba. Elegí una y después editá el resultado como quieras — es tuyo, no un molde fijo.</p>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;" id="defusion-buttons">
-                        ${defusionPrefixes.map((d, i) => `
-                            <button class="btn-defusion" data-prefix="${d.prefix}" data-idx="${i}"
+                        ${defusionTechniques.map((d, i) => `
+                            <button class="btn-defusion" data-idx="${i}"
                                 style="text-align: left; padding: 0.6rem 0.85rem; border-radius: var(--radius-sm);
                                        background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border);
                                        color: var(--color-text-secondary); font-size: 0.78rem; cursor: pointer;
                                        transition: all 0.2s; line-height: 1.4;">
-                                ${d.label}
+                                <span style="display: block; color: var(--color-text-primary); font-weight: 600;">${d.label}</span>
+                                <span style="display: block; font-size: 0.68rem; opacity: 0.75; margin-top: 0.15rem;">${d.hint}</span>
                             </button>
                         `).join('')}
                     </div>
-                    <div id="defused-result" style="margin-top: 0.75rem; min-height: 2.5rem; padding: 0.75rem; background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); font-size: 0.85rem; font-style: italic; color: var(--color-primary); display: ${defusedText ? 'block' : 'none'};">
-                        ${esc(defusedText)}
+
+                    <textarea id="defused-result" class="input-field" rows="3"
+                        placeholder="Elegí una técnica arriba, o escribí vos mismo/a la reformulación..."
+                        style="margin-top: 0.75rem; font-style: italic; resize: vertical; width: 100%; box-sizing: border-box;">${esc(defusedText)}</textarea>
+
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button id="btn-defused-broadcast" class="btn-ghost" style="flex: 1; font-size: 0.75rem; padding: 0.5rem;">📻 Usar como emisión</button>
+                        <button id="btn-defused-save" class="btn-ghost" style="flex: 1; font-size: 0.75rem; padding: 0.5rem;">💾 Guardar como frase</button>
                     </div>
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
-                    <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="radio-contexto" class="input-field" placeholder="¿En qué situación apareció esta emisora?" value="${esc(state.persistence.grounding?.radio?.contexto || '')}">
-                        <input type="text" id="radio-aprendizaje" class="input-field" placeholder="¿Qué notaste al escucharla como voz de la mente?" value="${esc(state.persistence.grounding?.radio?.aprendizaje || '')}">
-                        <input type="text" id="radio-accion" class="input-field" placeholder="Aunque suene fuerte, ¿qué acción elegís sostener?" value="${esc(state.persistence.grounding?.radio?.accion || '')}">
+                    <h4 style="margin-bottom: 0.25rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <p style="font-size: 0.7rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Tres pasos para cerrar el ejercicio: dónde apareció, qué cambió, qué acción sigue.</p>
+                    <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
+                        ${groundingField('radio-contexto', '¿En qué situación apareció esta emisora?', esc(state.persistence.grounding?.radio?.contexto || ''))}
+                        ${groundingField('radio-aprendizaje', '¿Qué notaste al escucharla como voz de la mente?', esc(state.persistence.grounding?.radio?.aprendizaje || ''))}
+                        ${groundingField('radio-accion', 'Aunque suene fuerte, ¿qué acción elegís sostener?', esc(state.persistence.grounding?.radio?.accion || ''))}
                     </div>
                 </div>
             </div>
         `;
 
         attachGuideBadgeEvents();
+        document.getElementById('radio-input')?.focus();
 
         ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
             const el = document.getElementById(`radio-${key}`);
@@ -708,29 +877,56 @@ function renderRadioDoomGloomTool(container) {
         document.querySelectorAll('.btn-delete-snippet').forEach((btn) => {
             btn.addEventListener('click', () => {
                 const index = Number(btn.dataset.index);
-                snippets.splice(index, 1);
+                const [removed] = snippets.splice(index, 1);
                 snippets = [...snippets];
                 persistRadioState();
                 internalRender();
+                showToast('Frase borrada', {
+                    actionLabel: 'Deshacer',
+                    onAction: () => {
+                        snippets.splice(index, 0, removed);
+                        snippets = [...snippets];
+                        persistRadioState();
+                        internalRender();
+                    }
+                });
             });
         });
 
         document.querySelectorAll('.btn-defusion').forEach(btn => {
             btn.addEventListener('click', () => {
-                const prefix = btn.dataset.prefix;
+                const technique = defusionTechniques[Number(btn.dataset.idx)];
                 const base = broadcast.trim() || '...';
-                const lower = base.charAt(0).toLowerCase() + base.slice(1);
-                defusedText = prefix + lower;
+                defusedText = technique.apply(base);
 
                 const result = document.getElementById('defused-result');
-                result.style.display = 'block';
-                result.innerHTML = esc(defusedText);
+                if (result) result.value = defusedText;
 
                 document.querySelectorAll('.btn-defusion').forEach(b => b.style.borderColor = 'var(--glass-border)');
                 btn.style.borderColor = 'var(--color-primary)';
-                btn.style.color = 'var(--color-primary)';
                 persistRadioState();
             });
+        });
+
+        document.getElementById('defused-result')?.addEventListener('input', (e) => {
+            defusedText = e.target.value;
+            persistRadioState();
+        });
+
+        document.getElementById('btn-defused-broadcast')?.addEventListener('click', () => {
+            if (!defusedText.trim()) return;
+            broadcast = defusedText.trim();
+            persistRadioState();
+            internalRender();
+        });
+
+        document.getElementById('btn-defused-save')?.addEventListener('click', () => {
+            const text = defusedText.trim();
+            if (!text) return;
+            snippets = [text, ...snippets.filter((item) => item !== text)].slice(0, 8);
+            persistRadioState();
+            internalRender();
+            showToast('✓ Frase guardada para reutilizar');
         });
     };
 
@@ -817,11 +1013,12 @@ function renderInterruptorLuchaTool(container) {
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
-                    <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="lucha-contexto" class="input-field" placeholder="¿Cuándo se activa más esta lucha en tu semana?" value="${esc(state.persistence.grounding?.lucha?.contexto || '')}">
-                        <input type="text" id="lucha-aprendizaje" class="input-field" placeholder="¿Qué notaste al dejar de pelear por unos segundos?" value="${esc(state.persistence.grounding?.lucha?.aprendizaje || '')}">
-                        <input type="text" id="lucha-accion" class="input-field" placeholder="Con esta emoción presente, ¿qué acción valiosa podés sostener?" value="${esc(state.persistence.grounding?.lucha?.accion || '')}">
+                    <h4 style="margin-bottom: 0.25rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <p style="font-size: 0.7rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Tres pasos para cerrar el ejercicio: dónde apareció, qué cambió, qué acción sigue.</p>
+                    <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
+                        ${groundingField('lucha-contexto', '¿Cuándo se activa más esta lucha en tu semana?', esc(state.persistence.grounding?.lucha?.contexto || ''))}
+                        ${groundingField('lucha-aprendizaje', '¿Qué notaste al dejar de pelear por unos segundos?', esc(state.persistence.grounding?.lucha?.aprendizaje || ''))}
+                        ${groundingField('lucha-accion', 'Con esta emoción presente, ¿qué acción valiosa podés sostener?', esc(state.persistence.grounding?.lucha?.accion || ''))}
                     </div>
                 </div>
             </div>

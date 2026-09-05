@@ -181,6 +181,10 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     min-height: 100vh;
+    min-height: 100dvh;
+    /* dvh accounts for the iOS/Android browser chrome that comes and goes; a
+       plain 100vh can leave content padding stuck behind it or the page
+       needing an extra scroll just to reach the actual bottom. */
     transition: background-color 0.5s ease;
     font-size: 16px;
     /* A11y default */
@@ -206,6 +210,7 @@ body {
     margin: 0 auto;
     padding: calc(24px + env(safe-area-inset-top)) 24px calc(48px + env(safe-area-inset-bottom));
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
@@ -704,9 +709,18 @@ button {
 .tool-title {
     font-size: 1.15rem;
     font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow-wrap: break-word;
+    line-height: 1.2;
+}
+
+/* Long module names (e.g. "Análisis Funcional") need the header actions to
+   shrink first so the title never truncates into something illegible. */
+@media (max-width: 400px) {
+    .tool-header__actions .btn-ghost:not(.btn-icon) {
+        padding: 0.5rem 0.65rem;
+        font-size: 0.75rem;
+    }
 }
 
 .tool-header__actions {
@@ -784,210 +798,41 @@ button {
         height: 52px;
     }
 }
-/* Dashboard Premium Controls */
-.dashboard-view {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
+
+/* Mobile touch fixes. Most text fields in this app are styled well under
+   16px (0.7–0.9rem) for density; iOS Safari reads that as "the user needs
+   help reading this" and auto-zooms the whole page on focus, which is
+   disruptive mid-session and doesn't auto-revert cleanly. 16px is the
+   documented threshold below which that kicks in, so every text field gets
+   bumped to it here rather than hunting down each inline font-size. */
+@media (max-width: 640px) {
+    input, select, textarea {
+        font-size: 16px !important;
+    }
 }
 
-.dashboard-hero {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    background: linear-gradient(140deg, rgba(251, 191, 36, 0.12), rgba(14, 165, 233, 0.06));
+/* touch-action:none: this app's own gesture (drag-to-reposition a thought
+   on the visualizer board) needs to own the touch instead of the browser
+   starting a page-scroll/pinch-zoom underneath it. */
+.thought-item {
+    touch-action: none;
 }
 
-.dashboard-hero__header {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: flex-start;
+/* touch-action:manipulation everywhere else: removes the double-tap-to-zoom
+   window on tappable controls, so a fast second tap (adding several items
+   in a row) never accidentally zooms the page instead of registering. */
+button, .hex-vertex, .color-swatch, .diana-target, [role="button"] {
+    touch-action: manipulation;
 }
 
-.dashboard-kicker {
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--color-text-secondary);
-    margin-bottom: 0.2rem;
-}
-
-.dashboard-hero h1 {
-    font-size: 1.8rem;
-    line-height: 1.15;
-    color: var(--color-primary);
-}
-
-.dashboard-subtitle {
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-    color: var(--color-text-secondary);
-    max-width: 45ch;
-}
-
-.dashboard-create-toggle {
-    min-height: 42px;
-    padding: 0.6rem 1rem;
-}
-
-.dashboard-stats {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-}
-
-.dashboard-stat-card {
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    padding: 0.75rem;
-    background: rgba(255, 255, 255, 0.03);
-}
-
-.dashboard-stat-card span {
-    display: block;
-    font-size: 0.72rem;
-    color: var(--color-text-secondary);
-}
-
-.dashboard-stat-card strong {
-    display: block;
-    margin-top: 0.35rem;
-    font-size: 1.45rem;
-    line-height: 1;
-}
-
-.dashboard-create-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-}
-
-.dashboard-create-row {
-    display: flex;
-    gap: 0.75rem;
-}
-
-.dashboard-input {
-    width: 100%;
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--color-text-primary);
-    padding: 0.7rem 0.85rem;
-    min-height: 44px;
-    font-family: inherit;
-}
-
-.dashboard-input::placeholder {
-    color: var(--color-text-secondary);
-}
-
-.is-hidden {
-    display: none !important;
-}
-
-.dashboard-toolbar {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr;
-    gap: 0.8rem;
-    margin-bottom: 1rem;
-}
-
-.dashboard-toolbar label {
-    display: block;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-text-secondary);
-    margin-bottom: 0.35rem;
-}
-
-.patient-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.patient-item {
-    padding: 1rem;
-    border-radius: var(--radius-md);
-    display: flex;
-    justify-content: space-between;
+/* Touch targets: a few "×" remove controls were sized for the eye, not the
+   finger. Bumping the hit area doesn't require growing the "×" itself. */
+.item-remove-btn {
+    display: inline-flex;
     align-items: center;
-    gap: 0.9rem;
-    border: 1px solid var(--glass-border);
-}
-
-.patient-item.active {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.15);
-}
-
-.patient-item__main h3 {
-    font-size: 1rem;
-    margin-bottom: 0.25rem;
-}
-
-.patient-item__main p {
-    font-size: 0.8rem;
-    color: var(--color-text-secondary);
-}
-
-.patient-item__actions {
-    display: flex;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
-
-.patient-item__actions .btn-ghost {
-    min-height: 38px;
-    font-size: 0.8rem;
-    padding: 0.45rem 0.65rem;
-}
-
-.dashboard-empty-state {
-    text-align: center;
-    padding: 1.4rem 1rem;
-    color: var(--color-text-secondary);
-    border: 1px dashed var(--glass-border);
-    border-radius: var(--radius-md);
-}
-
-.session-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.session-controls__secondary {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem;
-}
-
-@media (max-width: 540px) {
-    .dashboard-hero__header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .dashboard-toolbar,
-    .dashboard-stats,
-    .session-controls__secondary {
-        grid-template-columns: 1fr;
-    }
-
-    .dashboard-create-row,
-    .patient-item {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .patient-item__actions {
-        justify-content: flex-start;
-    }
+    justify-content: center;
+    min-width: 32px;
+    min-height: 32px;
 }
 
 /* Toasts (ui/utils.js) */
@@ -1072,6 +917,143 @@ button {
 @keyframes loader-pulse {
     0%, 100% { opacity: 0.4; }
     50% { opacity: 0.9; }
+}
+
+/* Tool tabs that scroll horizontally (abrirse/presente/importa) fade at the
+   trailing edge only while there's actually more to scroll to, so a hidden
+   tab is never mistaken for "that's all of them". Toggled by attachEdgeFade()
+   in ui/utils.js. */
+.tool-selector {
+    position: relative;
+}
+
+.tool-selector.has-more-right {
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+}
+
+.tool-selector.has-more-left.has-more-right {
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 28px, black calc(100% - 28px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 28px, black calc(100% - 28px), transparent 100%);
+}
+
+/* Reserves a corner so the fixed SOS button never sits on top of real
+   controls. Only matters on narrow screens: on desktop #app is centered
+   well clear of the button. */
+:root {
+    --sos-clearance: 92px;
+}
+
+@media (max-width: 640px) {
+    .fab-safe {
+        padding-right: var(--sos-clearance);
+    }
+}
+
+@media (max-width: 420px) {
+    :root {
+        --sos-clearance: 78px;
+    }
+}
+
+/* Diana (target) board: concentric rings give the metaphor something to
+   actually look at — "center = full commitment, edge = distant" needs a
+   visible boundary, not just a crosshair. */
+.diana-target {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+}
+
+.diana-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px dashed var(--glass-border);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.diana-ring-label {
+    position: absolute;
+    font-size: 0.6rem;
+    color: var(--color-text-secondary);
+    opacity: 0.6;
+    pointer-events: none;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* Shared "Aterrizaje clínico" grounding questions: numbering them makes the
+   three-question sequence (contexto → aprendizaje → acción) legible as
+   steps instead of an unordered pile of text fields. */
+.grounding-fields {
+    counter-reset: grounding-step;
+}
+
+.grounding-field {
+    counter-increment: grounding-step;
+    position: relative;
+}
+
+.grounding-field .input-field {
+    padding-left: 2.3rem;
+}
+
+.grounding-field::before {
+    content: counter(grounding-step);
+    position: absolute;
+    left: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-bg);
+    font-size: 0.65rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Undo action inside a toast (ui/utils.js showToast) */
+.toast-body {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.toast-undo {
+    background: transparent;
+    border: none;
+    color: var(--color-primary);
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 0;
+    min-height: auto;
+    cursor: pointer;
+    pointer-events: auto;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    flex-shrink: 0;
+}
+
+/* Small, consistent "remove item" control reused across list-style tools
+   (matrix items, evitación, cargas, respuestas). */
+.item-remove-btn {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    padding: 0.2rem;
+    flex-shrink: 0;
 }
 
 /* Reduced Motion (A11y) */

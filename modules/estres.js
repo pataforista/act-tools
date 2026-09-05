@@ -10,7 +10,7 @@
  */
 
 import { state, saveState } from '../core/state.js';
-import { renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
+import { renderGuideBadge, attachGuideBadgeEvents, showToast } from '../ui/utils.js';
 import { escapeHTML as esc } from '../core/security.js';
 
 // A bigger cup = more capacity/willingness → the same load fills it less.
@@ -267,7 +267,7 @@ export function renderEstresModule(container, config, { renderHome }) {
 
                 <!-- Tabs: Carga / Respuestas -->
                 <div class="glass-card" style="padding: 0; overflow: hidden;">
-                    <div style="display: flex; border-bottom: 1px solid var(--glass-border);">
+                    <div class="fab-safe" style="display: flex; border-bottom: 1px solid var(--glass-border);">
                         <button class="estres-tab ${activeTab === 'carga' ? 'active' : ''}" data-tab="carga"
                             style="flex: 1; padding: 0.75rem; border: none; background: ${activeTab === 'carga' ? 'rgba(56,189,248,0.15)' : 'transparent'}; color: ${activeTab === 'carga' ? '#7dd3fc' : 'var(--color-text-secondary)'}; font-weight: 700; font-size: 0.85rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'carga' ? '#7dd3fc' : 'transparent'}; transition: var(--transition-base);">
                             💧 La carga
@@ -321,7 +321,7 @@ export function renderEstresModule(container, config, { renderHome }) {
                 : `<div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">${est.load.map((s, i) => `
                         <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.6rem; border-radius: 16px; background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.3); font-size: 0.76rem;">
                             ${esc(s.label)} <span style="opacity: 0.6;">${s.pct}%</span>
-                            <button class="btn-remove-load" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
+                            <button class="item-remove-btn btn-remove-load" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
                         </span>
                     `).join('')}</div>`
             }
@@ -339,7 +339,7 @@ export function renderEstresModule(container, config, { renderHome }) {
                             <p style="margin: 0; font-size: 0.8rem;">${esc(r.text)}</p>
                             <p style="margin: 0.1rem 0 0; font-size: 0.65rem; color: var(--color-text-secondary);">${note}</p>
                         </div>
-                        <button class="btn-remove-resp" data-idx="${globalIdx}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.9rem; line-height: 1;">×</button>
+                        <button class="item-remove-btn btn-remove-resp" data-idx="${globalIdx}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.9rem; line-height: 1;">×</button>
                     </div>`;
             }).join('')
             : '<p style="font-size: 0.75rem; opacity: 0.5; margin: 0 0 0.5rem;">—</p>';
@@ -384,16 +384,27 @@ export function renderEstresModule(container, config, { renderHome }) {
         container.querySelectorAll('.estres-chip').forEach(btn => {
             btn.addEventListener('click', () => addLoad(btn.dataset.label, parseInt(btn.dataset.pct)));
         });
-        document.getElementById('btn-custom-load')?.addEventListener('click', () => {
+        const addCustomLoad = () => {
             const desc = document.getElementById('estres-custom-desc')?.value.trim() || 'Otra carga';
             const pct = parseInt(document.getElementById('estres-custom-pct')?.value || '10');
             addLoad(desc, pct);
-        });
+        };
+        document.getElementById('btn-custom-load')?.addEventListener('click', addCustomLoad);
+        document.getElementById('estres-custom-desc')?.addEventListener('keydown', e => { if (e.key === 'Enter') addCustomLoad(); });
         container.querySelectorAll('.btn-remove-load').forEach(btn => {
             btn.addEventListener('click', () => {
-                est.load.splice(parseInt(btn.dataset.idx), 1);
+                const idx = parseInt(btn.dataset.idx);
+                const [removed] = est.load.splice(idx, 1);
                 saveState();
                 renderInner();
+                showToast(`Quitaste "${removed.label}"`, {
+                    actionLabel: 'Deshacer',
+                    onAction: () => {
+                        est.load.splice(idx, 0, removed);
+                        saveState();
+                        renderInner();
+                    }
+                });
             });
         });
 
@@ -412,9 +423,18 @@ export function renderEstresModule(container, config, { renderHome }) {
         });
         container.querySelectorAll('.btn-remove-resp').forEach(btn => {
             btn.addEventListener('click', () => {
-                est.responses.splice(parseInt(btn.dataset.idx), 1);
+                const idx = parseInt(btn.dataset.idx);
+                const [removed] = est.responses.splice(idx, 1);
                 saveState();
                 renderInner();
+                showToast('Respuesta quitada', {
+                    actionLabel: 'Deshacer',
+                    onAction: () => {
+                        est.responses.splice(idx, 0, removed);
+                        saveState();
+                        renderInner();
+                    }
+                });
             });
         });
 

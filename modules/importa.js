@@ -3,7 +3,7 @@
  */
 
 import { state, saveState } from '../core/state.js';
-import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
+import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents, attachEdgeFade } from '../ui/utils.js';
 import { escapeHTML as esc } from '../core/security.js';
 
 export function renderImportaModule(container, module, { renderHome, initialTool } = {}) {
@@ -31,6 +31,7 @@ export function renderImportaModule(container, module, { renderHome, initialTool
             </div>
         `;
         attachHeaderEvents(renderHome, saveState);
+        attachEdgeFade(container.querySelector('.tool-selector'));
         document.querySelectorAll('.btn-tool').forEach(btn => {
             btn.addEventListener('click', () => { activeToolId = btn.getAttribute('data-id'); render(); });
         });
@@ -42,6 +43,19 @@ export function renderImportaModule(container, module, { renderHome, initialTool
     render();
 }
 
+const DIANA_RADIUS = 155;
+
+// Turns raw x/y pixels into a plain-language read of the mark, so the
+// exercise says something explicit instead of relying only on "closer to
+// the center looks better".
+function dianaProximityLabel(area) {
+    if (area.x === 0 && area.y === 0) return 'Todavía sin marcar';
+    const dist = Math.sqrt(area.x * area.x + area.y * area.y) / DIANA_RADIUS;
+    if (dist <= 0.33) return 'Compromiso pleno: viviendo cerca de este valor';
+    if (dist <= 0.66) return 'Compromiso parcial: a mitad de camino';
+    return 'Alejado/a de este valor por ahora';
+}
+
 function renderDianaTool(container) {
     let selectedAreaIndex = 0;
     const areas = state.persistence.diana;
@@ -51,15 +65,19 @@ function renderDianaTool(container) {
             <div class="tool-content">
                 <div class="intro" style="text-align: center; margin-bottom: 1.5rem;">
                     <p class="clinical-note">Haz clic en el tablero para situar tu compromiso actual en cada área.</p>
+                    <p style="font-size: 0.72rem; color: var(--color-text-secondary); margin-top: 0.35rem;">Centro = compromiso pleno con ese valor · Borde = alejado/a de él, por ahora.</p>
                 </div>
-                
+
                 <div class="diana-target" id="diana-canvas" style="width: 320px; height: 320px; margin: 0 auto; border-radius: 50%; position: relative; overflow: hidden;">
-                    <!-- Target Rings -->
+                    <!-- Target rings: outer edge (100%), middle (66%), inner (33%) -->
+                    <div class="diana-ring" style="width: 310px; height: 310px;"></div>
+                    <div class="diana-ring" style="width: 205px; height: 205px;"></div>
+                    <div class="diana-ring" style="width: 102px; height: 102px; border-style: solid; opacity: 0.5;"></div>
                     <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;">
-                        <div style="width: 1px; height: 100%; background: var(--glass-border); opacity: 0.3;"></div>
-                        <div style="width: 100%; height: 1px; background: var(--glass-border); opacity: 0.3; position: absolute;"></div>
+                        <div style="width: 1px; height: 100%; background: var(--glass-border); opacity: 0.25;"></div>
+                        <div style="width: 100%; height: 1px; background: var(--glass-border); opacity: 0.25; position: absolute;"></div>
                     </div>
-                    
+
                     ${areas.map((area, i) => `
                         <div class="diana-mark" style="position: absolute; left: calc(50% + ${area.x}px); top: calc(50% + ${area.y}px); transform: translate(-50%, -50%); opacity: ${selectedAreaIndex === i ? 1 : 0.4}; scale: ${selectedAreaIndex === i ? 1.2 : 0.8}; background: ${selectedAreaIndex === i ? 'var(--color-primary)' : 'var(--color-text-secondary)'};">
                             ${i + 1}
@@ -67,7 +85,11 @@ function renderDianaTool(container) {
                     `).join('')}
                 </div>
 
-                <div class="area-selector" style="margin-top: 2rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+                <p style="text-align: center; font-size: 0.8rem; color: var(--color-primary); font-weight: 600; margin-top: 1rem; min-height: 1.2em;">
+                    ${esc(areas[selectedAreaIndex].label)}: ${dianaProximityLabel(areas[selectedAreaIndex])}
+                </p>
+
+                <div class="area-selector" style="margin-top: 1rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
                     ${areas.map((area, i) => `
                         <button class="btn-toggle ${selectedAreaIndex === i ? 'active' : ''}" data-idx="${i}" style="text-align: left; padding: 0.75rem; height: auto; display: flex; flex-direction: column; gap: 0.25rem;">
                             <span style="font-size: 0.6rem; opacity: 0.7; text-transform: uppercase;">Área ${i + 1}</span>
@@ -86,7 +108,7 @@ function renderDianaTool(container) {
 
             // Limit to circle
             const dist = Math.sqrt(x * x + y * y);
-            if (dist < 155) {
+            if (dist < DIANA_RADIUS) {
                 state.persistence.diana[selectedAreaIndex].x = x;
                 state.persistence.diana[selectedAreaIndex].y = y;
                 saveState();
@@ -94,7 +116,7 @@ function renderDianaTool(container) {
 
                 // Pop effect
                 anime({
-                    targets: `.diana-mark:nth-child(${selectedAreaIndex + 2})`,
+                    targets: `.diana-mark:nth-child(${selectedAreaIndex + 5})`,
                     scale: [1, 1.5, 1.2],
                     duration: 400,
                     easing: 'easeOutElastic(1, .6)'

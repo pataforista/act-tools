@@ -3,7 +3,7 @@
  */
 
 import { state, saveState } from '../core/state.js';
-import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents } from '../ui/utils.js';
+import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents, attachEdgeFade, groundingField, showToast } from '../ui/utils.js';
 import { escapeHTML as esc } from '../core/security.js';
 
 export function renderPresenteModule(container, module, { renderHome, initialTool } = {}) {
@@ -34,6 +34,7 @@ export function renderPresenteModule(container, module, { renderHome, initialToo
         `;
 
         attachHeaderEvents(renderHome, saveState);
+        attachEdgeFade(container.querySelector('.tool-selector'));
 
         document.querySelectorAll('.btn-tool').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -112,6 +113,19 @@ function renderSTOPTool(container) {
         const circle = document.getElementById('stop-breath-circle');
         const label = document.getElementById('stop-breath-label');
         if (!circle) return;
+
+        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+            // No pulsing circle, but the Inhala/Exhala pacing itself still matters here.
+            let reversed = false;
+            if (label) label.innerText = 'Inhala';
+            const intervalId = setInterval(() => {
+                reversed = !reversed;
+                if (label) label.innerText = reversed ? 'Exhala' : 'Inhala';
+            }, 5000);
+            breathAnim = { pause: () => clearInterval(intervalId) };
+            return;
+        }
+
         breathAnim = anime({
             targets: circle,
             scale: [0.7, 1.5],
@@ -220,7 +234,7 @@ export function render5SentidosTool(container) {
                     <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-top: 1rem;">
                         ${named.map((t, i) => `
                             <span class="sense-chip" style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; border-radius: 16px; background: ${s.color}1f; border: 1px solid ${s.color}55; font-size: 0.78rem;">
-                                ${esc(t)}<button class="btn-del-sense" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
+                                ${esc(t)}<button class="item-remove-btn btn-del-sense" data-idx="${i}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0;">×</button>
                             </span>
                         `).join('')}
                     </div>
@@ -295,8 +309,9 @@ function renderCieloYClimaTool(container) {
                     ${isNight ? '<div class="stars" style="position: absolute; inset: 0; background: radial-gradient(white, transparent 2%) 0 0/50px 50px; opacity: 0.3;"></div>' : ''}
                     <div id="clouds-container">
                         ${state.persistence.weather.map((item, i) => `
-                            <div class="cloud-item glass animate-float" style="position: absolute; left: ${item.x}%; top: ${item.y}%; padding: 0.5rem 1rem; border-radius: 20px; background: rgba(255,255,255,0.1); backdrop-filter: blur(4px); font-size: 0.9rem;">
-                                ${esc(item.text)}
+                            <div class="cloud-item glass animate-float" style="position: absolute; left: ${item.x}%; top: ${item.y}%; padding: 0.5rem 1rem; border-radius: 20px; background: rgba(255,255,255,0.1); backdrop-filter: blur(4px); font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; max-width: 65vw;">
+                                <span>${esc(item.text)}</span>
+                                <button class="item-remove-btn btn-del-weather" data-idx="${i}" aria-label="Quitar" style="color: rgba(255,255,255,0.75);">×</button>
                             </div>
                         `).join('')}
                     </div>
@@ -310,28 +325,32 @@ function renderCieloYClimaTool(container) {
                 </div>
 
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="margin-bottom: 0.75rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
-                    <div style="display: grid; gap: 0.5rem;">
-                        <input type="text" id="cielo-contexto" class="input-field" placeholder="¿Dónde aparece esto en tu vida cotidiana?" value="${esc(state.persistence.grounding?.cielo?.contexto || '')}">
-                        <input type="text" id="cielo-aprendizaje" class="input-field" placeholder="¿Qué notaste al observar desde afuera?" value="${esc(state.persistence.grounding?.cielo?.aprendizaje || '')}">
-                        <input type="text" id="cielo-accion" class="input-field" placeholder="Aunque esté el clima, ¿qué elegís hacer?" value="${esc(state.persistence.grounding?.cielo?.accion || '')}">
+                    <h4 style="margin-bottom: 0.25rem; font-size: 0.85rem;">Aterrizaje clínico</h4>
+                    <p style="font-size: 0.7rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Tres pasos para cerrar el ejercicio: dónde apareció, qué cambió, qué acción sigue.</p>
+                    <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
+                        ${groundingField('cielo-contexto', '¿Dónde aparece esto en tu vida cotidiana?', esc(state.persistence.grounding?.cielo?.contexto || ''))}
+                        ${groundingField('cielo-aprendizaje', '¿Qué notaste al observar desde afuera?', esc(state.persistence.grounding?.cielo?.aprendizaje || ''))}
+                        ${groundingField('cielo-accion', 'Aunque esté el clima, ¿qué elegís hacer?', esc(state.persistence.grounding?.cielo?.accion || ''))}
                     </div>
                 </div>
             </div>
         `;
 
         attachGuideBadgeEvents();
+        document.getElementById('weather-input')?.focus();
 
         // Slower cloud animation for mobile/clinical use
-        anime({
-            targets: '.cloud-item',
-            translateX: () => [0, anime.random(-20, 20)],
-            translateY: () => [0, anime.random(-10, 10)],
-            duration: 10000,
-            direction: 'alternate',
-            loop: true,
-            easing: 'easeInOutSine'
-        });
+        if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+            anime({
+                targets: '.cloud-item',
+                translateX: () => [0, anime.random(-20, 20)],
+                translateY: () => [0, anime.random(-10, 10)],
+                duration: 10000,
+                direction: 'alternate',
+                loop: true,
+                easing: 'easeInOutSine'
+            });
+        }
 
         ['contexto', 'aprendizaje', 'accion'].forEach((key) => {
             const el = document.getElementById(`cielo-${key}`);
@@ -351,6 +370,23 @@ function renderCieloYClimaTool(container) {
                     internalRender();
                 }
             }
+        });
+
+        container.querySelectorAll('.btn-del-weather').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.idx);
+                const [removed] = state.persistence.weather.splice(idx, 1);
+                saveState();
+                internalRender();
+                showToast('Quitado del cielo', {
+                    actionLabel: 'Deshacer',
+                    onAction: () => {
+                        state.persistence.weather.splice(idx, 0, removed);
+                        saveState();
+                        internalRender();
+                    }
+                });
+            });
         });
     };
     internalRender();
