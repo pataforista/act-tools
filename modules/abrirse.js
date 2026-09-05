@@ -98,6 +98,15 @@ function renderVisualizadorPensamientosTool(container) {
     });
 
     const internalRender = () => {
+        // While a thought is selected, the style controls edit IT — otherwise
+        // they just set the defaults for the next new thought. This is the
+        // single biggest source of "no control": before, picking a color
+        // after a thought already existed on the board did nothing to it.
+        const selectedThought = selectedThoughtIndex !== null ? state.persistence.thoughts[selectedThoughtIndex] : null;
+        const activeColor = selectedThought?.color || selectedColor;
+        const activeSize = selectedThought?.size || selectedSize;
+        const activeFont = selectedThought?.fontFamily || selectedFont;
+
         container.innerHTML = `
             <div class="tool-content">
                 ${guide}
@@ -108,15 +117,19 @@ function renderVisualizadorPensamientosTool(container) {
                 </div>
 
                 <div class="style-config glass" style="padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                    ${selectedThought
+                ? `<p style="font-size: 0.68rem; color: var(--color-primary); margin: 0;">✏️ Editando el pensamiento seleccionado — tocá el tablero vacío para soltarlo.</p>`
+                : `<p style="font-size: 0.68rem; color: var(--color-text-secondary); margin: 0;">Estos van a ser el color/tamaño/letra del próximo pensamiento. Tocá uno ya puesto para editarlo en vez de crear otro.</p>`
+            }
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div class="color-picker" style="display: flex; gap: 0.5rem;">
                             ${['#ffffff', '#ef4444', '#3b82f6', '#f59e0b', '#10b981'].map(c => `
-                                <div class="color-swatch ${selectedColor === c ? 'active' : ''}" data-color="${c}" style="width: 24px; height: 24px; border-radius: 50%; background: ${c}; cursor: pointer; border: 2px solid ${selectedColor === c ? 'white' : 'transparent'};"></div>
+                                <div class="color-swatch ${activeColor === c ? 'active' : ''}" data-color="${c}" style="width: 24px; height: 24px; border-radius: 50%; background: ${c}; cursor: pointer; border: 2px solid ${activeColor === c ? 'white' : 'transparent'};"></div>
                             `).join('')}
                         </div>
                         <div class="size-picker" style="display: flex; gap: 0.25rem;">
                             ${['0.7rem', '0.9rem', '1.2rem'].map(s => `
-                                <button class="btn-toggle ${selectedSize === s ? 'active' : ''}" data-size="${s}" style="font-size: 0.7rem; padding: 0.3rem 0.6rem; min-height: auto;">
+                                <button class="btn-toggle ${activeSize === s ? 'active' : ''}" data-size="${s}" style="font-size: 0.7rem; padding: 0.3rem 0.6rem; min-height: auto;">
                                     ${s === '0.7rem' ? 'P' : s === '0.9rem' ? 'M' : 'G'}
                                 </button>
                             `).join('')}
@@ -130,12 +143,14 @@ function renderVisualizadorPensamientosTool(container) {
 
                     <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem;">
                         ${availableFonts.map(font => `
-                            <button class="btn-toggle ${selectedFont === font.id ? 'active' : ''}" data-font="${font.id.replace(/"/g, '&quot;')}" style="font-size: 0.72rem; min-height: auto; padding: 0.35rem 0.5rem; font-family: ${font.id};">
+                            <button class="btn-toggle ${activeFont === font.id ? 'active' : ''}" data-font="${font.id.replace(/"/g, '&quot;')}" style="font-size: 0.72rem; min-height: auto; padding: 0.35rem 0.5rem; font-family: ${font.id};">
                                 ${font.label}
                             </button>
                         `).join('')}
                     </div>
                 </div>
+
+                <p style="font-size: 0.7rem; color: var(--color-text-secondary); text-align: center; margin: -1rem 0 0.75rem;">Tocá un pensamiento para editarlo. Arrastralo para moverlo por el tablero.</p>
 
                 <div id="thoughts-list" style="height: 400px; padding: 1.5rem; border: 2px dashed var(--glass-border); border-radius: var(--radius-lg); position: relative; background: rgba(0,0,0,0.1); overflow: hidden; perspective: 1000px;">
                     ${state.persistence.thoughts.length === 0 ? '<p style="color: var(--color-text-secondary); font-size: 0.8rem; text-align: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">Externaliza tus pensamientos aquí.</p>' : ''}
@@ -145,13 +160,13 @@ function renderVisualizadorPensamientosTool(container) {
             const spacingStyle = t.spacing ? `letter-spacing: ${t.spacing}px;` : '';
             const fontStyle = t.fontFamily ? `font-family: ${t.fontFamily};` : '';
             return `
-                        <div class="thought-item glass animate-scale-in ${selectedThoughtIndex === i ? 'selected' : ''} ${distortClass}" 
-                             data-index="${i}" 
-                             style="position: absolute; left: ${t.x ?? (20 + (i % 3) * 30)}%; top: ${t.y ?? (20 + Math.floor(i / 3) * 20)}%; 
-                                    padding: 0.75rem 1.25rem; border-radius: 20px; font-size: ${t.size || '0.9rem'}; color: ${t.color || 'white'}; 
-                                    border: 2px solid ${selectedThoughtIndex === i ? 'var(--color-primary)' : (t.color || 'var(--glass-border)') + '22'}; 
-                                    opacity: ${t.opacity ?? 1}; filter: blur(${t.blur ?? 0}px); cursor: pointer; user-select: none; 
-                                    z-index: ${selectedThoughtIndex === i ? 100 : 10}; transition: border 0.3s, box-shadow 0.3s, transform 0.3s;
+                        <div class="thought-item glass animate-scale-in ${selectedThoughtIndex === i ? 'selected' : ''} ${distortClass}"
+                             data-index="${i}"
+                             style="position: absolute; left: ${t.x ?? (20 + (i % 3) * 30)}%; top: ${t.y ?? (20 + Math.floor(i / 3) * 20)}%;
+                                    padding: 0.75rem 1.25rem; border-radius: 20px; font-size: ${t.size || '0.9rem'}; color: ${t.color || 'white'};
+                                    border: 2px solid ${selectedThoughtIndex === i ? 'var(--color-primary)' : (t.color || 'var(--glass-border)') + '22'};
+                                    opacity: ${t.opacity ?? 1}; filter: blur(${t.blur ?? 0}px); cursor: grab; user-select: none; touch-action: none;
+                                    z-index: ${selectedThoughtIndex === i ? 100 : 10}; transition: border 0.3s, box-shadow 0.3s;
                                     transform: ${rotationStyle}; ${spacingStyle} ${fontStyle}">
                             ${esc(t.text || t)}
                         </div>
@@ -174,7 +189,12 @@ function renderVisualizadorPensamientosTool(container) {
                         <h4 style="font-size: 0.85rem; font-weight: bold; color: var(--color-primary);">Propiedades del Pensamiento</h4>
                         <button class="btn-ghost" id="btn-delete-thought" style="color: #ef4444; font-size: 0.75rem;">Eliminar ×</button>
                     </div>
-                    
+
+                    <div class="property-group" style="grid-column: 1 / -1;">
+                        <label>Texto del pensamiento</label>
+                        <input type="text" id="prop-text" class="input-field" value="${esc((typeof selectedThought === 'string' ? selectedThought : selectedThought?.text) || '')}">
+                    </div>
+
                     <div class="property-group">
                         <label>Distancia del pensamiento</label>
                         <input type="range" id="prop-blur" min="0" max="3" step="0.5" value="${state.persistence.thoughts[selectedThoughtIndex]?.blur || 0}" class="slider-act">
@@ -237,9 +257,58 @@ function renderVisualizadorPensamientosTool(container) {
         });
 
         document.querySelectorAll('.thought-item').forEach(el => {
-            el.addEventListener('mousedown', (e) => {
-                selectedThoughtIndex = parseInt(el.dataset.index);
-                internalRender();
+            // A tap selects it (full re-render, property panel opens). A drag
+            // moves it instead — re-rendering mid-drag would yank the element
+            // out from under the pointer, so a move only touches el.style and
+            // persists once released; no re-render needed since the DOM
+            // already reflects the final position.
+            let dragging = false;
+            let moved = false;
+            let startX = 0, startY = 0, originLeftPct = 0, originTopPct = 0;
+
+            const onPointerMove = (e) => {
+                if (!dragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                if (!moved && Math.hypot(dx, dy) < 4) return;
+                moved = true;
+                el.style.cursor = 'grabbing';
+                const boardRect = board.getBoundingClientRect();
+                const newLeft = Math.min(92, Math.max(0, originLeftPct + (dx / boardRect.width) * 100));
+                const newTop = Math.min(88, Math.max(0, originTopPct + (dy / boardRect.height) * 100));
+                el.style.left = `${newLeft}%`;
+                el.style.top = `${newTop}%`;
+                el.dataset.pendingX = newLeft;
+                el.dataset.pendingY = newTop;
+            };
+
+            const onPointerUp = () => {
+                dragging = false;
+                el.style.cursor = 'grab';
+                document.removeEventListener('pointermove', onPointerMove);
+                document.removeEventListener('pointerup', onPointerUp);
+                const idx = parseInt(el.dataset.index);
+                if (moved) {
+                    state.persistence.thoughts[idx].x = parseFloat(el.dataset.pendingX);
+                    state.persistence.thoughts[idx].y = parseFloat(el.dataset.pendingY);
+                    saveState();
+                } else {
+                    selectedThoughtIndex = idx;
+                    internalRender();
+                }
+            };
+
+            el.addEventListener('pointerdown', (e) => {
+                dragging = true;
+                moved = false;
+                startX = e.clientX;
+                startY = e.clientY;
+                const idx = parseInt(el.dataset.index);
+                const t = state.persistence.thoughts[idx];
+                originLeftPct = t.x ?? parseFloat(el.style.left) ?? 0;
+                originTopPct = t.y ?? parseFloat(el.style.top) ?? 0;
+                document.addEventListener('pointermove', onPointerMove);
+                document.addEventListener('pointerup', onPointerUp);
             });
         });
 
@@ -283,6 +352,13 @@ function renderVisualizadorPensamientosTool(container) {
             });
         });
 
+        document.getElementById('prop-text')?.addEventListener('input', (e) => {
+            state.persistence.thoughts[selectedThoughtIndex].text = e.target.value;
+            saveState();
+            const el = document.querySelector(`.thought-item[data-index="${selectedThoughtIndex}"]`);
+            if (el) el.textContent = e.target.value;
+        });
+
         document.getElementById('prop-blur')?.addEventListener('input', (e) => {
             const blur = parseFloat(e.target.value);
             state.persistence.thoughts[selectedThoughtIndex].blur = blur;
@@ -324,13 +400,34 @@ function renderVisualizadorPensamientosTool(container) {
         animateDefusion('.thought-item');
 
         document.querySelectorAll('.color-swatch').forEach(sw => {
-            sw.addEventListener('click', () => { selectedColor = sw.dataset.color; internalRender(); });
+            sw.addEventListener('click', () => {
+                selectedColor = sw.dataset.color;
+                if (selectedThoughtIndex !== null) {
+                    state.persistence.thoughts[selectedThoughtIndex].color = selectedColor;
+                    saveState();
+                }
+                internalRender();
+            });
         });
         document.querySelectorAll('.size-picker .btn-toggle').forEach(btn => {
-            btn.addEventListener('click', () => { selectedSize = btn.dataset.size; internalRender(); });
+            btn.addEventListener('click', () => {
+                selectedSize = btn.dataset.size;
+                if (selectedThoughtIndex !== null) {
+                    state.persistence.thoughts[selectedThoughtIndex].size = selectedSize;
+                    saveState();
+                }
+                internalRender();
+            });
         });
         document.querySelectorAll('[data-font]').forEach(btn => {
-            btn.addEventListener('click', () => { selectedFont = btn.dataset.font; internalRender(); });
+            btn.addEventListener('click', () => {
+                selectedFont = btn.dataset.font;
+                if (selectedThoughtIndex !== null) {
+                    state.persistence.thoughts[selectedThoughtIndex].fontFamily = selectedFont;
+                    saveState();
+                }
+                internalRender();
+            });
         });
     };
 
@@ -495,10 +592,38 @@ function renderRadioDoomGloomTool(container) {
         { id: 'past', label: '88.1 FM - Melancolía & Culpa', color: '#3b82f6' }
     ];
 
-    const defusionPrefixes = [
-        { label: '«Estoy teniendo el pensamiento de que...»', prefix: 'Estoy teniendo el pensamiento de que ' },
-        { label: '«Mi mente dice que...»', prefix: 'Mi mente dice que ' },
-        { label: '«Gracias, mente»', prefix: 'Gracias, mente. Sé que querés ayudar. ' }
+    const lowerFirst = (s) => s.charAt(0).toLowerCase() + s.slice(1);
+
+    // Five real, distinct ACT defusion moves — not five wordings of the same
+    // prefix trick. Each does something different to the thought: separates
+    // it from the person, hands the voice back to "the mind", labels it as a
+    // familiar story, or wears down its charge through repetition.
+    const defusionTechniques = [
+        {
+            label: '«Estoy teniendo el pensamiento de que...»',
+            hint: 'Separa el pensamiento de vos: no sos el pensamiento, lo estás teniendo.',
+            apply: (t) => `Estoy teniendo el pensamiento de que ${lowerFirst(t)}`
+        },
+        {
+            label: '«Mi mente me está diciendo que...»',
+            hint: 'Le devuelve la voz a la mente, no a un hecho.',
+            apply: (t) => `Mi mente me está diciendo que ${lowerFirst(t)}`
+        },
+        {
+            label: '«Gracias, mente»',
+            hint: 'Reconoce la intención de protegerte, sin obedecerla.',
+            apply: (t) => `Gracias, mente. Sé que querés ayudar. ${lowerFirst(t)}`
+        },
+        {
+            label: '«Ahí está esa historia otra vez...»',
+            hint: 'Lo nombra como un relato conocido, no como una novedad urgente.',
+            apply: (t) => `Ahí está esa historia otra vez: "${t}"`
+        },
+        {
+            label: 'Repetirlo hasta que pierda peso',
+            hint: 'El mismo sonido, una y otra vez, hasta que suene solo a sonido.',
+            apply: (t) => Array(6).fill(t).join(' · ')
+        }
     ];
 
     const guide = renderGuideBadge({
@@ -615,21 +740,28 @@ function renderRadioDoomGloomTool(container) {
 
                 <!-- Defusión lingüística -->
                 <div class="glass" style="margin-top: 1rem; padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="font-size: 0.8rem; color: var(--color-primary); margin-bottom: 0.75rem;">Defusión lingüística</h4>
-                    <p style="font-size: 0.75rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Reformula el pensamiento con uno de estos prefijos y nota qué cambia:</p>
+                    <h4 style="font-size: 0.8rem; color: var(--color-primary); margin-bottom: 0.25rem;">Defusión lingüística</h4>
+                    <p style="font-size: 0.75rem; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Cada técnica le hace algo distinto al pensamiento de arriba. Elegí una y después editá el resultado como quieras — es tuyo, no un molde fijo.</p>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;" id="defusion-buttons">
-                        ${defusionPrefixes.map((d, i) => `
-                            <button class="btn-defusion" data-prefix="${d.prefix}" data-idx="${i}"
+                        ${defusionTechniques.map((d, i) => `
+                            <button class="btn-defusion" data-idx="${i}"
                                 style="text-align: left; padding: 0.6rem 0.85rem; border-radius: var(--radius-sm);
                                        background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border);
                                        color: var(--color-text-secondary); font-size: 0.78rem; cursor: pointer;
                                        transition: all 0.2s; line-height: 1.4;">
-                                ${d.label}
+                                <span style="display: block; color: var(--color-text-primary); font-weight: 600;">${d.label}</span>
+                                <span style="display: block; font-size: 0.68rem; opacity: 0.75; margin-top: 0.15rem;">${d.hint}</span>
                             </button>
                         `).join('')}
                     </div>
-                    <div id="defused-result" style="margin-top: 0.75rem; min-height: 2.5rem; padding: 0.75rem; background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); font-size: 0.85rem; font-style: italic; color: var(--color-primary); display: ${defusedText ? 'block' : 'none'};">
-                        ${esc(defusedText)}
+
+                    <textarea id="defused-result" class="input-field" rows="3"
+                        placeholder="Elegí una técnica arriba, o escribí vos mismo/a la reformulación..."
+                        style="margin-top: 0.75rem; font-style: italic; resize: vertical; width: 100%; box-sizing: border-box;">${esc(defusedText)}</textarea>
+
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button id="btn-defused-broadcast" class="btn-ghost" style="flex: 1; font-size: 0.75rem; padding: 0.5rem;">📻 Usar como emisión</button>
+                        <button id="btn-defused-save" class="btn-ghost" style="flex: 1; font-size: 0.75rem; padding: 0.5rem;">💾 Guardar como frase</button>
                     </div>
                 </div>
 
@@ -763,20 +895,38 @@ function renderRadioDoomGloomTool(container) {
 
         document.querySelectorAll('.btn-defusion').forEach(btn => {
             btn.addEventListener('click', () => {
-                const prefix = btn.dataset.prefix;
+                const technique = defusionTechniques[Number(btn.dataset.idx)];
                 const base = broadcast.trim() || '...';
-                const lower = base.charAt(0).toLowerCase() + base.slice(1);
-                defusedText = prefix + lower;
+                defusedText = technique.apply(base);
 
                 const result = document.getElementById('defused-result');
-                result.style.display = 'block';
-                result.innerHTML = esc(defusedText);
+                if (result) result.value = defusedText;
 
                 document.querySelectorAll('.btn-defusion').forEach(b => b.style.borderColor = 'var(--glass-border)');
                 btn.style.borderColor = 'var(--color-primary)';
-                btn.style.color = 'var(--color-primary)';
                 persistRadioState();
             });
+        });
+
+        document.getElementById('defused-result')?.addEventListener('input', (e) => {
+            defusedText = e.target.value;
+            persistRadioState();
+        });
+
+        document.getElementById('btn-defused-broadcast')?.addEventListener('click', () => {
+            if (!defusedText.trim()) return;
+            broadcast = defusedText.trim();
+            persistRadioState();
+            internalRender();
+        });
+
+        document.getElementById('btn-defused-save')?.addEventListener('click', () => {
+            const text = defusedText.trim();
+            if (!text) return;
+            snippets = [text, ...snippets.filter((item) => item !== text)].slice(0, 8);
+            persistRadioState();
+            internalRender();
+            showToast('✓ Frase guardada para reutilizar');
         });
     };
 
