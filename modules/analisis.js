@@ -219,9 +219,20 @@ function renderEvitacionTool(container) {
 
         attachGuideBadgeEvents();
 
-        document.getElementById('evit-tipo')?.addEventListener('input', e => draft.tipo = e.target.value);
-        document.getElementById('evit-alivio')?.addEventListener('input', e => draft.alivio = e.target.value);
-        document.getElementById('evit-costo')?.addEventListener('input', e => draft.costo = e.target.value);
+        const addEvitacion = () => {
+            if (!draft.tipo.trim() && !draft.alivio.trim() && !draft.costo.trim()) return;
+            state.persistence.evitacion.push({ tipo: draft.tipo.trim(), alivio: draft.alivio.trim(), costo: draft.costo.trim() });
+            draft = { tipo: '', alivio: '', costo: '' };
+            saveState();
+            internalRender();
+        };
+
+        ['evit-tipo', 'evit-alivio', 'evit-costo'].forEach((id) => {
+            const field = id.replace('evit-', '');
+            const el = document.getElementById(id);
+            el?.addEventListener('input', e => draft[field] = e.target.value);
+            el?.addEventListener('keydown', e => { if (e.key === 'Enter') addEvitacion(); });
+        });
 
         container.querySelectorAll('.btn-evit-prompt').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -231,13 +242,7 @@ function renderEvitacionTool(container) {
             });
         });
 
-        document.getElementById('btn-add-evit')?.addEventListener('click', () => {
-            if (!draft.tipo.trim() && !draft.alivio.trim() && !draft.costo.trim()) return;
-            state.persistence.evitacion.push({ tipo: draft.tipo.trim(), alivio: draft.alivio.trim(), costo: draft.costo.trim() });
-            draft = { tipo: '', alivio: '', costo: '' };
-            saveState();
-            internalRender();
-        });
+        document.getElementById('btn-add-evit')?.addEventListener('click', addEvitacion);
 
         container.querySelectorAll('.btn-del-evit').forEach(btn => {
             btn.addEventListener('click', () => {

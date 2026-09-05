@@ -340,9 +340,20 @@ function renderVisualizadorPensamientosTool(container) {
 // HOJAS EN AGUA
 // ─────────────────────────────────────────────────────────────────────────────
 
-function renderHojasAguaTool(container) {
-    let leaves = [];
+// Each leaf gets its own emoji/color, crossing speed, bob rhythm and starting
+// tilt — a stream where every leaf moved identically read as mechanical
+// instead of like water. Two independent anime() calls per leaf (one for the
+// horizontal drift, one for vertical bob + rotation) let each rhythm run on
+// its own timer without the leaves ever falling into visible sync.
+const LEAF_VARIANTS = [
+    { emoji: '🍃', color: '#10b981' },
+    { emoji: '🍂', color: '#f59e0b' },
+    { emoji: '🍁', color: '#ef4444' },
+    { emoji: '🌿', color: '#22c55e' }
+];
+const MAX_LEAVES_ON_SCREEN = 12; // caps DOM growth over a long session
 
+function renderHojasAguaTool(container) {
     const guide = renderGuideBadge({
         trigger: 'El paciente se queda atrapado en un pensamiento repetitivo o discute con él. Útil cuando hay fusión activa y el paciente "cree" el pensamiento.',
         intro: 'Imagina que estás sentado junto a un arroyo. Cada vez que aparezca un pensamiento, lo ponemos en una hoja y lo dejamos flotar. No para que desaparezca, sino para verlo pasar.',
@@ -361,13 +372,7 @@ function renderHojasAguaTool(container) {
 
                 <div class="stream-canvas glass" style="height: 300px; border-radius: var(--radius-lg); position: relative; overflow: hidden; background: linear-gradient(to right, #0ea5e955, #38bdf855); border: 2px solid #38bdf844;">
                     <div id="stream-flow" style="position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.05) 40px, rgba(255,255,255,0.05) 80px); animation: moveStream 20s linear infinite;"></div>
-                    <div id="leaves-container">
-                        ${leaves.map((l, i) => `
-                            <div class="leaf-item" style="position: absolute; left: -100px; top: ${l.y}%; padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b98144; border-radius: 12px; color: #10b981; font-weight: bold; backdrop-filter: blur(4px);">
-                                🍃 ${esc(l.text)}
-                            </div>
-                        `).join('')}
-                    </div>
+                    <div id="leaves-container"></div>
                     <div style="position: absolute; bottom: 0.75rem; left: 0; right: 0; text-align: center;">
                         <p style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">Los pensamientos pasan. Vos seguís aquí.</p>
                     </div>
@@ -409,40 +414,57 @@ function renderHojasAguaTool(container) {
             });
         });
 
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && input.value.trim()) {
-                const text = input.value.trim();
-                const newLeaf = { text, y: 15 + Math.random() * 70 };
-                leaves.push(newLeaf);
-                input.value = '';
+        const leavesContainer = document.getElementById('leaves-container');
+        const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-                const leafEl = document.createElement('div');
-                leafEl.className = 'leaf-item';
-                leafEl.style.cssText = `position: absolute; left: -150px; top: ${newLeaf.y}%; padding: 0.5rem 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b98144; border-radius: 12px; color: #10b981; font-weight: bold; backdrop-filter: blur(4px); white-space: nowrap;`;
-                leafEl.innerHTML = `🍃 ${esc(text)}`;
-                document.getElementById('leaves-container').appendChild(leafEl);
-
-                anime({
-                    targets: leafEl,
-                    translateX: ['0vw', '120vw'],
-                    rotate: () => anime.random(-15, 15),
-                    duration: 15000,
-                    easing: 'linear',
-                    loop: true
-                });
+        function launchLeaf(text) {
+            while (leavesContainer.children.length >= MAX_LEAVES_ON_SCREEN) {
+                leavesContainer.firstElementChild?.remove();
             }
-        });
 
-        document.querySelectorAll('#leaves-container .leaf-item').forEach((leafEl, idx) => {
+            const variant = LEAF_VARIANTS[Math.floor(Math.random() * LEAF_VARIANTS.length)];
+            const y = 12 + Math.random() * 72;
+            const scale = 0.85 + Math.random() * 0.3;
+            const startRotate = Math.random() * 360;
+
+            const leafEl = document.createElement('div');
+            leafEl.className = 'leaf-item';
+            leafEl.style.cssText = `position: absolute; left: -150px; top: ${y}%; padding: 0.5rem 1rem; background: ${variant.color}22; border: 1px solid ${variant.color}55; border-radius: 12px; color: ${variant.color}; font-weight: bold; backdrop-filter: blur(4px); white-space: nowrap; transform: scale(${scale});`;
+            leafEl.innerHTML = `${variant.emoji} ${esc(text)}`;
+            leavesContainer.appendChild(leafEl);
+
+            if (reducedMotion) return; // leaf stays put, out of respect for the user's motion setting
+
+            // Crossing speed varies leaf to leaf so they never travel in a pack.
+            const crossDuration = 11000 + Math.random() * 9000;
             anime({
                 targets: leafEl,
                 translateX: ['0vw', '120vw'],
-                rotate: () => anime.random(-15, 15),
-                duration: 15000,
-                delay: idx * 2000,
+                duration: crossDuration,
                 easing: 'linear',
                 loop: true
             });
+
+            // Independent bob + gentle twist, its own rhythm layered on top of
+            // the crossing above — this is what makes the water read as water.
+            const bobAmplitude = 6 + Math.random() * 14;
+            const bobDuration = 1400 + Math.random() * 1600;
+            anime({
+                targets: leafEl,
+                translateY: [`-${bobAmplitude}px`, `${bobAmplitude}px`],
+                rotate: [`${startRotate - 12}deg`, `${startRotate + 12}deg`],
+                duration: bobDuration,
+                easing: 'easeInOutSine',
+                direction: 'alternate',
+                loop: true
+            });
+        }
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && input.value.trim()) {
+                launchLeaf(input.value.trim());
+                input.value = '';
+            }
         });
     };
 

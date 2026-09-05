@@ -384,11 +384,13 @@ export function renderEstresModule(container, config, { renderHome }) {
         container.querySelectorAll('.estres-chip').forEach(btn => {
             btn.addEventListener('click', () => addLoad(btn.dataset.label, parseInt(btn.dataset.pct)));
         });
-        document.getElementById('btn-custom-load')?.addEventListener('click', () => {
+        const addCustomLoad = () => {
             const desc = document.getElementById('estres-custom-desc')?.value.trim() || 'Otra carga';
             const pct = parseInt(document.getElementById('estres-custom-pct')?.value || '10');
             addLoad(desc, pct);
-        });
+        };
+        document.getElementById('btn-custom-load')?.addEventListener('click', addCustomLoad);
+        document.getElementById('estres-custom-desc')?.addEventListener('keydown', e => { if (e.key === 'Enter') addCustomLoad(); });
         container.querySelectorAll('.btn-remove-load').forEach(btn => {
             btn.addEventListener('click', () => {
                 const idx = parseInt(btn.dataset.idx);

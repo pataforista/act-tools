@@ -3,7 +3,7 @@
  */
 
 import { state, saveState } from '../core/state.js';
-import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents, attachEdgeFade, groundingField } from '../ui/utils.js';
+import { renderModuleHeader, attachHeaderEvents, renderGuideBadge, attachGuideBadgeEvents, attachEdgeFade, groundingField, showToast } from '../ui/utils.js';
 import { escapeHTML as esc } from '../core/security.js';
 
 export function renderPresenteModule(container, module, { renderHome, initialTool } = {}) {
@@ -296,8 +296,9 @@ function renderCieloYClimaTool(container) {
                     ${isNight ? '<div class="stars" style="position: absolute; inset: 0; background: radial-gradient(white, transparent 2%) 0 0/50px 50px; opacity: 0.3;"></div>' : ''}
                     <div id="clouds-container">
                         ${state.persistence.weather.map((item, i) => `
-                            <div class="cloud-item glass animate-float" style="position: absolute; left: ${item.x}%; top: ${item.y}%; padding: 0.5rem 1rem; border-radius: 20px; background: rgba(255,255,255,0.1); backdrop-filter: blur(4px); font-size: 0.9rem;">
-                                ${esc(item.text)}
+                            <div class="cloud-item glass animate-float" style="position: absolute; left: ${item.x}%; top: ${item.y}%; padding: 0.5rem 1rem; border-radius: 20px; background: rgba(255,255,255,0.1); backdrop-filter: blur(4px); font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; max-width: 65vw;">
+                                <span>${esc(item.text)}</span>
+                                <button class="item-remove-btn btn-del-weather" data-idx="${i}" aria-label="Quitar" style="color: rgba(255,255,255,0.75);">×</button>
                             </div>
                         `).join('')}
                     </div>
@@ -353,6 +354,23 @@ function renderCieloYClimaTool(container) {
                     internalRender();
                 }
             }
+        });
+
+        container.querySelectorAll('.btn-del-weather').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.idx);
+                const [removed] = state.persistence.weather.splice(idx, 1);
+                saveState();
+                internalRender();
+                showToast('Quitado del cielo', {
+                    actionLabel: 'Deshacer',
+                    onAction: () => {
+                        state.persistence.weather.splice(idx, 0, removed);
+                        saveState();
+                        internalRender();
+                    }
+                });
+            });
         });
     };
     internalRender();
