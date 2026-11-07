@@ -156,7 +156,7 @@ function renderEvitacionTool(container) {
 
     const guide = renderGuideBadge({
         trigger: 'El paciente describe estrategias para no sentir (distracción, rumiación, sustancias, buscar tranquilización). Útil para hacer contacto con la inviabilidad del control a largo plazo (desesperanza creativa).',
-        intro: 'No vamos a juzgar lo que hacés para aliviarte. Vamos a mirar de cerca qué te da a corto plazo... y qué te ha costado a la larga.',
+        intro: 'No vamos a juzgar lo que haces para aliviarte. Vamos a mirar de cerca qué te da a corto plazo... y qué te ha costado a la larga.',
         questions: [
             '¿Esto funciona a corto plazo? ¿Y a largo plazo?',
             '¿Qué te ha costado en tiempo, energía o cercanía a lo que importa?',
@@ -171,7 +171,7 @@ function renderEvitacionTool(container) {
             <div class="tool-content">
                 ${guide}
                 <div class="intro" style="text-align: center; margin-bottom: 1rem;">
-                    <p class="clinical-note">Las cosas que hacés para no sentir. No para juzgarlas: para ver qué te dan y qué te cuestan.</p>
+                    <p class="clinical-note">Las cosas que haces para no sentir. No para juzgarlas: para ver qué te dan y qué te cuestan.</p>
                 </div>
 
                 <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); display: grid; gap: 0.75rem; margin-bottom: 1rem;">
@@ -180,7 +180,7 @@ function renderEvitacionTool(container) {
                             <button class="btn-toggle btn-evit-prompt" data-hint="${p.hint.replace(/"/g, '&quot;')}" style="font-size: 0.72rem; padding: 0.35rem 0.7rem; height: auto;">${p.label}</button>
                         `).join('')}
                     </div>
-                    <input type="text" id="evit-tipo" class="input-field" placeholder="¿Qué hacés para no sentir?" value="${esc(draft.tipo).replace(/"/g, '&quot;')}">
+                    <input type="text" id="evit-tipo" class="input-field" placeholder="¿Qué haces para no sentir?" value="${esc(draft.tipo).replace(/"/g, '&quot;')}">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
                         <input type="text" id="evit-alivio" class="input-field" placeholder="Alivio a corto plazo" value="${esc(draft.alivio).replace(/"/g, '&quot;')}" style="border-color: #10b98144;">
                         <input type="text" id="evit-costo" class="input-field" placeholder="Coste a largo plazo" value="${esc(draft.costo).replace(/"/g, '&quot;')}" style="border-color: #ef444444;">
@@ -213,7 +213,7 @@ function renderEvitacionTool(container) {
 
                 ${list.length ? `
                 <div class="glass" style="margin-top: 1rem; padding: 0.85rem; border-radius: var(--radius-sm); background: rgba(var(--color-primary-rgb, 99,102,241),0.08);">
-                    <p style="font-size: 0.78rem; font-style: italic; color: var(--color-text-secondary); margin: 0;">💭 Si esto funcionara de verdad a largo plazo, ¿seguirías necesitando hacerlo?</p>
+                    <p style="font-size: 0.78rem; font-style: italic; color: var(--color-text-secondary); margin: 0;">Si esto funcionara de verdad a largo plazo, ¿seguirías necesitando hacerlo?</p>
                 </div>` : ''}
             </div>
         `;

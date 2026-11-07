@@ -90,9 +90,9 @@ function renderVisualizadorPensamientosTool(container) {
         trigger: 'Rumiación activa o fusión con una narrativa ("soy un fracaso", "nada mejora"). El paciente habla desde sus pensamientos, no sobre ellos.',
         intro: 'Vamos a sacar esos pensamientos de tu cabeza y a verlos desde afuera, como objetos. No para eliminarlos, sino para observarlos.',
         questions: [
-            '¿Qué notás al verlo escrito ahí afuera?',
-            '¿El pensamiento dice algo sobre vos o simplemente ocurre?',
-            '¿Podés observarlo sin que te lleve a hacer algo?'
+            '¿Qué notas al verlo escrito ahí afuera?',
+            '¿El pensamiento dice algo sobre ti o simplemente ocurre?',
+            '¿Puedes observarlo sin que te lleve a hacer algo?'
         ],
         abort: 'El paciente empieza a usar la herramienta para "sacar" pensamientos o reporta que se siente peor. Detener y hablar directamente.'
     });
@@ -118,8 +118,8 @@ function renderVisualizadorPensamientosTool(container) {
 
                 <div class="style-config glass" style="padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
                     ${selectedThought
-                ? `<p style="font-size: 0.68rem; color: var(--color-primary); margin: 0;">✏️ Editando el pensamiento seleccionado — tocá el tablero vacío para soltarlo.</p>`
-                : `<p style="font-size: 0.68rem; color: var(--color-text-secondary); margin: 0;">Estos van a ser el color/tamaño/letra del próximo pensamiento. Tocá uno ya puesto para editarlo en vez de crear otro.</p>`
+                ? `<p style="font-size: 0.68rem; color: var(--color-primary); margin: 0;">Editando el pensamiento seleccionado — toca el tablero vacío para soltarlo.</p>`
+                : `<p style="font-size: 0.68rem; color: var(--color-text-secondary); margin: 0;">Estos van a ser el color/tamaño/letra del próximo pensamiento. Toca uno ya colocado para editarlo en vez de crear otro.</p>`
             }
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div class="color-picker" style="display: flex; gap: 0.5rem;">
@@ -180,7 +180,7 @@ function renderVisualizadorPensamientosTool(container) {
                     <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
                         ${groundingField('visualizador-contexto', '¿Dónde te enganchaste con este pensamiento hoy?', esc(state.persistence.grounding?.visualizador?.contexto || ''))}
                         ${groundingField('visualizador-aprendizaje', '¿Qué cambió al verlo como pensamiento y no como hecho?', esc(state.persistence.grounding?.visualizador?.aprendizaje || ''))}
-                        ${groundingField('visualizador-accion', 'Con este pensamiento presente, ¿qué acción útil podés hacer?', esc(state.persistence.grounding?.visualizador?.accion || ''))}
+                        ${groundingField('visualizador-accion', 'Con este pensamiento presente, ¿qué acción útil puedes hacer?', esc(state.persistence.grounding?.visualizador?.accion || ''))}
                     </div>
                 </div>
 
@@ -222,7 +222,7 @@ function renderVisualizadorPensamientosTool(container) {
 
                     <div style="grid-column: 1 / -1; margin-top: 0.5rem; padding: 0.75rem; background: rgba(var(--color-primary-rgb, 99,102,241),0.08); border-radius: var(--radius-sm);">
                         <p style="font-size: 0.75rem; color: var(--color-text-secondary); font-style: italic;">
-                            💭 ¿Notás que el pensamiento dice algo sobre vos, o simplemente ocurre?
+                            ¿Notas que el pensamiento dice algo sobre ti, o simplemente ocurre?
                         </p>
                     </div>
                 </div>
@@ -443,11 +443,12 @@ function renderVisualizadorPensamientosTool(container) {
 // instead of like water. Two independent anime() calls per leaf (one for the
 // horizontal drift, one for vertical bob + rotation) let each rhythm run on
 // its own timer without the leaves ever falling into visible sync.
+const LEAF_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align: -2px; margin-right: 5px;"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>';
 const LEAF_VARIANTS = [
-    { emoji: '🍃', color: '#10b981' },
-    { emoji: '🍂', color: '#f59e0b' },
-    { emoji: '🍁', color: '#ef4444' },
-    { emoji: '🌿', color: '#22c55e' }
+    { color: '#10b981' },
+    { color: '#f59e0b' },
+    { color: '#38bdf8' },
+    { color: '#34d399' }
 ];
 const MAX_LEAVES_ON_SCREEN = 12; // caps DOM growth over a long session
 
@@ -456,7 +457,7 @@ function renderHojasAguaTool(container) {
         trigger: 'El paciente se queda atrapado en un pensamiento repetitivo o discute con él. Útil cuando hay fusión activa y el paciente "cree" el pensamiento.',
         intro: 'Imagina que estás sentado junto a un arroyo. Cada vez que aparezca un pensamiento, lo ponemos en una hoja y lo dejamos flotar. No para que desaparezca, sino para verlo pasar.',
         questions: [
-            '¿Qué notás al dejar que el pensamiento pase en lugar de agarrarlo?',
+            '¿Qué notas al dejar que el pensamiento pase en lugar de agarrarlo?',
             '¿El pensamiento desapareció o simplemente siguió de largo?',
             '¿Qué pasó cuando intentaste empujarlo o retenerlo?'
         ],
@@ -472,7 +473,7 @@ function renderHojasAguaTool(container) {
                     <div id="stream-flow" style="position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.05) 40px, rgba(255,255,255,0.05) 80px); animation: moveStream 20s linear infinite;"></div>
                     <div id="leaves-container"></div>
                     <div style="position: absolute; bottom: 0.75rem; left: 0; right: 0; text-align: center;">
-                        <p style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">Los pensamientos pasan. Vos seguís aquí.</p>
+                        <p style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">Los pensamientos pasan. Tú sigues aquí.</p>
                     </div>
                 </div>
 
@@ -486,7 +487,7 @@ function renderHojasAguaTool(container) {
                     <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
                         ${groundingField('hojas-contexto', '¿En qué situación apareció este pensamiento?', esc(state.persistence.grounding?.hojas?.contexto || ''))}
                         ${groundingField('hojas-aprendizaje', '¿Qué notaste al observarlo en lugar de discutir con él?', esc(state.persistence.grounding?.hojas?.aprendizaje || ''))}
-                        ${groundingField('hojas-accion', 'Aunque ese pensamiento esté ahí, ¿qué podés hacer?', esc(state.persistence.grounding?.hojas?.accion || ''))}
+                        ${groundingField('hojas-accion', 'Aunque ese pensamiento esté ahí, ¿qué puedes hacer?', esc(state.persistence.grounding?.hojas?.accion || ''))}
                     </div>
                 </div>
             </div>
@@ -528,7 +529,7 @@ function renderHojasAguaTool(container) {
             const leafEl = document.createElement('div');
             leafEl.className = 'leaf-item';
             leafEl.style.cssText = `position: absolute; left: -150px; top: ${y}%; padding: 0.5rem 1rem; background: ${variant.color}22; border: 1px solid ${variant.color}55; border-radius: 12px; color: ${variant.color}; font-weight: bold; backdrop-filter: blur(4px); white-space: nowrap; transform: scale(${scale});`;
-            leafEl.innerHTML = `${variant.emoji} ${esc(text)}`;
+            leafEl.innerHTML = `${LEAF_SVG}<span>${esc(text)}</span>`;
             leavesContainer.appendChild(leafEl);
 
             if (reducedMotion) return; // leaf stays put, out of respect for the user's motion setting
@@ -601,7 +602,7 @@ function renderRadioDoomGloomTool(container) {
     const defusionTechniques = [
         {
             label: '«Estoy teniendo el pensamiento de que...»',
-            hint: 'Separa el pensamiento de vos: no sos el pensamiento, lo estás teniendo.',
+            hint: 'Separa el pensamiento de ti: no eres el pensamiento, lo estás teniendo.',
             apply: (t) => `Estoy teniendo el pensamiento de que ${lowerFirst(t)}`
         },
         {
@@ -612,7 +613,7 @@ function renderRadioDoomGloomTool(container) {
         {
             label: '«Gracias, mente»',
             hint: 'Reconoce la intención de protegerte, sin obedecerla.',
-            apply: (t) => `Gracias, mente. Sé que querés ayudar. ${lowerFirst(t)}`
+            apply: (t) => `Gracias, mente. Sé que quieres ayudar. ${lowerFirst(t)}`
         },
         {
             label: '«Ahí está esa historia otra vez...»',
@@ -630,7 +631,7 @@ function renderRadioDoomGloomTool(container) {
         trigger: 'Pensamientos catastrofistas o crítica interna muy intensa. El paciente habla sobre sí mismo con juicios absolutos ("soy un fracaso", "todo va a salir mal").',
         intro: 'Vamos a poner ese pensamiento en una emisora de radio. Una voz que transmite, no una verdad. ¿Cuál sería el nombre de esa emisora?',
         questions: [
-            '¿Podés escuchar la voz sin creerle del todo?',
+            '¿Puedes escuchar la voz sin creerle del todo?',
             '¿Qué cambia si lo decís como "mi mente dice que..." en lugar de creerlo directamente?',
             '¿Cuánto volumen le estás dando a esa emisora ahora mismo?'
         ],
@@ -756,12 +757,12 @@ function renderRadioDoomGloomTool(container) {
                     </div>
 
                     <textarea id="defused-result" class="input-field" rows="3"
-                        placeholder="Elegí una técnica arriba, o escribí vos mismo/a la reformulación..."
+                        placeholder="Elige una técnica arriba, o escribe la reformulación..."
                         style="margin-top: 0.75rem; font-style: italic; resize: vertical; width: 100%; box-sizing: border-box;">${esc(defusedText)}</textarea>
 
                     <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                        <button id="btn-defused-broadcast" class="btn-ghost" style="flex: 1; font-size: 0.75rem; padding: 0.5rem;">📻 Usar como emisión</button>
-                        <button id="btn-defused-save" class="btn-ghost" style="flex: 1; font-size: 0.75rem; padding: 0.5rem;">💾 Guardar como frase</button>
+                        <button id="btn-defused-broadcast" class="btn-ghost" style="flex: 1; font-size: 0.75rem; padding: 0.5rem;"><i data-lucide="radio" style="width: 0.9rem; height: 0.9rem; vertical-align: middle; margin-right: 0.3rem;"></i>Usar como emisión</button>
+                        <button id="btn-defused-save" class="btn-ghost" style="flex: 1; font-size: 0.75rem; padding: 0.5rem;"><i data-lucide="save" style="width: 0.9rem; height: 0.9rem; vertical-align: middle; margin-right: 0.3rem;"></i>Guardar como frase</button>
                     </div>
                 </div>
 
@@ -771,7 +772,7 @@ function renderRadioDoomGloomTool(container) {
                     <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
                         ${groundingField('radio-contexto', '¿En qué situación apareció esta emisora?', esc(state.persistence.grounding?.radio?.contexto || ''))}
                         ${groundingField('radio-aprendizaje', '¿Qué notaste al escucharla como voz de la mente?', esc(state.persistence.grounding?.radio?.aprendizaje || ''))}
-                        ${groundingField('radio-accion', 'Aunque suene fuerte, ¿qué acción elegís sostener?', esc(state.persistence.grounding?.radio?.accion || ''))}
+                        ${groundingField('radio-accion', 'Aunque suene fuerte, ¿qué acción eliges sostener?', esc(state.persistence.grounding?.radio?.accion || ''))}
                     </div>
                 </div>
             </div>
@@ -926,7 +927,7 @@ function renderRadioDoomGloomTool(container) {
             snippets = [text, ...snippets.filter((item) => item !== text)].slice(0, 8);
             persistRadioState();
             internalRender();
-            showToast('✓ Frase guardada para reutilizar');
+            showToast('Frase guardada para reutilizar');
         });
     };
 
@@ -950,7 +951,7 @@ function renderInterruptorLuchaTool(container) {
         trigger: 'El paciente describe resistencia activa a sentir, tensión corporal, o verbaliza que "no quiere sentir esto". Útil para hacer visible la lucha que ya está ocurriendo.',
         intro: 'Quiero mostrarte algo. En este momento, ¿estás peleando con lo que estás sintiendo o lo estás dejando estar?',
         questions: [
-            '¿Qué pasa en tu cuerpo cuando elegís no pelear?',
+            '¿Qué pasa en tu cuerpo cuando eliges no pelear?',
             '¿La emoción cambió, o solo cambió tu relación con ella?',
             '¿Cuánta energía está costando mantener esa lucha?'
         ],
@@ -972,7 +973,7 @@ function renderInterruptorLuchaTool(container) {
 
                     <div id="struggle-toggle" style="width: 70px; height: 120px; background: #1e293b; border-radius: 35px; padding: 5px; cursor: pointer; position: relative; border: 3px solid ${isStruggling ? '#ef4444' : '#3b82f6'}; transition: 0.3s; z-index: 2;">
                         <div style="width: 60px; height: 60px; background: white; border-radius: 50%; position: absolute; left: 2px; transition: 0.4s; top: ${isStruggling ? '5px' : '55px'}; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); ${isStruggling ? 'animation: luchaShake 0.35s ease-in-out infinite;' : ''}">
-                            ${isStruggling ? '⚡' : '🌊'}
+                            ${isStruggling ? '<i data-lucide="zap" style="width: 1.5rem; height: 1.5rem; color: #ef4444;"></i>' : '<i data-lucide="waves" style="width: 1.5rem; height: 1.5rem; color: #3b82f6;"></i>'}
                         </div>
                     </div>
 
@@ -982,8 +983,8 @@ function renderInterruptorLuchaTool(container) {
                         </h4>
                         <p class="clinical-note" style="max-width: 220px; font-size: 0.8rem;">
                             ${isStruggling
-                ? 'Estás peleando con tu experiencia. Mirá lo que cuesta sostenerlo.'
-                : 'Has elegido no pelear por un momento. ¿Qué notás ahora?'}
+                ? 'Estás peleando con tu experiencia. Mira lo que cuesta sostenerlo.'
+                : 'Has elegido no pelear por un momento. ¿Qué notas ahora?'}
                         </p>
                     </div>
 
@@ -999,11 +1000,11 @@ function renderInterruptorLuchaTool(container) {
                     <!-- Fase 2: invitación a observar después del toggle -->
                     ${lastCost !== null ? `
                     <p style="font-size: 0.78rem; color: #3b82f6; z-index: 2; max-width: 240px; text-align: center;">
-                        Sostuviste la lucha ~${lastCost}s. Eso costó energía. ¿La sentís al soltarla?
+                        Sostuviste la lucha ~${lastCost}s. Eso costó energía. ¿La sientes al soltarla?
                     </p>
                     ` : ''}
                     <p style="font-size: 0.78rem; color: var(--color-text-secondary); z-index: 2; max-width: 240px; text-align: center;">
-                        ¿Qué notás en tu cuerpo o en la experiencia ahora? Registralo abajo, en el aterrizaje.
+                        ¿Qué notas en tu cuerpo o en la experiencia ahora? Regístralo abajo, en el aterrizaje.
                     </p>
                     `}
 
@@ -1018,7 +1019,7 @@ function renderInterruptorLuchaTool(container) {
                     <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
                         ${groundingField('lucha-contexto', '¿Cuándo se activa más esta lucha en tu semana?', esc(state.persistence.grounding?.lucha?.contexto || ''))}
                         ${groundingField('lucha-aprendizaje', '¿Qué notaste al dejar de pelear por unos segundos?', esc(state.persistence.grounding?.lucha?.aprendizaje || ''))}
-                        ${groundingField('lucha-accion', 'Con esta emoción presente, ¿qué acción valiosa podés sostener?', esc(state.persistence.grounding?.lucha?.accion || ''))}
+                        ${groundingField('lucha-accion', 'Con esta emoción presente, ¿qué acción valiosa puedes sostener?', esc(state.persistence.grounding?.lucha?.accion || ''))}
                     </div>
                 </div>
             </div>

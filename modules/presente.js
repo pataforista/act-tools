@@ -198,12 +198,13 @@ export function render5SentidosTool(container) {
         if (finished) {
             container.innerHTML = `
                 <div class="tool-content animate-scale-in" style="text-align: center; padding: 3rem 1rem;">
-                    <div style="font-size: 4rem; margin-bottom: 1rem;">🌱</div>
+                    <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;"><i data-lucide="check-circle" style="width: 3.5rem; height: 3.5rem; color: var(--color-primary);"></i></div>
                     <h3 style="color: var(--color-primary); font-size: 1.5rem; margin-bottom: 1rem;">Ejercicio Completado</h3>
-                    <p style="color: var(--color-text-secondary); font-size: 1rem; margin-bottom: 2.5rem; max-width: 300px; margin-left: auto; margin-right: auto;">Notá cómo se siente estar aquí y ahora. El pasado es memoria, el futuro es imaginación.</p>
+                    <p style="color: var(--color-text-secondary); font-size: 1rem; margin-bottom: 2.5rem; max-width: 300px; margin-left: auto; margin-right: auto;">Nota cómo se siente estar aquí y ahora. El pasado es memoria, el futuro es imaginación.</p>
                     <button class="btn-primary" id="btn-restart-5">Repetir ejercicio</button>
                 </div>
             `;
+            if (window.lucide) lucide.createIcons(); // restart
             document.getElementById('btn-restart-5').addEventListener('click', () => {
                 finished = false;
                 currentSense = 0;
@@ -227,7 +228,7 @@ export function render5SentidosTool(container) {
                     <p style="font-size: 0.72rem; color: var(--color-text-secondary); margin-top: 0.4rem;">${done ? 'Listo. Notá que estás aquí.' : `Faltan ${remaining}`}</p>
 
                     <div style="display: flex; gap: 0.5rem; margin-top: 1.25rem;">
-                        <input type="text" id="sense-input" class="input-field" placeholder="Escribe lo que notás..." style="flex: 1; border-color: ${s.color}55;" ${done ? 'disabled' : ''}>
+                        <input type="text" id="sense-input" class="input-field" placeholder="Escribe lo que notas..." style="flex: 1; border-color: ${s.color}55;" ${done ? 'disabled' : ''}>
                         <button class="btn-primary" id="btn-add-sense" style="background: ${s.color};" ${done ? 'disabled' : ''}>+</button>
                     </div>
 
@@ -291,11 +292,11 @@ function renderCieloYClimaTool(container) {
 
     const guide = renderGuideBadge({
         trigger: 'Confusión identitaria o fusión con estados emocionales intensos ("soy mi ansiedad", "soy así"). Útil para trabajar Yo Observador.',
-        intro: 'Imagina que sos el cielo. Los pensamientos y emociones son el clima: pueden ser tormentas o días soleados. El cielo no cambia aunque haya tormenta. ¿Podés notar quién está observando todo esto?',
+        intro: 'Imagina que eres el cielo. Los pensamientos y emociones son el clima: pueden ser tormentas o días soleados. El cielo no cambia aunque haya tormenta. ¿Puedes notar quién está observando todo esto?',
         questions: [
             '¿Quién está notando estas nubes?',
             '¿El cielo cambió, o solo cambió el clima?',
-            '¿Podés ser el cielo que contiene la tormenta sin ser la tormenta?'
+            '¿Puedes ser el cielo que contiene la tormenta sin ser la tormenta?'
         ],
         abort: 'El paciente usa la metáfora para disociarse o evitar sentir. Si nota que "se va" en lugar de observar, detener y volver a anclar en sensaciones del cuerpo.'
     });
@@ -316,7 +317,7 @@ function renderCieloYClimaTool(container) {
                         `).join('')}
                     </div>
                     <div style="position: absolute; bottom: 0.75rem; left: 0; right: 0; text-align: center;">
-                        <p style="font-size: 0.7rem; color: rgba(255,255,255,0.55);">Vos sos el cielo. Esto es el clima.</p>
+                        <p style="font-size: 0.7rem; color: rgba(255,255,255,0.55);">Tú eres el cielo. Esto es el clima.</p>
                     </div>
                 </div>
 
@@ -330,7 +331,7 @@ function renderCieloYClimaTool(container) {
                     <div class="grounding-fields" style="display: grid; gap: 0.5rem;">
                         ${groundingField('cielo-contexto', '¿Dónde aparece esto en tu vida cotidiana?', esc(state.persistence.grounding?.cielo?.contexto || ''))}
                         ${groundingField('cielo-aprendizaje', '¿Qué notaste al observar desde afuera?', esc(state.persistence.grounding?.cielo?.aprendizaje || ''))}
-                        ${groundingField('cielo-accion', 'Aunque esté el clima, ¿qué elegís hacer?', esc(state.persistence.grounding?.cielo?.accion || ''))}
+                        ${groundingField('cielo-accion', 'Aunque esté el clima, ¿qué eliges hacer?', esc(state.persistence.grounding?.cielo?.accion || ''))}
                     </div>
                 </div>
             </div>

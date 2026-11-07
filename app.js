@@ -34,7 +34,7 @@ function setSosVisible(visible) {
 // Acciones de sesión disponibles en la cabecera del Hexaflex.
 const sessionMenu = {
     onNew: () => {
-        if (confirm('¿Iniciar una nueva sesión? Se limpiará el trabajo en pantalla. Exportá antes si querés conservarlo.')) {
+        if (confirm('¿Iniciar una nueva sesión? Se limpiará el trabajo en pantalla. Exporta antes si deseas conservarlo.')) {
             resetSession();
             navigateToHome();
             showToast('Nueva sesión iniciada');
@@ -42,7 +42,7 @@ const sessionMenu = {
     },
     onExport: () => {
         exportSessionToFile();
-        showToast('✓ Sesión exportada (.json)');
+        showToast('Sesión exportada (.json)');
     },
     onImport: () => triggerImport()
 };
@@ -57,7 +57,7 @@ function triggerImport() {
         importSessionFromFile(file)
             .then(() => {
                 navigateToHome();
-                showToast('✓ Sesión cargada');
+                showToast('Sesión cargada');
             })
             .catch((err) => {
                 console.error(err);
@@ -107,12 +107,13 @@ function togglePause() {
     overlay.id = 'pause-overlay';
     overlay.style.cssText = 'position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; background: rgba(8, 12, 20, 0.92); backdrop-filter: blur(8px); text-align: center; padding: 2rem;';
     overlay.innerHTML = `
-        <div style="font-size: 2.5rem;">⏸</div>
+        <div style="display: flex; justify-content: center;"><i data-lucide="pause-circle" style="width: 2.5rem; height: 2.5rem; color: var(--color-primary);"></i></div>
         <h2 style="font-size: 1.3rem; color: var(--color-primary); margin: 0;">Sesión en pausa</h2>
-        <p style="font-size: 0.85rem; color: var(--color-text-secondary); max-width: 280px; margin: 0;">El espacio queda en pausa. Retomá cuando lo decidas.</p>
+        <p style="font-size: 0.85rem; color: var(--color-text-secondary); max-width: 280px; margin: 0;">El espacio queda en pausa. Retoma cuando lo decidas.</p>
         <button class="btn-primary" id="btn-resume-pause">Reanudar</button>
     `;
     document.body.appendChild(overlay);
+    if (window.lucide) lucide.createIcons();
     overlay.querySelector('#btn-resume-pause')?.addEventListener('click', () => overlay.remove());
 }
 
@@ -133,12 +134,23 @@ function init() {
         }
         sosContainer.style.display = 'block';
 
-        renderSOSModule(sosContainer, {
-            navigateToHome: () => {
-                sosContainer.style.display = 'none';
-                mainContent.style.display = 'block';
-                setSosVisible(true);
+        const closeSos = () => {
+            window.removeEventListener('keydown', handleSosKey);
+            sosContainer.style.display = 'none';
+            mainContent.style.display = 'block';
+            setSosVisible(true);
+        };
+
+        const handleSosKey = (e) => {
+            if (e.key === 'Escape' && sosContainer.style.display !== 'none') {
+                closeSos();
             }
+        };
+
+        window.addEventListener('keydown', handleSosKey);
+
+        renderSOSModule(sosContainer, {
+            navigateToHome: closeSos
         });
     });
 

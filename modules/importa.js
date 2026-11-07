@@ -145,7 +145,7 @@ function renderPasoTool(container) {
         trigger: 'El paciente identifica un valor pero no lo traduce en conducta, o plantea metas grandes/abstractas. Útil para pasar de la intención a un paso concreto y posible.',
         intro: 'No buscamos una gran meta. Buscamos el paso más pequeño que puedas dar en dirección a lo que importa, incluso llevando el malestar contigo.',
         questions: [
-            '¿Cuál es el paso más pequeño que sí depende de vos?',
+            '¿Cuál es el paso más pequeño que sí depende de ti?',
             '¿Qué malestar estás dispuesto/a a llevar para darlo?',
             '¿Esto es una dirección, o una meta que tenés que alcanzar?'
         ],
@@ -157,11 +157,11 @@ function renderPasoTool(container) {
             <div class="tool-content">
                 ${guide}
                 <div class="intro" style="text-align: center; margin-bottom: 1.25rem;">
-                    <p class="clinical-note">Un paso mínimo, en una dirección valiosa. No es una meta a cumplir: es hacia dónde te movés.</p>
+                    <p class="clinical-note">Un paso mínimo, en una dirección valiosa. No es una meta a cumplir: es hacia dónde te mueves.</p>
                 </div>
 
                 <div class="glass" style="padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
-                    <label style="font-size: 0.72rem; color: var(--color-text-secondary);">¿Hacia qué área querés moverte?</label>
+                    <label style="font-size: 0.72rem; color: var(--color-text-secondary);">¿Hacia qué área quieres moverte?</label>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
                         ${areas.map(a => `
                             <button class="btn-toggle ${paso.area === a.label ? 'active' : ''}" data-area="${esc(a.label).replace(/"/g, '&quot;')}" style="font-size: 0.78rem; padding: 0.6rem; height: auto;">
@@ -214,10 +214,10 @@ function renderDARETool(container) {
     state.persistence.dare ??= { D: '', A: '', R: '', E: '' };
 
     const pivots = [
-        { fearKey: 'F', fearLabel: 'Fusión', fearQ: '¿Con qué pensamiento te estás enganchando?', dareKey: 'D', dareLabel: 'Defusión', dareQ: '¿Cómo podés tomar distancia de ese pensamiento?' },
+        { fearKey: 'F', fearLabel: 'Fusión', fearQ: '¿Con qué pensamiento te estás enganchando?', dareKey: 'D', dareLabel: 'Defusión', dareQ: '¿Cómo puedes tomar distancia de ese pensamiento?' },
         { fearKey: 'A', fearLabel: 'Evitación del malestar', fearQ: '¿Qué malestar estás evitando?', dareKey: 'A', dareLabel: 'Aceptación', dareQ: '¿A qué estás dispuesto/a a hacer espacio?' },
         { fearKey: 'E', fearLabel: 'Expectativas / metas rígidas', fearQ: '¿Qué expectativa o meta rígida se interpone?', dareKey: 'R', dareLabel: 'Dirección realista', dareQ: '¿Qué paso pequeño y posible aparece?' },
-        { fearKey: 'R', fearLabel: 'Alejamiento de los valores', fearQ: '¿De qué valor te aleja esto?', dareKey: 'E', dareLabel: 'Encarnar los valores', dareQ: '¿Qué valor querés llevar a la acción?' }
+        { fearKey: 'R', fearLabel: 'Alejamiento de los valores', fearQ: '¿De qué valor te aleja esto?', dareKey: 'E', dareLabel: 'Encarnar los valores', dareQ: '¿Qué valor quieres llevar a la acción?' }
     ];
 
     let current = 0;
@@ -225,11 +225,11 @@ function renderDARETool(container) {
 
     const guide = renderGuideBadge({
         trigger: 'El paciente está trabado frente a una acción valiosa y aparecen barreras (fusión, evitación, exigencia, desconexión de valores). Útil para pasar de la barrera a la dirección, una por una.',
-        intro: 'No vamos a corregir nada. Frente a cada barrera que aparece, vamos a girar hacia la dirección que elegís. Una barrera, un giro.',
+        intro: 'No vamos a corregir nada. Frente a cada barrera que aparece, vamos a girar hacia la dirección que eliges. Una barrera, un giro.',
         questions: [
             '¿Qué barrera está más viva ahora mismo?',
-            'Si girás hacia la dirección, ¿qué aparece?',
-            '¿Notás la diferencia entre la barrera y el movimiento que elegís?'
+            'Si giras hacia la dirección, ¿qué aparece?',
+            '¿Notas la diferencia entre la barrera y el movimiento que eliges?'
         ],
         abort: 'El giro se vuelve un "debería" o autoexigencia. Volver a que es una dirección elegida, no una obligación.'
     });

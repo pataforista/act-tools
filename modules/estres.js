@@ -20,7 +20,7 @@ const CAPACITY = { small: 1.3, medium: 1.0, large: 0.75 };
 const STRESSORS = [
     {
         category: 'Trabajo / Estudio',
-        icon: '💼',
+        icon: 'briefcase',
         items: [
             { label: 'Mucho trabajo', pct: 15 },
             { label: 'Plazo de entrega', pct: 20 },
@@ -32,7 +32,7 @@ const STRESSORS = [
     },
     {
         category: 'Relaciones',
-        icon: '👥',
+        icon: 'users',
         items: [
             { label: 'Discusión', pct: 15 },
             { label: 'Soledad', pct: 10 },
@@ -43,7 +43,7 @@ const STRESSORS = [
     },
     {
         category: 'Economía',
-        icon: '💰',
+        icon: 'wallet',
         items: [
             { label: 'Deudas', pct: 15 },
             { label: 'Trabajo inestable', pct: 20 },
@@ -52,7 +52,7 @@ const STRESSORS = [
     },
     {
         category: 'Salud',
-        icon: '🏥',
+        icon: 'activity',
         items: [
             { label: 'Dolor crónico', pct: 15 },
             { label: 'Insomnio', pct: 10 },
@@ -62,7 +62,7 @@ const STRESSORS = [
     },
     {
         category: 'Vida diaria',
-        icon: '🌍',
+        icon: 'clock',
         items: [
             { label: 'Poco tiempo', pct: 10 },
             { label: 'Tráfico / transporte', pct: 5 },
@@ -163,11 +163,11 @@ export function renderEstresModule(container, config, { renderHome }) {
 
     const guide = renderGuideBadge({
         trigger: 'El paciente describe acumulación de estrés o intenta "vaciar" su malestar. Útil para desactivar la agenda de control y separar la carga (lo que está) de la respuesta (lo que hace con ella).',
-        intro: 'Este vaso muestra lo que estás llevando ahora. No vamos a vaciarlo luchando. Vamos a mirar qué hacés con la carga, y si eso te acerca o te aleja de lo que importa.',
+        intro: 'Este vaso muestra lo que estás llevando ahora. No vamos a vaciarlo luchando. Vamos a mirar qué haces con la carga, y si eso te acerca o te aleja de lo que importa.',
         questions: [
             '¿Qué estás llevando ahora mismo?',
-            'Cuando aparece la presión, ¿qué hacés? ¿Te acerca o te aleja?',
-            '¿Podés llevar el vaso lleno y aun así moverte hacia lo que importa?'
+            'Cuando aparece la presión, ¿qué haces? ¿Te acerca o te aleja?',
+            '¿Puedes llevar el vaso lleno y aun así moverte hacia lo que importa?'
         ],
         abort: 'El paciente usa el ejercicio para buscar cómo bajar el nivel. Nombrar la agenda de control y volver a la disposición.'
     });
@@ -182,7 +182,7 @@ export function renderEstresModule(container, config, { renderHome }) {
         return groups.map(g => `
             <div style="margin-bottom: 0.85rem;">
                 <p style="font-size: 0.72rem; font-weight: 700; color: var(--color-text-secondary); letter-spacing: 0.05em; margin: 0 0 0.4rem; text-transform: uppercase;">
-                    ${g.icon} ${g.category}
+                    <i data-lucide="${g.icon}" style="width: 0.85rem; height: 0.85rem; vertical-align: middle; margin-right: 0.3rem;"></i>${g.category}
                 </p>
                 <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
                     ${g.items.map(item => `
@@ -208,7 +208,7 @@ export function renderEstresModule(container, config, { renderHome }) {
         const away = est.responses.filter(r => r.dir === 'away');
 
         let statusText;
-        if (pct >= 100) statusText = 'El vaso rebosa. Aun así, podés elegir hacia dónde te movés.';
+        if (pct >= 100) statusText = 'El vaso rebosa. Aun así, puedes elegir hacia dónde te mueves.';
         else if (pct >= 85) statusText = 'El vaso está muy lleno. Nota cómo es llevarlo ahora.';
         else if (pct >= 50) statusText = 'Estás llevando una carga. Nota su peso.';
         else if (pct <= 15) statusText = 'El vaso lleva poca carga en este momento.';
@@ -219,10 +219,10 @@ export function renderEstresModule(container, config, { renderHome }) {
 
                 <header class="tool-header" style="border-bottom: 2px solid #38bdf8; padding-bottom: 1rem;">
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="font-size: 1.5rem;">🥤</span>
+                        <i data-lucide="cup-soda" style="width: 1.5rem; height: 1.5rem; color: #38bdf8;"></i>
                         <div>
                             <h2 style="font-size: 1.1rem; color: #38bdf8;">Vaso de Estrés</h2>
-                            <p style="font-size: 0.75rem; color: var(--color-text-secondary);">Lo que llevás ahora</p>
+                            <p style="font-size: 0.75rem; color: var(--color-text-secondary);">Lo que llevas ahora</p>
                         </div>
                     </div>
                     <button class="btn-ghost" id="btn-estres-back">← Inicio</button>
@@ -232,7 +232,7 @@ export function renderEstresModule(container, config, { renderHome }) {
 
                 <!-- Capacidad / espacio -->
                 <div>
-                    <p style="font-size: 0.72rem; color: var(--color-text-secondary); margin: 0 0 0.4rem;">Espacio que sentís para llevar la carga hoy</p>
+                    <p style="font-size: 0.72rem; color: var(--color-text-secondary); margin: 0 0 0.4rem;">Espacio que sientes para llevar la carga hoy</p>
                     <div style="display: flex; gap: 0.5rem; width: 100%;">
                         ${[['small', 'Poco', '#38bdf8'], ['medium', 'Medio', '#38bdf8'], ['large', 'Amplio', '#38bdf8']].map(([size, label, col]) => `
                             <button class="estres-size-btn ${est.cupSize === size ? 'active' : ''}"
@@ -255,11 +255,11 @@ export function renderEstresModule(container, config, { renderHome }) {
                 <!-- Vida en movimiento (crece con las respuestas que acercan) -->
                 <div class="glass-card" style="padding: 0.9rem 1rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                        <h3 style="font-size: 0.82rem; color: #10b981; margin: 0;">🌱 Tu vida en movimiento</h3>
+                        <h3 style="font-size: 0.82rem; color: #10b981; margin: 0; display: flex; align-items: center; gap: 0.35rem;"><i data-lucide="activity" style="width: 1rem; height: 1rem;"></i> Acciones comprometidas en curso</h3>
                         <span style="font-size: 0.7rem; color: var(--color-text-secondary);">${toward.length} paso${toward.length === 1 ? '' : 's'}</span>
                     </div>
                     ${toward.length
-                ? `<div style="display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; font-size: 1rem;">${toward.map(() => '👣').join('<span style="opacity:0.4;">·</span>')}</div>
+                ? `<div style="display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">${toward.map(t => `<span style="display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; background: rgba(16,185,129,0.15); color: #34d399; padding: 0.2rem 0.5rem; border-radius: var(--radius-sm);"><i data-lucide="check" style="width: 0.8rem; height: 0.8rem;"></i> ${esc(t.text)}</span>`).join('')}</div>
                        <p style="font-size: 0.72rem; color: var(--color-text-secondary); margin: 0.5rem 0 0;">El vaso sigue lleno. Tu vida se mueve igual.</p>`
                 : `<p style="font-size: 0.75rem; color: var(--color-text-secondary); margin: 0; opacity: 0.7;">Todavía no marcaste un movimiento hacia lo que importa.</p>`
             }
@@ -270,11 +270,11 @@ export function renderEstresModule(container, config, { renderHome }) {
                     <div class="fab-safe" style="display: flex; border-bottom: 1px solid var(--glass-border);">
                         <button class="estres-tab ${activeTab === 'carga' ? 'active' : ''}" data-tab="carga"
                             style="flex: 1; padding: 0.75rem; border: none; background: ${activeTab === 'carga' ? 'rgba(56,189,248,0.15)' : 'transparent'}; color: ${activeTab === 'carga' ? '#7dd3fc' : 'var(--color-text-secondary)'}; font-weight: 700; font-size: 0.85rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'carga' ? '#7dd3fc' : 'transparent'}; transition: var(--transition-base);">
-                            💧 La carga
+                            Carga acumulada
                         </button>
                         <button class="estres-tab ${activeTab === 'respuestas' ? 'active' : ''}" data-tab="respuestas"
                             style="flex: 1; padding: 0.75rem; border: none; background: ${activeTab === 'respuestas' ? 'rgba(16,185,129,0.15)' : 'transparent'}; color: ${activeTab === 'respuestas' ? '#34d399' : 'var(--color-text-secondary)'}; font-weight: 700; font-size: 0.85rem; cursor: pointer; border-bottom: 2px solid ${activeTab === 'respuestas' ? '#34d399' : 'transparent'}; transition: var(--transition-base);">
-                            🧭 Tus respuestas
+                            Respuestas funcionales
                         </button>
                     </div>
                     <div id="estres-scroll-area" style="padding: 1rem; max-height: 300px; overflow-y: auto;">
@@ -303,7 +303,7 @@ export function renderEstresModule(container, config, { renderHome }) {
             <p style="font-size: 0.78rem; color: var(--color-text-secondary); margin: 0 0 0.75rem;">Nombrá lo que estás llevando. Nombrarlo es hacer contacto, no cargar más.</p>
             ${buildChipPanel(STRESSORS)}
             <div style="margin-top: 0.5rem; display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;">
-                <input id="estres-custom-desc" type="text" placeholder="Otra cosa que llevás…"
+                <input id="estres-custom-desc" type="text" placeholder="Otra cosa que llevas…"
                     style="flex: 2; min-width: 120px; padding: 0.45rem 0.75rem; border-radius: 20px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: var(--color-text-primary); font-size: 0.8rem;">
                 <select id="estres-custom-pct" style="padding: 0.45rem 0.5rem; border-radius: 20px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: var(--color-text-primary); font-size: 0.8rem;">
                     <option value="5">5%</option>
@@ -345,7 +345,7 @@ export function renderEstresModule(container, config, { renderHome }) {
             : '<p style="font-size: 0.75rem; opacity: 0.5; margin: 0 0 0.5rem;">—</p>';
 
         return `
-            <p style="font-size: 0.78rem; color: var(--color-text-secondary); margin: 0 0 0.75rem;">Con el vaso así de lleno, cuando aparece la presión, ¿qué hacés? Clasificá cada respuesta. Ninguna vacía el vaso.</p>
+            <p style="font-size: 0.78rem; color: var(--color-text-secondary); margin: 0 0 0.75rem;">Con el vaso así de lleno, cuando aparece la presión, ¿qué haces? Clasifica cada respuesta. Ninguna vacía el vaso.</p>
             <input id="estres-resp-input" type="text" placeholder="Cuando aparece la presión, yo…" value="${esc(responseDraft).replace(/"/g, '&quot;')}"
                 style="width: 100%; box-sizing: border-box; padding: 0.55rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: var(--color-text-primary); font-size: 0.82rem; margin-bottom: 0.5rem;">
             <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">

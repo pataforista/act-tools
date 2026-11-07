@@ -86,7 +86,7 @@ export function renderModuleHeader(module, options = {}) {
                 </div>
             </div>
             <div class="tool-header__actions">
-                ${showSave ? '<button class="btn-ghost btn-icon" id="btn-global-save" aria-label="Guardar ahora" title="Guardar ahora">💾</button>' : ''}
+                ${showSave ? '<button class="btn-ghost btn-icon" id="btn-global-save" aria-label="Guardar ahora" title="Guardar ahora"><i data-lucide="save" style="width: 1.1rem; height: 1.1rem;"></i></button>' : ''}
                 <button class="btn-ghost" id="btn-close-module">Finalizar</button>
             </div>
         </header>
@@ -101,7 +101,7 @@ export function attachHeaderEvents(renderHome, saveState) {
     if (saveBtn) {
         saveBtn.addEventListener('click', () => {
             saveState();
-            showToast('✓ Sesión Guardada');
+            showToast('Sesión guardada');
         });
     }
 
@@ -126,7 +126,7 @@ export function renderGuideBadge({ trigger, intro, questions, abort }) {
                        color: var(--color-text-secondary); background: transparent;
                        border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
                        padding: 0.3rem 0.7rem; cursor: pointer; transition: all 0.2s;">
-                <span style="font-size: 0.9rem;">🧭</span> Guía clínica
+                <i data-lucide="compass" style="width: 0.9rem; height: 0.9rem;"></i> Guía clínica
             </button>
             <div id="${id}" class="guide-panel glass" style="display: none; margin-top: 0.5rem;
                  padding: 1rem 1.1rem; border-radius: var(--radius-md); border-left: 3px solid var(--color-primary);
@@ -135,24 +135,24 @@ export function renderGuideBadge({ trigger, intro, questions, abort }) {
                 <div style="display: grid; gap: 0.65rem;">
                     <div>
                         <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;
-                              color: var(--color-primary); font-weight: 700;">⚡ TRIGGER</span>
+                              color: var(--color-primary); font-weight: 700;">INDICACIÓN CLÍNICA</span>
                         <p style="margin-top: 0.2rem; color: var(--color-text-secondary);">${trigger}</p>
                     </div>
                     <div>
                         <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;
-                              color: var(--color-primary); font-weight: 700;">💬 INTRODUCCIÓN SUGERIDA</span>
+                              color: var(--color-primary); font-weight: 700;">INTRODUCCIÓN SUGERIDA</span>
                         <p style="margin-top: 0.2rem; font-style: italic; color: var(--color-text-secondary);">"${intro}"</p>
                     </div>
                     <div>
                         <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;
-                              color: var(--color-primary); font-weight: 700;">❓ PREGUNTAS CLAVE</span>
+                              color: var(--color-primary); font-weight: 700;">PREGUNTAS DE EXPLORACIÓN</span>
                         <ul style="margin-top: 0.3rem; padding-left: 1rem; display: flex; flex-direction: column; gap: 0.25rem; color: var(--color-text-secondary);">
                             ${questions.map(q => `<li>${q}</li>`).join('')}
                         </ul>
                     </div>
                     <div>
                         <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;
-                              color: #ef4444; font-weight: 700;">🛑 SEÑAL DE ABORTO</span>
+                              color: #ef4444; font-weight: 700;">CRITERIO DE INTERRUPCIÓN</span>
                         <p style="margin-top: 0.2rem; color: var(--color-text-secondary);">${abort}</p>
                     </div>
                 </div>
@@ -166,6 +166,7 @@ export function renderGuideBadge({ trigger, intro, questions, abort }) {
  * Call this after rendering guide badges.
  */
 export function attachGuideBadgeEvents() {
+    if (window.lucide) lucide.createIcons();
     document.querySelectorAll('.btn-guide-toggle').forEach(btn => {
         btn.addEventListener('click', () => {
             const panel = document.getElementById(btn.dataset.guideId);

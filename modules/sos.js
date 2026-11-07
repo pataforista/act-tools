@@ -17,7 +17,7 @@ export function renderSOSModule(container, { navigateToHome }) {
             <div class="module-view animate-scale-in">
                 <header class="tool-header" style="border-bottom: 2px solid var(--hex-sos); padding-bottom: 1rem;">
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="font-size: 1.5rem;">🆘</span>
+                        <i data-lucide="shield-alert" style="width: 1.5rem; height: 1.5rem; color: var(--hex-sos);"></i>
                         <h2 style="font-size: 1.2rem; color: var(--hex-sos);">Módulo SOS</h2>
                     </div>
                     <button class="btn-ghost" id="btn-close-sos">Cerrar</button>

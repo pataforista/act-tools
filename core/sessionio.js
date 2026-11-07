@@ -40,13 +40,16 @@ export function exportSessionToFile() {
 }
 
 // Valida que el objeto parseado sea (o contenga) una sesión ACT reconocible.
-function extractSession(parsed) {
-    const raw = parsed && parsed.session ? parsed.session : parsed;
-    if (!raw || typeof raw !== 'object') {
-        throw new Error('El archivo no tiene un formato reconocible.');
+export function extractSession(parsed) {
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('El archivo no contiene un objeto JSON válido.');
     }
+    const raw = (parsed.session && typeof parsed.session === 'object' && !Array.isArray(parsed.session))
+        ? parsed.session
+        : parsed;
+
     if (!SESSION_KEYS.some((k) => k in raw)) {
-        throw new Error('El archivo no parece una sesión ACT.');
+        throw new Error('El archivo no parece ser una sesión válida de ACT In-Session.');
     }
     return raw;
 }

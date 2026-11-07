@@ -115,7 +115,7 @@ function renderGroundingSection(p) {
     if (!blocks.length) return '';
     return `
         <section class="glass-card">
-            <h3>🧭 Aterrizaje clínico</h3>
+            <h3>Aterrizaje clínico</h3>
             <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
                 ${blocks.join('')}
             </div>
@@ -128,23 +128,23 @@ function renderSummarySections(p) {
 
     sections.push(renderGroundingSection(p));
 
-    sections.push(listSection('🧠 Pensamientos Externalizados',
+    sections.push(listSection('Pensamientos Externalizados',
         (p.thoughts || []).map(thoughtText).map(esc).filter(Boolean)));
 
-    sections.push(listSection('🌤️ Clima Observado',
+    sections.push(listSection('Clima Observado',
         (p.weather || []).map(w => esc(w.text || w)).filter(Boolean)));
 
     const dianaSet = (p.diana || []).filter(d => d.x !== 0 || d.y !== 0).map(d => esc(d.label));
-    sections.push(listSection('🎯 Valores · Áreas situadas en la Diana', dianaSet));
+    sections.push(listSection('Valores · Áreas situadas en la Diana', dianaSet));
 
     if (p.paso && Object.values(p.paso).some(v => (v || '').trim())) {
         const pasoItems = ['area', 'accion', 'disposicion', 'cuando']
             .filter(k => (p.paso[k] || '').trim())
             .map(k => `<strong>${PASO_LABELS[k]}:</strong> ${esc(p.paso[k])}`);
-        sections.push(listSection('✅ Acción · Paso mínimo', pasoItems));
+        sections.push(listSection('Acción · Paso mínimo', pasoItems));
     } else if (p.smart) {
         const smartItems = Object.entries(p.smart).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${SMART_LABELS[k] || k}:</strong> ${esc(v)}`);
-        sections.push(listSection('✅ Acción · SMART-ACT', smartItems));
+        sections.push(listSection('Acción · SMART-ACT', smartItems));
     }
 
     const fearItems = p.fear
@@ -156,7 +156,7 @@ function renderSummarySections(p) {
     if (fearItems.length || dareItems.length) {
         sections.push(`
             <section class="glass-card">
-                <h3>🚀 FEAR → DARE</h3>
+                <h3>Barreras y Dirección · FEAR → DARE</h3>
                 ${fearItems.length ? `<p style="font-size: 0.75rem; color: #ef4444; margin: 0.5rem 0 0.2rem;">Barreras (FEAR)</p><ul style="font-size: 0.82rem; padding-left: 1.1rem;">${fearItems.map(i => `<li>${i}</li>`).join('')}</ul>` : ''}
                 ${dareItems.length ? `<p style="font-size: 0.75rem; color: #10b981; margin: 0.5rem 0 0.2rem;">Dirección (DARE)</p><ul style="font-size: 0.82rem; padding-left: 1.1rem;">${dareItems.map(i => `<li>${i}</li>`).join('')}</ul>` : ''}
             </section>
@@ -169,7 +169,7 @@ function renderSummarySections(p) {
             (arr || []).forEach(item => matrixItems.push(`<strong>${MATRIX_LABELS[id] || id}:</strong> ${esc(item)}`));
         });
     }
-    sections.push(listSection('🧩 Análisis · Matrix', matrixItems));
+    sections.push(listSection('Análisis · Matriz ACT', matrixItems));
 
     if (Array.isArray(p.evitacion) && p.evitacion.length) {
         const evitItems = p.evitacion.map(e => {
@@ -178,10 +178,10 @@ function renderSummarySections(p) {
             if ((e.costo || '').trim()) detail.push(`coste: ${esc(e.costo)}`);
             return `<strong>${esc((e.tipo || '').trim() || 'Evitación')}</strong>${detail.length ? ' — ' + detail.join(' · ') : ''}`;
         });
-        sections.push(listSection('🔁 Análisis · Coste de la evitación', evitItems));
+        sections.push(listSection('Análisis · Coste de la evitación', evitItems));
     } else if (p.dots) {
         const dotsItems = Object.entries(p.dots).filter(([, v]) => (v || '').trim()).map(([k, v]) => `<strong>${DOTS_LABELS[k] || k}:</strong> ${esc(v)}`);
-        sections.push(listSection('🔁 Análisis · DOTS (evitación)', dotsItems));
+        sections.push(listSection('Análisis · DOTS (evitación)', dotsItems));
     }
 
     const estres = p.estres || {};
@@ -193,7 +193,7 @@ function renderSummarySections(p) {
         const away = estresResponses.filter(r => r.dir === 'away').map(r => esc(r.text)).filter(Boolean);
         sections.push(`
             <section class="glass-card">
-                <h3>🥤 Vaso de Estrés</h3>
+                <h3>Vaso de Estrés</h3>
                 ${loadItems.length ? `<p style="font-size: 0.75rem; color: var(--color-text-secondary); margin: 0.5rem 0 0.2rem;">Carga que lleva</p><ul style="font-size: 0.82rem; padding-left: 1.1rem;">${loadItems.map(i => `<li>${i}</li>`).join('')}</ul>` : ''}
                 ${toward.length ? `<p style="font-size: 0.75rem; color: #10b981; margin: 0.5rem 0 0.2rem;">Respuestas que acercan</p><ul style="font-size: 0.82rem; padding-left: 1.1rem;">${toward.map(i => `<li>${i}</li>`).join('')}</ul>` : ''}
                 ${away.length ? `<p style="font-size: 0.75rem; color: #ef4444; margin: 0.5rem 0 0.2rem;">Respuestas que alejan (evitación)</p><ul style="font-size: 0.82rem; padding-left: 1.1rem;">${away.map(i => `<li>${i}</li>`).join('')}</ul>` : ''}
@@ -304,7 +304,7 @@ async function copyToClipboard(text) {
             document.execCommand('copy');
             ta.remove();
         }
-        showToast('✓ Resumen copiado');
+        showToast('Resumen copiado');
     } catch {
         showToast('No se pudo copiar');
     }
@@ -355,13 +355,13 @@ export function renderResumenModule(container, { navigateToHome, renderHomeworkV
                 ${renderSummarySections(p)}
 
                 <div class="fab-safe" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
-                    <button class="btn-primary" id="btn-export-json" style="grid-column: 1 / -1;">⬇️ Exportar sesión (.json)</button>
+                    <button class="btn-primary" id="btn-export-json" style="grid-column: 1 / -1; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;"><i data-lucide="download" style="width: 1rem; height: 1rem;"></i> Exportar sesión (.json)</button>
                     <button class="btn-ghost" id="btn-copy-summary">Copiar Texto</button>
                     <button class="btn-ghost" id="btn-homework-view">Ver Tarea Paciente</button>
-                    <button class="btn-ghost" id="btn-new-session" style="grid-column: 1 / -1;">🆕 Nueva sesión</button>
+                    <button class="btn-ghost" id="btn-new-session" style="grid-column: 1 / -1; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;"><i data-lucide="file-plus" style="width: 1rem; height: 1rem;"></i> Nueva sesión</button>
                 </div>
                 <p style="font-size: 0.68rem; color: var(--color-text-secondary); text-align: center; margin-top: 0.5rem;">
-                    La app no guarda sesiones. Exportá el .json para compartirlo con el paciente o adjuntarlo al expediente; podés volver a cargarlo para retomar el tema.
+                    La app no guarda sesiones. Exporta el .json para compartirlo con el paciente o adjuntarlo al expediente; puedes volver a cargarlo para retomar el tema.
                 </p>
             </div>
     `;
@@ -373,10 +373,10 @@ export function renderResumenModule(container, { navigateToHome, renderHomeworkV
     document.getElementById('btn-copy-summary').addEventListener('click', () => copyToClipboard(buildSummaryText(p)));
     document.getElementById('btn-export-json').addEventListener('click', () => {
         exportSessionToFile();
-        showToast('✓ Sesión exportada (.json)');
+        showToast('Sesión exportada (.json)');
     });
     document.getElementById('btn-new-session').addEventListener('click', () => {
-        if (confirm('¿Iniciar una nueva sesión? Se limpiará el trabajo en pantalla. Exportá antes si querés conservarlo.')) {
+        if (confirm('¿Iniciar una nueva sesión? Se limpiará el trabajo en pantalla. Exporta antes si deseas conservarlo.')) {
             resetSession();
             navigateToHome();
             showToast('Nueva sesión iniciada');

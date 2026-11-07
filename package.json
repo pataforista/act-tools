@@ -1,0 +1,17 @@
+{
+  "name": "act-tools",
+  "version": "1.1.0",
+  "description": "ACT In-Session Instrument - Progressive Web App",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "act",
+    "therapy",
+    "pwa",
+    "clinical"
+  ],
+  "author": "",
+  "license": "ISC"
+}

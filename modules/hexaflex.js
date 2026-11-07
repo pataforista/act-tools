@@ -35,9 +35,9 @@ export function renderHexaflexModule(container, { modules, loadModule, renderHom
                 <div class="brand">ACT In-Session</div>
                 <div style="display: flex; gap: 0.4rem; align-items: center;">
                     <button class="btn-ghost btn-icon" id="btn-pause" aria-label="Pausar sesión" title="Pausar sesión"><i data-lucide="pause" style="width: 1.1rem; height: 1.1rem;"></i></button>
-                    <button class="btn-ghost btn-icon" id="btn-import-session" aria-label="Cargar sesión desde archivo" title="Cargar sesión (.json)">📂</button>
-                    <button class="btn-ghost btn-icon" id="btn-export-session" aria-label="Exportar sesión a archivo" title="Exportar sesión (.json)">⬇️</button>
-                    <button class="btn-ghost btn-icon" id="btn-new-session" aria-label="Nueva sesión" title="Nueva sesión">🆕</button>
+                    <button class="btn-ghost btn-icon" id="btn-import-session" aria-label="Cargar sesión desde archivo" title="Cargar sesión (.json)"><i data-lucide="folder-open" style="width: 1.1rem; height: 1.1rem;"></i></button>
+                    <button class="btn-ghost btn-icon" id="btn-export-session" aria-label="Exportar sesión a archivo" title="Exportar sesión (.json)"><i data-lucide="download" style="width: 1.1rem; height: 1.1rem;"></i></button>
+                    <button class="btn-ghost btn-icon" id="btn-new-session" aria-label="Nueva sesión" title="Nueva sesión"><i data-lucide="file-plus" style="width: 1.1rem; height: 1.1rem;"></i></button>
                 </div>
             </header>
 
@@ -124,10 +124,10 @@ export function renderHexaflexModule(container, { modules, loadModule, renderHom
 
             <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-top: 1rem;">
                 <button class="btn-primary" id="btn-open-estres" style="background: var(--glass-bg); color: #f59e0b; border: 1px solid #f59e0b; box-shadow: none;">
-                    🥤 Vaso de Estrés
+                    <i data-lucide="cup-soda" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.3rem;"></i> Vaso de Estrés
                 </button>
                 <button class="btn-primary" id="btn-session-summary" style="background: var(--glass-bg); color: var(--color-primary); border: 1px solid var(--color-primary); box-shadow: none;">
-                    📋 Ver Resumen de Sesión
+                    <i data-lucide="clipboard-list" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.3rem;"></i> Resumen de Sesión
                 </button>
             </div>
         </div>

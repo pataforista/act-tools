@@ -1,4 +1,4 @@
-const CACHE_NAME = 'act-clinical-v4';
+const CACHE_NAME = 'act-clinical-v5';
 const ASSETS = [
     './',
     './index.html',
@@ -81,4 +81,10 @@ self.addEventListener('fetch', event => {
             return cachedResponse || fetchPromise;
         })
     );
+});
+
+self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
