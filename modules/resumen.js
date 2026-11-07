@@ -316,14 +316,24 @@ export function renderResumenModule(container, { navigateToHome, renderHomeworkV
 
     container.innerHTML = `
             <header class="tool-header">
-                <div class="title-group">
-                    <i data-lucide="clipboard-check" style="width: 1.5rem; height: 1.5rem; color: var(--color-primary);"></i>
-                    <div>
-                        <h2 style="font-size: 1.2rem; font-weight: 700;">Resumen de Sesión</h2>
-                        <p style="font-size: 0.7rem; color: var(--color-text-secondary);">${new Date(p.date).toLocaleDateString()}</p>
+                <div class="print-only-header">
+                    <p style="font-size: 9pt; color: #4b5563; margin: 0;"><strong>ACT In-Session Instrument</strong> · Resumen clínico de consulta</p>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div class="title-group">
+                        <i data-lucide="clipboard-check" style="width: 1.5rem; height: 1.5rem; color: var(--color-primary);"></i>
+                        <div>
+                            <h2 style="font-size: 1.2rem; font-weight: 700;">Resumen de Sesión</h2>
+                            <p style="font-size: 0.7rem; color: var(--color-text-secondary);">${new Date(p.date).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.4rem; align-items: center;">
+                        <button class="btn-ghost btn-icon" id="btn-print-resumen" aria-label="Imprimir resumen" title="Imprimir o guardar como PDF">
+                            <i data-lucide="printer" style="width: 1.1rem; height: 1.1rem;"></i>
+                        </button>
+                        <button class="btn-ghost" id="btn-back-resumen">Cerrar</button>
                     </div>
                 </div>
-                <button class="btn-ghost" id="btn-back-resumen">Cerrar</button>
             </header>
 
             <div class="resumen-content" style="display: flex; flex-direction: column; gap: 1.5rem; padding-bottom: 3rem;">
@@ -368,6 +378,7 @@ export function renderResumenModule(container, { navigateToHome, renderHomeworkV
 
     if (window.lucide) lucide.createIcons();
 
+    document.getElementById('btn-print-resumen')?.addEventListener('click', () => window.print());
     document.getElementById('btn-back-resumen').addEventListener('click', navigateToHome);
     document.getElementById('btn-homework-view').addEventListener('click', () => renderHomeworkView(p));
     document.getElementById('btn-copy-summary').addEventListener('click', () => copyToClipboard(buildSummaryText(p)));
@@ -420,10 +431,20 @@ export function renderHomeworkScreen(container, session, onBack) {
     container.innerHTML = `
         <div class="module-view animate-slide-up">
             <header class="tool-header">
-                <button class="btn-ghost" id="btn-back-homework">←</button>
-                <div>
-                    <h2 style="font-size: 1.2rem; font-weight: 700;">Tarea para el consultante</h2>
-                    <p style="font-size: 0.7rem; color: var(--color-text-secondary);">${new Date(p.date).toLocaleDateString()}</p>
+                <div class="print-only-header">
+                    <p style="font-size: 9pt; color: #4b5563; margin: 0;"><strong>ACT In-Session Instrument</strong> · Tarea acordada para el consultante</p>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <button class="btn-ghost btn-icon" id="btn-back-homework" aria-label="Volver">←</button>
+                        <div>
+                            <h2 style="font-size: 1.2rem; font-weight: 700;">Tarea para el consultante</h2>
+                            <p style="font-size: 0.7rem; color: var(--color-text-secondary);">${new Date(p.date).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                    <button class="btn-ghost btn-icon" id="btn-print-homework" aria-label="Imprimir tarea" title="Imprimir o guardar como PDF">
+                        <i data-lucide="printer" style="width: 1.1rem; height: 1.1rem;"></i>
+                    </button>
                 </div>
             </header>
 
@@ -451,5 +472,6 @@ export function renderHomeworkScreen(container, session, onBack) {
     `;
 
     if (window.lucide) lucide.createIcons();
+    document.getElementById('btn-print-homework')?.addEventListener('click', () => window.print());
     document.getElementById('btn-back-homework').addEventListener('click', onBack);
 }
