@@ -68,7 +68,7 @@ function renderDianaTool(container) {
                     <p style="font-size: 0.72rem; color: var(--color-text-secondary); margin-top: 0.35rem;">Centro = compromiso pleno con ese valor · Borde = alejado/a de él, por ahora.</p>
                 </div>
 
-                <div class="diana-target" id="diana-canvas" style="width: 320px; height: 320px; margin: 0 auto; border-radius: 50%; position: relative; overflow: hidden;">
+                <div class="diana-target" id="diana-canvas" tabindex="0" role="region" aria-label="Tablero de la Diana de Valores. Haz clic o usa las teclas de flecha para situar el compromiso del área seleccionada." style="width: 320px; height: 320px; margin: 0 auto; border-radius: 50%; position: relative; overflow: hidden; outline-offset: 4px; cursor: crosshair;">
                     <!-- Target rings: outer edge (100%), middle (66%), inner (33%) -->
                     <div class="diana-ring" style="width: 310px; height: 310px;"></div>
                     <div class="diana-ring" style="width: 205px; height: 205px;"></div>
@@ -88,6 +88,22 @@ function renderDianaTool(container) {
                 <p style="text-align: center; font-size: 0.8rem; color: var(--color-primary); font-weight: 600; margin-top: 1rem; min-height: 1.2em;">
                     ${esc(areas[selectedAreaIndex].label)}: ${dianaProximityLabel(areas[selectedAreaIndex])}
                 </p>
+
+                <!-- Micro-ajustes accesibles y por teclado -->
+                <div class="diana-fine-controls" style="display: flex; justify-content: center; align-items: center; gap: 0.4rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn-ghost" id="btn-diana-center" title="Situar en el centro (compromiso pleno)" style="font-size: 0.72rem; padding: 0.35rem 0.65rem; border: 1px solid var(--glass-border); border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 0.3rem;">
+                        <i data-lucide="target" style="width: 0.8rem; height: 0.8rem;"></i> Al centro
+                    </button>
+                    <button class="btn-ghost" id="btn-diana-in" title="Acercar un paso al centro" style="font-size: 0.72rem; padding: 0.35rem 0.65rem; border: 1px solid var(--glass-border); border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 0.3rem;">
+                        <i data-lucide="minimize-2" style="width: 0.8rem; height: 0.8rem;"></i> Acercar
+                    </button>
+                    <button class="btn-ghost" id="btn-diana-out" title="Alejar un paso del centro" style="font-size: 0.72rem; padding: 0.35rem 0.65rem; border: 1px solid var(--glass-border); border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 0.3rem;">
+                        <i data-lucide="maximize-2" style="width: 0.8rem; height: 0.8rem;"></i> Alejar
+                    </button>
+                    <button class="btn-ghost" id="btn-diana-reset" title="Restablecer área sin marcar" style="font-size: 0.72rem; padding: 0.35rem 0.65rem; border: 1px solid var(--glass-border); border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 0.3rem; color: #ef4444;">
+                        <i data-lucide="rotate-ccw" style="width: 0.8rem; height: 0.8rem;"></i> Desmarcar
+                    </button>
+                </div>
 
                 <div class="area-selector" style="margin-top: 1rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
                     ${areas.map((area, i) => `
@@ -122,6 +138,77 @@ function renderDianaTool(container) {
                     easing: 'easeOutElastic(1, .6)'
                 });
             }
+        });
+
+        if (window.lucide) lucide.createIcons();
+
+        // Keyboard arrow navigation on target
+        target.addEventListener('keydown', (e) => {
+            const step = 12;
+            const current = state.persistence.diana[selectedAreaIndex];
+            let newX = current.x;
+            let newY = current.y;
+
+            if (e.key === 'ArrowLeft') { newX -= step; e.preventDefault(); }
+            else if (e.key === 'ArrowRight') { newX += step; e.preventDefault(); }
+            else if (e.key === 'ArrowUp') { newY -= step; e.preventDefault(); }
+            else if (e.key === 'ArrowDown') { newY += step; e.preventDefault(); }
+            else return;
+
+            const dist = Math.sqrt(newX * newX + newY * newY);
+            if (dist < DIANA_RADIUS) {
+                current.x = newX;
+                current.y = newY;
+            } else {
+                const angle = Math.atan2(newY, newX);
+                current.x = Math.round(Math.cos(angle) * (DIANA_RADIUS - 5));
+                current.y = Math.round(Math.sin(angle) * (DIANA_RADIUS - 5));
+            }
+            saveState();
+            internalRender();
+            document.getElementById('diana-canvas')?.focus();
+        });
+
+        // Fine control buttons
+        document.getElementById('btn-diana-center')?.addEventListener('click', () => {
+            state.persistence.diana[selectedAreaIndex].x = 0;
+            state.persistence.diana[selectedAreaIndex].y = 0;
+            saveState();
+            internalRender();
+        });
+
+        document.getElementById('btn-diana-in')?.addEventListener('click', () => {
+            const current = state.persistence.diana[selectedAreaIndex];
+            if (current.x === 0 && current.y === 0) {
+                current.y = 35;
+            } else {
+                current.x = Math.round(current.x * 0.7);
+                current.y = Math.round(current.y * 0.7);
+            }
+            saveState();
+            internalRender();
+        });
+
+        document.getElementById('btn-diana-out')?.addEventListener('click', () => {
+            const current = state.persistence.diana[selectedAreaIndex];
+            if (current.x === 0 && current.y === 0) {
+                current.y = 75;
+            } else {
+                const dist = Math.sqrt(current.x * current.x + current.y * current.y);
+                const newDist = Math.min(dist * 1.35, DIANA_RADIUS - 5);
+                const angle = Math.atan2(current.y, current.x);
+                current.x = Math.round(Math.cos(angle) * newDist);
+                current.y = Math.round(Math.sin(angle) * newDist);
+            }
+            saveState();
+            internalRender();
+        });
+
+        document.getElementById('btn-diana-reset')?.addEventListener('click', () => {
+            state.persistence.diana[selectedAreaIndex].x = 0;
+            state.persistence.diana[selectedAreaIndex].y = 0;
+            saveState();
+            internalRender();
         });
 
         container.querySelectorAll('.btn-toggle').forEach(btn => {

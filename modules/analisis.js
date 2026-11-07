@@ -68,9 +68,12 @@ function renderMatrixTool(container) {
                                 <div class="items" style="display: flex; flex-direction: column; gap: 0.4rem;">
                                     ${state.persistence.matrix[id].length ?
                 state.persistence.matrix[id].map((item, i) => `
-                                        <div class="glass" style="padding: 0.5rem; font-size: 0.75rem; border-left: 2px solid ${cat.color}; background: rgba(0,0,0,0.1); border-radius: 4px; display: flex; align-items: center; gap: 0.4rem;">
-                                            <span style="flex: 1;">${esc(item)}</span>
-                                            <button class="item-remove-btn btn-del-matrix" data-qid="${id}" data-idx="${i}" aria-label="Quitar">×</button>
+                                        <div class="glass" style="padding: 0.45rem 0.6rem; font-size: 0.75rem; border-left: 2px solid ${cat.color}; background: rgba(0,0,0,0.12); border-radius: 4px; display: flex; align-items: center; gap: 0.35rem;">
+                                            <span style="flex: 1; word-break: break-word;">${esc(item)}</span>
+                                            <button class="btn-ghost btn-icon btn-move-matrix" data-qid="${id}" data-idx="${i}" aria-label="Mover al siguiente cuadrante" title="Mover de cuadrante" style="padding: 2px; opacity: 0.75;">
+                                                <i data-lucide="arrow-right-left" style="width: 0.8rem; height: 0.8rem;"></i>
+                                            </button>
+                                            <button class="item-remove-btn btn-del-matrix" data-qid="${id}" data-idx="${i}" aria-label="Quitar" style="padding: 2px;">×</button>
                                         </div>
                                     `).join('') :
                 `<div style="font-size: 0.6rem; opacity: 0.3; font-style: italic; text-align: center; margin-top: 1rem;">${cat.sub}</div>`
@@ -118,6 +121,8 @@ function renderMatrixTool(container) {
                 }
             });
         });
+
+
 
         container.querySelectorAll('.btn-del-matrix').forEach(btn => {
             btn.addEventListener('click', () => {
