@@ -36,7 +36,7 @@ function groundingFilledCount(entry) {
     return ['contexto', 'aprendizaje', 'accion'].filter(k => (entry[k] || '').trim()).length;
 }
 
-function computeRadarScores(p) {
+export function computeRadarScores(p) {
     const g = p.grounding || {};
     const filled = (key) => groundingFilledCount(g[key]);
     const thoughts = p.thoughts?.length || 0;
@@ -65,7 +65,7 @@ function computeRadarScores(p) {
 }
 
 // Axis order matches the SVG labels: top, upper-right, lower-right, bottom, lower-left, upper-left
-function radarPointsString(s) {
+export function radarPointsString(s) {
     const c = 50, r = 40;
     const pts = [
         { x: c, y: c - r * s.presente },
