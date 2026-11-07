@@ -18,6 +18,7 @@ import { renderResumenModule, renderHomeworkScreen } from './modules/resumen.js'
 import { renderSOSModule } from './modules/sos.js';
 import { renderEstresModule } from './modules/estres.js';
 import { showToast } from './ui/utils.js';
+import { radioAudio } from './core/audio.js';
 
 const mainContent = document.getElementById('main-content');
 
@@ -97,6 +98,7 @@ function loadModule(id) {
 }
 
 function togglePause() {
+    radioAudio.stop();
     const existing = document.getElementById('pause-overlay');
     if (existing) {
         existing.remove();
@@ -158,7 +160,25 @@ function init() {
     themeBtn?.addEventListener('click', () => {
         state.theme = state.theme === 'dark' ? 'light' : 'dark';
         localStorage.setItem('act_theme', state.theme);
-        document.body.setAttribute('data-theme', state.theme);
+        
+    // Lifecycle & memory optimization for long clinical sessions:
+    // pause active animations and audio when the browser tab is hidden.
+    if (typeof document !== 'undefined') {
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                radioAudio.stop();
+                if (typeof window !== 'undefined' && window.anime && Array.isArray(window.anime.running)) {
+                    window.anime.running.forEach(anim => {
+                        if (anim && typeof anim.pause === 'function') {
+                            anim.pause();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    document.body.setAttribute('data-theme', state.theme);
     });
 
     document.body.setAttribute('data-theme', state.theme);
